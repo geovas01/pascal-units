@@ -1,0 +1,125 @@
+Producer is going to sleep for 54
+
+Producer produces a new item1
+Producer is going to sleep for 60
+
+Producer produces a new item1
+Producer is going to sleep for 54
+
+Producer produces a new item1
+Producer is going to sleep for 42
+
+Producer produces a new item1
+Producer is going to sleep for 64
+
+Producer produces a new item1
+Producer is going to sleep for 43
+
+Producer produces a new item1
+Producer is going to sleepThread 1 is going to sleep for 59
+
+Thread 1 consumed one item
+Thread 1 is going to sleep for 85
+
+Thread 1 consumed one item
+Thread 1 is going to sleep for 38
+
+Thread 1 consumed one item
+Thread 1 is going tThread 2 is going to sleep for 71
+
+Thread 2 consumed one item
+Thread 2 is going to sleep for 84
+
+Thread 2 consumed one item
+Thread 2 is going to sleep for 29
+
+Thread 2 consumed one item
+Thread 2 is going tThread 3 is going to sleep for 84
+
+Thread 3 consumed one item
+Thread 3 is going to sleep for 62
+
+Thread 3 consumed one item
+Thread 3 is going to sleep for 5
+
+Thread 3 consumed one item
+Thread 3 is going to for 89
+
+Producer produces a new item1
+Producer is going to sleep for 96
+
+Producer produces a new item1
+Producer is going to sleep for 38
+
+Producer produces a new item1
+Producer is going to sleep for 79
+
+Producer produces a new item1
+Producer is going to sleep for 52
+
+Producer produces a new item1
+Producer is going to sleep for 56
+
+Producer produces a new item1
+Producer is going to sleep for 92
+
+Producer produces a new item1
+Producer is going to sleep for 7
+
+Producer produces a new item1
+Producer is going to sleep for 8
+
+Producer produces a new item1
+Producer is going to sleep for 2
+
+Producer produces sleep for 81
+
+Thread 3 consumed one item
+Thread 3 is going to sleep for 83
+
+Thread 3 consumed one item
+Thread 3 is going to sleep for 36
+
+Thread 3 consumed one item
+Thread 3 is going to sleep for 14
+Threao sleep for 27
+
+Thread 1 consumed one item
+Thread 1 is going to sleep for 47
+
+Thread 1 consumed one item
+Thread 1 is going to sleep for 33
+
+Thread 1 consumed one item
+Thread 1 is going to sleep for 95
+Thre a new item1
+Producer is going to sleep for 83
+
+Producer produces a new item1
+Producer is going to sleep for 77
+
+Producer produces a new item1
+Producer is going to sleep for 87
+
+Producer produces a new item1
+o sleep for 47
+
+Thread 2 consumed one item
+Thread 2 is going to sleep for 39
+
+Thread 2 consumed one item
+Thread 2 is going to sleep for 64
+
+Thread 2 consumed one item
+Thread 2 is going to sleep for 87
+ThreProducer is going to sleep for 97
+
+Producer produces a new item1
+Producer is going to sleep for 79
+
+Producer produces a new item1
+Producer is going to sleep for 46
+
+Producer produces a new item1
+Producer is gInvalid Usage!
+SemaphoreTest ConsumerThreadCount
