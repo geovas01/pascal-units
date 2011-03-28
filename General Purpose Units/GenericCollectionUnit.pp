@@ -137,7 +137,7 @@ end;
 
 function TGenericCollectionForBuildInData.GetItem (Index: Integer): TData;
 begin
-  Result:= TData (Get (Index)^);
+  Result:= TData (Get (Index));
 
 end;
 
@@ -146,7 +146,7 @@ type
   PData= ^TData;
 
 begin
-  (PData (Items [Index]))^:= AValue;
+  Items [Index]:= Pointer (AValue);
 
 end;
 
@@ -165,17 +165,20 @@ begin
 end;
 
 destructor TGenericCollectionForBuildInData.Destroy;
+{
 var
   NewItemPtr: ^TData;
   i: Integer;
-
+}
 begin
+{
   for i:= 0 to Count- 1 do
   begin
     NewItemPtr:= Items [i];
     Dispose (NewItemPtr);
 
   end;
+}
 
   inherited Destroy;
 
@@ -186,9 +189,7 @@ var
   NewItemPtr: ^TData;
 
 begin
-  New (NewItemPtr);
-  NewItemPtr^:= NewItem;
-
+  NewItemPtr:= Pointer (NewItem);
   inherited Add (NewItemPtr);
 
 end;
