@@ -137,16 +137,13 @@ end;
 
 function TGenericCollectionForBuildInData.GetItem (Index: Integer): TData;
 begin
-  Result:= TData (Get (Index)^);
+  Result:= TData (Get (Index));
 
 end;
 
 procedure TGenericCollectionForBuildInData.SetItem (Index: Integer; const AValue: TData);
-type
-  PData= ^TData;
-
 begin
-  (PData (Items [Index]))^:= AValue;
+  Items [Index]:= Pointer (AValue);
 
 end;
 
@@ -165,31 +162,15 @@ begin
 end;
 
 destructor TGenericCollectionForBuildInData.Destroy;
-var
-  NewItemPtr: ^TData;
-  i: Integer;
-
 begin
-  for i:= 0 to Count- 1 do
-  begin
-    NewItemPtr:= Items [i];
-    Dispose (NewItemPtr);
-
-  end;
-
   inherited Destroy;
 
 end;
 
 procedure TGenericCollectionForBuildInData.AddItem (NewItem: TData);
-var
-  NewItemPtr: ^TData;
-
 begin
-  New (NewItemPtr);
-  NewItemPtr^:= NewItem;
-
-  inherited Add (NewItemPtr);
+  inherited Add (nil);
+  Items [Count- 1]:= Pointer (NewItem);
 
 end;
 
