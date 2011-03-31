@@ -16,8 +16,10 @@ type
     Stack: TStack;
 
     function GetCount: Integer;
+    function GetTop: TData;
   public
     property Count: Integer read GetCount;
+    property Top: TData read GetTop;
 
     function Pop: TData;
     procedure Push (Data: Tdata);
@@ -34,6 +36,12 @@ implementation
 function TGenericStack.GetCount: Integer;
 begin
   Result:= Stack.Count;
+
+end;
+
+function TGenericStack.GetTop: TData;
+begin
+  Result:= TData (Stack.Peek);
 
 end;
 
