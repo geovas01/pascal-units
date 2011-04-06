@@ -54,6 +54,12 @@ type
     procedure AddItem (NewItem: TData);
     procedure AddAnotherCollection (AnotherCollection: TList);
 
+    {
+      Deletes the Index-th item from the list and return it.
+    }
+    function Delete (Index: Integer): TData;
+
+
   end;
 
 implementation
@@ -184,6 +190,14 @@ begin
     Add (Pointer (AnotherCollection [i]));
 
 end;
+
+function TGenericCollectionForBuildInData.Delete (Index: Integer): TData;
+begin
+  Result:= Item [Index];
+  inherited Delete (Index);
+
+end;
+
 
 end.
 

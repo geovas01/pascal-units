@@ -58,7 +58,7 @@ end;
 
 { TPairForBuiltInData }
 
-constructor TPairForBuiltInData.Create(F: Type1; S: Type2);
+constructor TPairForBuiltInData.Create (F: Type1; S: Type2);
 begin
   inherited Create;
 
