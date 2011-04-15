@@ -1,4 +1,5 @@
 unit WideStringUnit;
+{$mode objfpc}
 
 interface
 
