@@ -33,7 +33,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure SetDecisionVar (Variable: Integer; SetFlag: Boolean); override;
+    procedure SetDecisionVar (Variable: TVariable; SetFlag: Boolean); override;
     function GenerateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): Integer; override;
 
     function GetValue (v: Integer): TGroundBool; override;
