@@ -1,7 +1,10 @@
-unit RWalkSolver.pp
+unit RWalkSolverUnit;
+
 interface
+uses
+  AbstractSolverUnit;
+
 
 implementation
-
 
 end.
