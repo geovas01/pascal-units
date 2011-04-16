@@ -8,12 +8,20 @@ uses
   Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit;
 
 type
-
+  TSolverState= (ssConflict, //A conflict in the input CNF has been detected.
+                 ssSAT,// The instance is satisfiable.                        
+                 ssUnknown// No conflict detected but no solution has been found yet.
+                );
   { TAbstractSatSolver }
 
   TAbstractSatSolver= class (TObject)
   private
+  protected
+    FSolverState: TSolverState;
+
   public
+    property SolverState: TSolverState read FSolverState;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -36,6 +44,8 @@ implementation
 constructor TAbstractSatSolver.Create;
 begin
   inherited Create;
+
+  FSolverState:= ssUnknown
 
 end;
 
