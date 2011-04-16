@@ -13,6 +13,7 @@ type
   { TLiteral }
 
   TLiteral= Integer;
+  TVariable= Integer;
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
@@ -36,12 +37,12 @@ type
 
   TClauseCollection= class (TGenericCollectionTClause)
   private
-    FMaxVar: Integer;
+    FMaxVar: TVariable;
 
-    function GetMaxVar: Integer;
+    function GetMaxVar: TVariable;
 
   public
-    property MaxVar: Integer read GetMaxVar;
+    property MaxVar: TVariable read GetMaxVar;
 
     constructor Create;
 
@@ -50,7 +51,7 @@ type
   end;
 
 
-  function GetVar (Lit: TLiteral): Integer; inline;
+  function GetVar (Lit: TLiteral): TVariable; inline;
   function IsNegated (Lit: TLiteral): Boolean;
   function GetValue (Lit: TLiteral): Integer; inline;
   function NegateLiteral   (Lit: TLiteral): TLiteral; inline;
