@@ -19,13 +19,13 @@ RCOBJS     = $(addsuffix r,  $(COBJS))
 
 
 CXX       ?= g++
-CFLAGS    ?= -Wall -Wno-parentheses
-LFLAGS    ?= -Wall
+CFLAGS    ?= -Wall -Wno-parentheses -fPIC
+LFLAGS    ?= -Wall -fPIC
 
 COPTIMIZE ?= -O3
 
 CFLAGS    += -I$(MROOT) -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
-LFLAGS    += -lz
+LFLAGS    += -lz 
 
 .PHONY : s p d r rs clean 
 
