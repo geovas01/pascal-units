@@ -28,6 +28,25 @@ type
     VarOccuredPossitivelyInClauseCount,
     VarOccuredNegativelyInClauseCount: array of Integer;// VarOccuredInClauseCount [i]= k => variable i occured in k different clauses.
     ClauseStatus: array of TGroundBool;
+    SatClauseCount, NotSatClauseCount: Integer;//# of Satisfied/NotSatisfied clauses under current partial assignment
+    Potentials: array of array of Integer;{ Potentials [Clause][Index]= VariableIndex iff
+                                           that variable is either unassigned or
+                                                   its value satisfies the clause
+                                           }
+    ActivePotentialsCount: array of Integer;
+                                           {
+                                           ActivePotentialCount [ClauseIndex]= j iff
+                                             there are exactly j variables which are
+                                             either unassigned or their values statisfy the clause
+                                           }
+    Reasons: array of array of Integer;{ Reasons [Clause][Index]= VariableIndex iff
+                                           the value assigned to variable satisfies the clause
+                                           }
+    ActiveReasonsCount: array of Integer;
+                                           {
+                                           ReasonsCount [ClauseIndex]= j iff
+                                             there are exactly j variables which whose values statisfy the clause
+                                           }
 
     procedure SetVarCount (NewVCount: Integer);
     procedure SetClauseCount (NewCCount: Integer);
@@ -61,6 +80,8 @@ type
   end;
 
 implementation
+uses
+  Contnrs;
 
 procedure TRWalkSolver.SetVarCount (NewVCount: Integer);
 begin
@@ -83,6 +104,8 @@ begin
   SetLength (FClauses, ClauseCount);
   SetLength (FClauseSize, ClauseCount);
   SetLength (ClauseStatus, ClauseCount);
+  SetLength (Potentials, ClauseCount);
+  SetLength (ActivePotentialsCount, ClauseCount);
 
 end;
 
@@ -247,17 +270,141 @@ begin
   FClauseSize [FLastUsedClauseIndex]:= Count;
   FClauses [FLastUsedClauseIndex]:= NewClause;
   ClauseStatus [FLastUsedClauseIndex]:= gbUnknown;
+  SetLength (Potentials [FLastUsedClauseIndex], Count+ 1);
+  for i:= 0 to Count- 1 do
+    Potentials [FLastUsedClauseIndex][i]:= GetVar (NewClause [i]);
+  Potentials [FLastUsedClauseIndex][Count]:= -1;
+  ActivePotentialsCount [FLastUsedClauseIndex]:= Count;
   UpdateVariableInfo (NewClause);
-
    
 end;
 
 procedure TRWalkSolver.Propagate (NewVariable: TVariable);
+var
+  Stack: TStack;
+
+  {
+    returns true if the resulting clause is a unit-clause
+  }
+  function RemoveFromPotentials (ClauseIndex: Integer; AVariable: TVariable): Boolean; inline;
+  var
+    i, j: Integer;
+    PotentialsForThisClause: array of Integer;
+
+  begin
+    j:= 0; i:= 0;
+    PotentialsForThisClause:= Potentials [ ClauseIndex];
+
+    while i< ActivePotentialsCount [i] do
+    begin
+      if PotentialsForThisClause [i]= AVariable then
+      begin
+        PotentialsForThisClause [ActivePotentialsCount [ClauseIndex]]:= AVariable;
+        for j:= i to ActivePotentialsCount [ClauseIndex]- 1 do
+         PotentialsForThisClause [j]:= PotentialsForThisClause [j+ 1];
+        PotentialsForThisClause [ActivePotentialsCount [ClauseIndex]- 1]:= -1;
+        Dec (ActivePotentialsCount [ClauseIndex]);
+
+        Break;
+
+      end;
+
+      Inc (i);
+
+    end;
+
+    Result:= ActivePotentialsCount [ClauseIndex]= 1;
+
+  end;
+
+  procedure AddToReasons (ClauseIndex: Integer; NewVariable: TVariable); inline;
+  begin
+    Inc (ActiveReasonsCount [ClauseIndex]);
+    Reasons [ClauseIndex, ActiveReasonsCount [ClauseIndex]]:= NewVariable;
+
+  end;
+
+var
+  ActiveVar: TVariable;
+  ActiveVarValue: TGroundBool;
+  i: Integer;
+  ClauseIndex: Integer;
+
+
+
 begin
+  Stack:= TStack.Create;
+  Stack.Push (@NewVariable);
+
+  while Stack.Count<> 0 do
+  begin
+    ActiveVar:= Integer (Stack.Pop);
+    ActiveVarValue:=  GetValue (ActiveVar);
+    Assert (ActiveVarValue<> gbUnknown);
+
+    if ActiveVarValue= gbTrue then
+    begin
+
+      for i:= 0 to VarOccuredPossitivelyInClauseCount [NewVariable]- 1 do
+      begin
+        ClauseIndex:= VarOccuredPossitivelyInClause [NewVariable][i];
+        AddToReasons (ClauseIndex, NewVariable);
+
+        if ClauseStatus [ClauseIndex]= gbUnknown then
+        begin
+          ClauseStatus [ClauseIndex]:= gbTrue;
+          Inc (SatClauseCount);
+
+        end;
+
+      end;
+
+      for i:= 0 to VarOccuredNegativelyInClauseCount [NewVariable]- 1 do
+      begin
+        ClauseIndex:= VarOccuredNegativelyInClause [NewVariable][i];
+        if RemoveFromPotentials (ClauseIndex, NewVariable) then
+          Stack.Push (@ClauseIndex);
+
+      end;
+
+    end
+    else if ActiveVarValue= gbFalse then
+    begin
+
+      for i:= 0 to VarOccuredNegativelyInClauseCount [NewVariable]- 1 do
+      begin
+        ClauseIndex:= VarOccuredNegativelyInClause [NewVariable][i];
+        AddToReasons (ClauseIndex, NewVariable);
+
+        if ClauseStatus [ClauseIndex]= gbUnknown then
+        begin
+          ClauseStatus [ClauseIndex]:= gbTrue;
+          Inc (SatClauseCount);
+
+        end;
+
+      end;
+
+      for i:= 0 to VarOccuredPossitivelyInClauseCount [NewVariable]- 1 do
+      begin
+        ClauseIndex:= VarOccuredPossitivelyInClause [NewVariable][i];
+        if RemoveFromPotentials (ClauseIndex, NewVariable) then
+          Stack.Push (@ClauseIndex);
+
+      end;
+
+    end;
+
+  end;
+
+  Stack.Free;
 
 end;
 
-function TRWalkSolver.Solve: Boolean; 
+function TRWalkSolver.Solve: Boolean;
+var
+  i: Integer;
+
 begin
 end;
 
