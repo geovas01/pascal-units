@@ -1,3 +1,4 @@
+{$Mode objfpc}
 unit ExceptionUnit;
 
 interface
