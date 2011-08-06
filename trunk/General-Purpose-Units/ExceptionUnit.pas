@@ -1,6 +1,6 @@
-{$Mode objfpc}
 unit ExceptionUnit;
 
+{$mode objfpc}
 interface
 uses
   SysUtils;

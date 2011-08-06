@@ -1,6 +1,5 @@
 unit LinkListUnit;
-
-{$mode objfpc}{$H+}
+{$mode objfpc}
 
 interface
 
