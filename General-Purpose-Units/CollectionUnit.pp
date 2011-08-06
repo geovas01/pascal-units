@@ -1,4 +1,5 @@
 unit CollectionUnit;
+{$mode objfpc}
 
 interface
 uses
