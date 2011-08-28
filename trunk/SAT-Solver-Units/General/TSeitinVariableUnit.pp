@@ -37,8 +37,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-//    function CreateNewVariable (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable;
-    function CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
+    function CreateNewVariable (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable;
+//    function CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
     function CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
     function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
 
@@ -151,12 +151,10 @@ begin
   if Result.FRawValue= 0 then
   begin
 }
-    if GetRunTimeParameterManager.VarPolarityHeuristic then
-      Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpTrue, True), False)
-    else
-      Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
+  Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
 
-    DescribeAND (Literals, Result, j);
+  DescribeAND (Literals, Result, j);
+
 {
     AndDicTree.Insert (Literals, Result, j);
 
@@ -200,10 +198,7 @@ begin
   begin
 }
 
-  if GetRunTimeParameterManager.VarPolarityHeuristic then
-    Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpFalse, True), False)
-  else
-    Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
+  Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
 
   DescribeOR (Literals, Result, j);
 

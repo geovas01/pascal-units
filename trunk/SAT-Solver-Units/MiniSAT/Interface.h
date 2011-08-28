@@ -31,6 +31,7 @@ int SetRandomPolarity (int SolverID, bool PolarityMode);
 //bool AddClauses (int SolverID, Lit *Clause);
 int AddClause (int SolverID, int Size);
 int Solve (int SolverID);
+int Solve (int SolverID, int Literal);
 void SetDecisionVar (int SolverID, Var V, bool b);
 int GetValue (int SolverID, Var x);
 int GetValueInModel (int SolverID, Var x);

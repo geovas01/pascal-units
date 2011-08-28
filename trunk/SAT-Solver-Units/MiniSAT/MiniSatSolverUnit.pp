@@ -29,6 +29,7 @@ type
     function GetNewVar (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): Integer; override;
     function AddClause (AClause: TClause): Boolean; override;
     function Solve: Boolean; override;
+    function Solve (Literal: TLiteral): Boolean; override;
     function GetValue (x: Integer): TGroundBool; override;
     function GetValueInModel (x: Integer): TGroundBool; override;
     function NoAssigns: Integer; override;
@@ -59,6 +60,7 @@ function cAddClause (ID: cTypes.cint32; Size: cTypes.cint32): cTypes.cint32; cde
 function cAddLiteralToClause (ID: cTypes.cint32; Lit: cTypes.cint32): cTypes.cint32; cdecl; external;
 
 function cSolve (ID: cTypes.cint32): cTypes.cint32; cdecl; external;
+function cSolve1 (ID: cTypes.cint32; Lit: cTypes.cint32): cTypes.cint32; cdecl; external;
 function cSetDecisionVar (ID: cTypes.cint32; Variable: cTypes.cint32; SetFlag: cTypes.cint32): cTypes.cint32; cdecl; external;
 function cGetValue (ID: cTypes.cint32; v: cTypes.cint32): cTypes.cint32; cdecl; external;
 function cGetValueInModel (ID: cTypes.cint32; v: cTypes.cint32): cTypes.cint32; cdecl; external;
@@ -80,10 +82,7 @@ begin
   LastVar:= 0;
   FSolverID:= cCreateNewSolver ();
 
-  if GetRunTimeParameterManager.VarPolarityHeuristic then
-    cSetRandomPolarity (FSolverID, 1)
-  else
-    cSetRandomPolarity (FSolverID, 0);
+  cSetRandomPolarity (FSolverID, 0);
 
 end;
 
@@ -172,6 +171,12 @@ function TMiniSatSolver.Solve: Boolean;
 begin
   Result:= MiniSatSolverUnit.cSolve (FSolverID)<> 0;
 //  Clauses.SaveToFile ('Clauses.cnf');
+
+end;
+
+function TMiniSatSolver.Solve (Literal: TLiteral): Boolean;
+begin
+  Result:= MiniSatSolverUnit.cSolve1 (FSolverID, Literal)<> 0;
 
 end;
 

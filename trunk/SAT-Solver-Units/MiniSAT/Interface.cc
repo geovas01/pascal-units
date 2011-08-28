@@ -112,6 +112,29 @@ int MiniSatSolversManager::Solve (int SolverID)
 
 }
 
+int MiniSatSolversManager::Solve (int SolverID, int Literal)
+{
+  if (NoClauses (SolverID)== 0)
+  {
+    vec<Lit> Clause;
+    Lit l;
+    l.SetX (1);
+    Clause.push (l);
+    GetSolverByID (SolverID)->addClause (Clause);
+
+  }
+
+  GetSolverByID (SolverID)->verbosity= 0;
+  if (!GetSolverByID (SolverID)->okay ())
+    return false;
+  Lit lit;
+  lit.SetX (Literal);
+  int Result= GetSolverByID (SolverID)->solve (lit);
+  return Result;
+
+}
+
+
 void MiniSatSolversManager::SetDecisionVar (int SolverID, Var V, bool b)
 {
   GetSolverByID (SolverID)->setDecisionVar (V, b);

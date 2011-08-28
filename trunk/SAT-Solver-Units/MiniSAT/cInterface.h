@@ -27,6 +27,7 @@ extern "C"
     extern int EXPORTCALL AddLiteralToClause (TSolverID, int);
 
     extern int EXPORTCALL Solve (TSolverID);
+    extern int EXPORTCALL Solve1 (TSolverID, int);
     extern void EXPORTCALL SetDecisionVar (TSolverID, int, int);
     extern int  EXPORTCALL GetValue (TSolverID, int);
     extern int  EXPORTCALL GetValueInModel (TSolverID, int);
@@ -46,6 +47,7 @@ extern "C"
     extern int EXPORTCALL cAddLiteralToClause (TSolverID, int);
 
     extern int EXPORTCALL cSolve (TSolverID);
+    extern int EXPORTCALL cSolve1 (TSolverID, int);
     extern void EXPORTCALL cSetDecisionVar (TSolverID, int , int);
     extern int EXPORTCALL cGetValue (TSolverID, int);
     extern int EXPORTCALL cGetValueInModel (TSolverID, int);

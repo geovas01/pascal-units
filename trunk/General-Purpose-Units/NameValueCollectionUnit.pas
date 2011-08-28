@@ -35,7 +35,7 @@ type
   generic TGenericNameValueCollection<TValue>= class (TStringList)
   private
     function GetValueByIndex (Index: Integer): TValue;
-    function GetValueByName (Name: AnsiString): TValue;
+    function GetValueByName (Name: AnsiString): TValue; virtual;
   type public
     TNameValue= record
 //      Name: AnsiString;

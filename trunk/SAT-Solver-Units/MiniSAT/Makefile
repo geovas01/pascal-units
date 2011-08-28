@@ -6,10 +6,10 @@ CXXFLAGS    := $(CFLAGS)
 MiniSatInterface: Solver.or Interface.cc cInterface_c.or cInterface_cc.or
 	gcc $(CFLAGS) -IMiniSat-2.2.0/ -c Interface.cc -fPIC -o Interface.or
 
-cInterface_c.or:
+cInterface_c.or: cInterface.c
 	gcc $(CFLAGS) -fPIC -IMiniSat-2.2.0/  -c cInterface.c -o cInterface_c.o
 
-cInterface_cc.or:
+cInterface_cc.or: cInterface.cc
 	g++ $(CFLAGS) -fPIC -IMiniSat-2.2.0/ -c cInterface.cc -o cInterface_cc.o
 
 Solver.or:

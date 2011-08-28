@@ -41,12 +41,18 @@ int cAddLiteralToClause (TSolverID ID, int Literal)
 
 }
 
-
 int cSolve (TSolverID ID)
 {
   return (Solve (ID));
 
 }
+
+int cSolve1 (TSolverID ID, int Literal)
+{
+  return (Solve1 (ID, Literal));
+
+}
+
 
 void cSetDecisionVar (TSolverID ID, int v, int b)
 {
