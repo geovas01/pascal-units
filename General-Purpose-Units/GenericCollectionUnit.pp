@@ -37,9 +37,9 @@ type
 
   end;
 
-  { TGenericCollectionForBuildInData }
+  { TGenericCollectionForBuiltInData }
 
-  generic TGenericCollectionForBuildInData<TData>= class (TList)
+  generic TGenericCollectionForBuiltInData<TData>= class (TList)
   private
     function GetItem (Index: Integer): TData;
     procedure SetItem (Index: Integer; const AValue: TData);
@@ -139,21 +139,21 @@ begin
 
 end;
 
-{ TGenericCollectionForBuildInData }
+{ TGenericCollectionForBuiltInData }
 
-function TGenericCollectionForBuildInData.GetItem (Index: Integer): TData;
+function TGenericCollectionForBuiltInData.GetItem (Index: Integer): TData;
 begin
   Result:= TData (Get (Index));
 
 end;
 
-procedure TGenericCollectionForBuildInData.SetItem (Index: Integer; const AValue: TData);
+procedure TGenericCollectionForBuiltInData.SetItem (Index: Integer; const AValue: TData);
 begin
   Items [Index]:= Pointer (AValue);
 
 end;
 
-constructor TGenericCollectionForBuildInData.Create (Size: Integer);
+constructor TGenericCollectionForBuiltInData.Create (Size: Integer);
 begin
   inherited Create;
 
@@ -161,26 +161,26 @@ begin
 
 end;
 
-constructor TGenericCollectionForBuildInData.Create;
+constructor TGenericCollectionForBuiltInData.Create;
 begin
   inherited;
 
 end;
 
-destructor TGenericCollectionForBuildInData.Destroy;
+destructor TGenericCollectionForBuiltInData.Destroy;
 begin
   inherited Destroy;
 
 end;
 
-procedure TGenericCollectionForBuildInData.AddItem (NewItem: TData);
+procedure TGenericCollectionForBuiltInData.AddItem (NewItem: TData);
 begin
   inherited Add (nil);
   Items [Count- 1]:= Pointer (NewItem);
 
 end;
 
-procedure TGenericCollectionForBuildInData.AddAnotherCollection(
+procedure TGenericCollectionForBuiltInData.AddAnotherCollection(
   AnotherCollection: TList);
 var
   i: Integer;
@@ -191,7 +191,7 @@ begin
 
 end;
 
-function TGenericCollectionForBuildInData.Delete (Index: Integer): TData;
+function TGenericCollectionForBuiltInData.Delete (Index: Integer): TData;
 begin
   Result:= Item [Index];
   inherited Delete (Index);

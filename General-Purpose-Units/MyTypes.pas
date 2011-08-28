@@ -8,7 +8,7 @@ uses
 type
   PObject= ^TObject;
   TIntegerArray= array of Integer;
-  TIntegerCollection= specialize TGenericCollectionForBuildInData<Integer>;
+  TIntegerCollection= specialize TGenericCollectionForBuiltInData<Integer>;
 
   { TPair }
 

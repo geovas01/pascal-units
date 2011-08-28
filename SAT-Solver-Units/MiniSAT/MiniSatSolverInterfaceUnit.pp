@@ -26,6 +26,7 @@ type
 
   public
     function Solve: Boolean; override;
+    function Solve (Literal: TLiteral): Boolean; override;
     procedure GetSolution (out Answer: AnsiString); override;
 
     procedure SubmitClause; override;
@@ -74,6 +75,12 @@ end;
 function TMiniSatSolverInterface.Solve: Boolean;
 begin
   Exit (MiniSatSolver.Solve);
+
+end;
+
+function TMiniSatSolverInterface.Solve (Literal: TLiteral): Boolean;
+begin
+  Exit (MiniSatSolver.Solve (Literal));
 
 end;
 

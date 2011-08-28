@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, GenericCollectionUnit, GenericStackUnit, ClauseUnit, MyTypes;
 
 type
-  TArrayofInteger=  specialize TGenericCollectionForBuildInData<Integer>;
+  TArrayofInteger=  specialize TGenericCollectionForBuiltInData<Integer>;
   TClauseArrayOfIntegerPair= specialize TPair<TClause, TArrayofInteger>;
   TStackOfClauses= specialize TGenericStack<TClauseArrayOfIntegerPair>;
   TVariablePolarity= (vpFalse= 0, vpTrue, vpNone);
@@ -24,6 +24,7 @@ type
     FClausesStack: TStackOfClauses;
     FTopConstraint: TClause;
     FNoOfLiteralInTopConstraint: TArrayOfInteger;
+
     function GetNoOfLiteralInTopConstraint (gbValue: TGroundBool): Integer; inline;
     function GetTopConstarintSize: Integer; inline;
 
@@ -33,10 +34,10 @@ type
     FSolverResult: TSolverResult;
 //    Assignements: array of TGroundBool;
 
-    function GetVarCount: Int64; virtual; 
-    function GetClauseCount: Int64; virtual; 
 
-  protected
+    function GetVarCount: Int64; virtual; 
+    function GetClauseCount: Int64; virtual;
+    function GetCNF: TClauseCollection; virtual; 
     function GetValue (v: Integer): TGroundBool; virtual;
     property Stack: TStackOfClauses read FClausesStack;
 
@@ -48,6 +49,7 @@ type
     property TopConstraint: TClause read FTopConstraint;
     property TopConstarintSize: Integer read GetTopConstarintSize;
     property NoOfLiteralInTopConstraint [gbValue: TGroundBool]: Integer read GetNoOfLiteralInTopConstraint;
+    property CNF: TClauseCollection read GetCNF;
 
     procedure AddComment (var Comment: AnsiString); virtual;
 
@@ -64,6 +66,7 @@ type
     procedure SubmitClause; virtual;
 
     function Solve: Boolean; virtual; abstract;
+    function Solve (Literal: TLiteral): Boolean; virtual; abstract;
     procedure GetSolution (out Answer: AnsiString); virtual; abstract;
     function GetResult: TSolverResult;
 
@@ -88,7 +91,7 @@ procedure Finalize;
 
 implementation
 uses
-  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection;
+  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection, ParameterManagerUnit;
 
 var
   SatSolverInterface: TSATSolverInterface;
@@ -120,7 +123,10 @@ end;
 
 procedure Initialize;
 begin
-  SatSolverInterface:= TMiniSatSolverInterface.Create;
+  if UpperCase (GetRunTimeParameterManager.ValueByName ['SatSolverType'])= UpperCase ('CNFCollection') then
+    SatSolverInterface:= TCNFCollection.Create
+  else 
+    SatSolverInterface:= TMiniSatSolverInterface.Create;
 
 end;
 
@@ -201,6 +207,12 @@ end;
 function TSATSolverInterface.GetClauseCount: Int64;
 begin
   Result:= FClauseCount;
+
+end;
+
+function TSATSolverInterface.GetCNF: TClauseCollection;
+begin
+  raise Exception.Create ('GetCNF is not implemented here');
 
 end;
 

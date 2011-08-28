@@ -14,7 +14,11 @@ type
   private
     AllClauses: TClauseCollection;
 
+  protected
+    function GetCNF: TClauseCollection; override;
+   
   public
+
     constructor Create;
     destructor Destroy; override;
 
@@ -43,10 +47,15 @@ begin
 
 end;
 
+function TCNFCollection.GetCNF: TClauseCollection;
+begin
+  Result:= AllClauses.Copy;
+
+end;
+
 procedure TCNFCollection.SubmitClause; 
 begin
-   AllClauses.Add (TopConstraint.Copy);
-  WriteLn ('*', TopConstraint.ToString);
+  AllClauses.Add (TopConstraint.Copy);
 
   inherited;
 

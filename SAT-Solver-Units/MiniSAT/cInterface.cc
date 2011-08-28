@@ -42,10 +42,15 @@ int AddLiteralToClause (TSolverID ID, int Literal)
 
 }
 
-
 int Solve (TSolverID ID)
 {
   return Manager->Solve (ID);
+
+}
+
+int Solve1 (TSolverID ID, int Literal)
+{
+  return Manager->Solve (ID, Literal);
 
 }
 

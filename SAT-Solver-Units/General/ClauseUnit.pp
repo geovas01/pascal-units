@@ -17,9 +17,9 @@ type
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
-  TSpecializeTGenericCollectionForBuildInDataTLiteral= specialize TGenericCollectionForBuildInData<TLiteral>;
+  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
 
-  TLiteralCollection= class (TSpecializeTGenericCollectionForBuildInDataTLiteral)
+  TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   public
     function ToXML: AnsiString;
     function ToString: AnsiString;
@@ -47,6 +47,7 @@ type
     constructor Create;
 
     function Copy: TClauseCollection;
+    function ToString: AnsiString;
 
   end;
 
@@ -211,6 +212,18 @@ begin
 
   for i:= 0 to Self.Count- 1 do
     Result.AddItem (Self.Item [i].Copy);
+
+end;
+
+function TClauseCollection.ToString: AnsiString;
+var
+  i: Integer;
+
+begin
+  Result:= '';
+
+  for i:= 0 to Self.Count- 1 do
+    Result+= Self.Item [i].ToString+ #10;
 
 end;
 
