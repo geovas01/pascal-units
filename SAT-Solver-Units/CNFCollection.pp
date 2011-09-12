@@ -4,7 +4,8 @@ unit CNFCollection;
 interface
 
 uses
-  Classes, SysUtils, ClauseUnit, AbstractSolverUnit, MiniSatSolverInterfaceUnit;
+  Classes, SysUtils, ClauseUnit, AbstractSolverUnit, MiniSatSolverInterfaceUnit,
+    StreamUnit;
 
 type
 
@@ -24,6 +25,9 @@ type
 
     procedure SubmitClause; override;
     function Solve: Boolean; override;
+
+    procedure SaveToFile (AnStream: TMyTextStream);
+    procedure LoadFromFile (AnStream: TMyTextStream);
 
   end;
 
@@ -70,6 +74,26 @@ begin
     WriteLn (AllClauses.Item [i].ToString);
 
   Result:= inherited;
+
+end;
+
+procedure TCNFCollection.SaveToFile (AnStream: TMyTextStream);
+var
+  i: Integer;
+  ActiveClause: TClause;
+
+begin
+  for i:= 0 to ClauseCount- 1 do
+  begin
+    ActiveClause:= AllClauses.Item [i];
+    AnStream.WriteLine (ActiveClause.ToString);
+
+  end;
+
+end;
+
+procedure TCNFCollection.LoadFromFile(AnStream: TMyTextStream);
+begin
 
 end;
 

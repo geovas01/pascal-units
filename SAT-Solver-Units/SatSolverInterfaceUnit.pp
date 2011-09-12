@@ -91,7 +91,12 @@ procedure Finalize;
 
 implementation
 uses
+<<<<<<< .mine
+  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection,
+  ParameterManagerUnit, StreamUnit;
+=======
   TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection, ParameterManagerUnit;
+>>>>>>> .r56
 
 var
   SatSolverInterface: TSATSolverInterface;
@@ -127,6 +132,12 @@ begin
     SatSolverInterface:= TCNFCollection.Create
   else 
     SatSolverInterface:= TMiniSatSolverInterface.Create;
+
+{  if GetRunTimeParameterManager.SATSolverType= ssMiniSatSolver then
+     SatSolverInterface:= TMiniSatSolverInterface.Create
+  else if GetRunTimeParameterManager.SATSolverType= ssCNFCollection then
+      SatSolverInterface:= TCNFCollection.Create;
+}
 
 end;
 
@@ -512,7 +523,14 @@ begin
 end;
 
 procedure Finalize;
+
 begin
+{  Stream:= TMyTextStream.Create (
+    TFileStream.Create (GetRunTimeParameterManager.OutputFilename, fmCreate));
+  (GetSatSolver as TCNFCollection).SaveToFile (Stream);
+  Stream.Free;
+}
+
   GetSatSolver.Free;
 
 end;

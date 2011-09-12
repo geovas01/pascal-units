@@ -56,7 +56,7 @@ type
   function IsNegated (Lit: TLiteral): Boolean;
   function GetValue (Lit: TLiteral): Integer; inline;
   function NegateLiteral   (Lit: TLiteral): TLiteral; inline;
-  function CreateLiteral: TLiteral; inline;
+//  function CreateLiteral: TLiteral; inline;
   function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
   function LiteralToString (Lit: TLiteral): AnsiString;
 
@@ -142,17 +142,19 @@ begin
 
 end;
 
+{
 function CreateLiteral: TLiteral; inline;
 begin
   Result:= 0;
 
 end;
+}
 
 function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
 begin
   Result:= (VarValue shl 1);
   if IsNegated then
-    Inc (Result);
+    Result:= Result or 1;
 
 end;
 
