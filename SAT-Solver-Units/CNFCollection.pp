@@ -84,7 +84,7 @@ begin
     for i:= 0 to AllClauses.Count- 1 do
       WriteLn (AllClauses.Item [i].ToString);
 
-  Result:= inherited;
+  Result:= False;
 
 end;
 
