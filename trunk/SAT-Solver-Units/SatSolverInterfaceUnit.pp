@@ -91,12 +91,8 @@ procedure Finalize;
 
 implementation
 uses
-<<<<<<< .mine
   TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection,
   ParameterManagerUnit, StreamUnit;
-=======
-  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection, ParameterManagerUnit;
->>>>>>> .r56
 
 var
   SatSolverInterface: TSATSolverInterface;
@@ -128,7 +124,7 @@ end;
 
 procedure Initialize;
 begin
-  if UpperCase (GetRunTimeParameterManager.ValueByName ['SatSolverType'])= UpperCase ('CNFCollection') then
+  if UpperCase (GetRunTimeParameterManager.Value ['SatSolverType'])= UpperCase ('CNFCollection') then
     SatSolverInterface:= TCNFCollection.Create
   else 
     SatSolverInterface:= TMiniSatSolverInterface.Create;
