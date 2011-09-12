@@ -124,6 +124,7 @@ end;
 
 procedure Initialize;
 begin
+  WriteLn (GetRunTimeParameterManager.Value ['SatSolverType']);
   if UpperCase (GetRunTimeParameterManager.Value ['SatSolverType'])= UpperCase ('CNFCollection') then
     SatSolverInterface:= TCNFCollection.Create
   else 
@@ -143,7 +144,7 @@ end;
 procedure TSATSolverInterface.SyncInteractiveUPInfo;
 begin
   raise Exception.Create ('SyncInteractiveUPInfo');
-
+ 
 end;
 
 function TSATSolverInterface.GetValue (v: Integer): TGroundBool;
