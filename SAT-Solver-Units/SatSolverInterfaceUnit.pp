@@ -124,7 +124,6 @@ end;
 
 procedure Initialize;
 begin
-  WriteLn (GetRunTimeParameterManager.Value ['SatSolverType']);
   if UpperCase (GetRunTimeParameterManager.Value ['SatSolverType'])= UpperCase ('CNFCollection') then
     SatSolverInterface:= TCNFCollection.Create
   else 

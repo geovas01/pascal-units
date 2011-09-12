@@ -32,6 +32,8 @@ type
   end;
 
 implementation
+uses
+  ParameterManagerUnit;
 
 { TCNFCollection }
 
@@ -68,10 +70,19 @@ end;
 function TCNFCollection.Solve: Boolean;
 var
   i: Integer;
+  Stream: TMyTextStream;
 
 begin
-  for i:= 0 to AllClauses.Count- 1 do
-    WriteLn (AllClauses.Item [i].ToString);
+  if GetRunTimeParameterManager.Value ['OutputFilename'] <> '' then
+  begin
+    Stream:= TMyTextStream.Create (TFileStream.Create (GetRunTimeParameterManager.Value ['OutputFilename'], fmCreate), True);
+    SaveToFile (Stream);
+    Stream.Free;
+
+  end
+  else
+    for i:= 0 to AllClauses.Count- 1 do
+      WriteLn (AllClauses.Item [i].ToString);
 
   Result:= inherited;
 
@@ -79,14 +90,54 @@ end;
 
 procedure TCNFCollection.SaveToFile (AnStream: TMyTextStream);
 var
-  i: Integer;
+  i, j: Integer;
+  Lit: TLiteral;
   ActiveClause: TClause;
+  MaxVarIndex: Integer;
+  
 
 begin
-  for i:= 0 to ClauseCount- 1 do
+  MaxVarIndex:= -1;
+  for i:= 0 to AllClauses.Count- 1 do
   begin
     ActiveClause:= AllClauses.Item [i];
-    AnStream.WriteLine (ActiveClause.ToString);
+
+    for j:= 0 to ActiveClause.Count- 1 do
+      if MaxVarIndex< GetVar (ActiveClause.Item [j]) then
+        MaxVarIndex:= GetVar (ActiveClause.Item [j]);
+
+  end;
+
+
+  AnStream.WriteLine ('p cnf '+ IntToStr (MaxVarIndex+ 1)+ ' '+ IntToStr (AllClauses.Count));
+  for i:= 0 to AllClauses.Count- 1 do
+  begin
+    ActiveClause:= AllClauses.Item [i];
+ 
+    if 0< ActiveClause.Count then
+    begin
+      Lit:= ActiveClause.Item [0];
+   
+      if IsNegated (Lit) then
+        AnStream.WriteStr ('-'+ IntToStr (GetVar (Lit)))
+      else
+        AnStream.WriteStr (IntToStr (GetVar (Lit)));
+  
+  
+      for j:= 1 to ActiveClause.Count- 1 do
+      begin
+        Lit:= ActiveClause.Item [j];
+   
+        if IsNegated (Lit) then
+          AnStream.WriteStr (' -'+ IntToStr (GetVar (Lit)))
+        else
+          AnStream.WriteStr (' '+ IntToStr (GetVar (Lit)));
+  
+      end;
+
+    end;
+
+    AnStream.WriteLine (' 0');
 
   end;
 
