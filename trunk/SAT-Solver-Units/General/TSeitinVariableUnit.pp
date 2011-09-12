@@ -45,7 +45,7 @@ type
     procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
     procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
 
-    procedure SetLastVariableIndex (Value: Integer);
+//    procedure SetLastVariableIndex (Value: Integer);
   end;
 
 function GetVariableManager: TVariableManager; 
@@ -339,11 +339,13 @@ begin
 
 end;
 
+{
 procedure TVariableManager.SetLastVariableIndex (Value: Integer);
 begin
   FLastUsedCNFIndex:= Value;
 
 end;
+}
 
 procedure Initialize;
 begin

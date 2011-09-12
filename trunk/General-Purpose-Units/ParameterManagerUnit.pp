@@ -29,7 +29,13 @@ type
     FMinimizeTseitinVars: Boolean;
     FMinimizeTseitinVarsMethod: char;
     FMinimalPrimesMethod: char;
+<<<<<<< .mine
+    FSATSolverType: TSatSolverType;
+    function GetValue(AName: AnsiString): AnsiString;
+
+=======
 }
+>>>>>>> .r56
   public
 {
     property Verbosity: Integer read FVerbosity;
@@ -43,7 +49,12 @@ type
     property MinimalPrimesMethod: Char read FMinimalPrimesMethod;
     property MinimizeTseitinVarsMethod: Char read FMinimizeTseitinVarsMethod;
     property MorePrimes: Extended read FMorePrimes;
+<<<<<<< .mine
+    property _SATSolverType: TSatSolverType read FSATSolverType;
+    property Value [AName: AnsiString]: AnsiString read GetValue;
+=======
 }
+>>>>>>> .r56
 
     procedure AddArgument (Name, Value: AnsiString);
     constructor Create;

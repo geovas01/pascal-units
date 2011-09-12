@@ -386,7 +386,7 @@ var
   Temp: TBigInt;
 
 begin
-  Result:= TBigInt.Create;
+  Result:= TBigInt.Create.SetValue (0);
 
   for i:= 0 to Self.FLength- 1 do
     if Self.FDigits [i]<> 0 then
@@ -733,6 +733,7 @@ begin
   Assert (n< 10);
   Result:= TBigInt.Create;
 
+  Result.Length:= FLength;
   Carry:= 0;
   for i:= 0 to FLength- 1 do
   begin
