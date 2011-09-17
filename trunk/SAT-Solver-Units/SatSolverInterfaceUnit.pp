@@ -124,7 +124,7 @@ end;
 
 procedure Initialize;
 begin
-  if UpperCase (GetRunTimeParameterManager.Value ['SatSolverType'])= UpperCase ('CNFCollection') then
+  if UpperCase (GetRunTimeParameterManager.GetValueByName ('--SatSolverType'))= UpperCase ('CNFCollection') then
     SatSolverInterface:= TCNFCollection.Create
   else 
     SatSolverInterface:= TMiniSatSolverInterface.Create;

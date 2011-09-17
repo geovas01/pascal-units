@@ -73,9 +73,11 @@ var
   Stream: TMyTextStream;
 
 begin
-  if GetRunTimeParameterManager.Value ['OutputFilename'] <> '' then
+  WriteLn ('Solve!', GetRunTimeParameterManager.GetValueByName ('--OutputFilename'));
+
+  if GetRunTimeParameterManager.GetValueByName ('--OutputFilename') <> '' then
   begin
-    Stream:= TMyTextStream.Create (TFileStream.Create (GetRunTimeParameterManager.Value ['OutputFilename'], fmCreate), True);
+    Stream:= TMyTextStream.Create (TFileStream.Create (GetRunTimeParameterManager.GetValueByName ('--OutputFilename'), fmCreate), True);
     SaveToFile (Stream);
     Stream.Free;
 

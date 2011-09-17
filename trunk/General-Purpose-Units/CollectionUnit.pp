@@ -150,14 +150,7 @@ type
   TBaseFixSizeCollection= TBaseCollection;
   TStringCollection= TStrings;
   
-  { EVariableNotFound }
-
-  ENameNotFound= class (Exception)
-  public
-    constructor Create (AName: String);
-    
-  end;
-  
+ 
 implementation
 
 uses ExceptionUnit, Math;
@@ -874,17 +867,6 @@ procedure TInt64Collection.SetMember(Index: Integer; const Value: Int64);
 begin
   PInt64 (Member [Index])^:= Value;
 
-end;
-
-{ EVariableNotFound }
-
-constructor ENameNotFound.Create (AName: String);
-var
-  S: AnsiString;
-
-begin
-  inherited Create (AName+ ' not found in collection!');
-  
 end;
 
 end.
