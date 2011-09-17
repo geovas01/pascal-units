@@ -6,6 +6,15 @@ uses
   SysUtils;
   
 type
+  { ENameNotFound }
+
+  ENameNotFound= class (Exception)
+  public
+    constructor Create (AName: String);
+    
+  end;
+ 
+
   ENotImplemented= class (Exception)
   public
     constructor Create (MName: String);
@@ -56,5 +65,17 @@ begin
   inherited Create ('the method '+ MName+ ' in class '+ CName+ ' is not implemented, yet!');
 
 end;
+
+{ ENameNotFound }
+
+constructor ENameNotFound.Create (AName: String);
+var
+  S: AnsiString;
+
+begin
+  inherited Create (AName+ ' not found in collection!');
+  
+end;
+
 
 end.

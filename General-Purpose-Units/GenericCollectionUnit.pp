@@ -91,10 +91,15 @@ begin
 end;
 
 constructor TGenericCollection.Create (Size: Integer);
+var
+  i: Integer;
+
 begin
   inherited Create;
 
   Count:= Size;
+  for i:= 0 to Count- 1 do
+    Item [i]:= TData.Create;
 
 end;
 

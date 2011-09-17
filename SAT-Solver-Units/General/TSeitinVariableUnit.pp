@@ -39,11 +39,16 @@ type
 
     function CreateNewVariable (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable;
 //    function CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
+
     function CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
+    function CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
     function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
+    function CreateVariableDescribingOR (l1, l2: TLiteral): TLiteral;
 
     procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
     procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
 
 //    procedure SetLastVariableIndex (Value: Integer);
   end;
@@ -164,6 +169,38 @@ begin
 }
 end;
 
+function TVariableManager.CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
+var
+  Temp: TLiteral;
+
+begin
+  if l2< l1 then
+  begin
+    Temp:= l1;
+    l1:= l2;
+    l2:= Temp;
+ 
+  end;
+ 
+  if SatSolver.GetLiteralValue (l1)= gbFalse then
+    Exit (FalseLiteral)
+  else if SatSolver.GetLiteralValue (l1)= gbTrue then
+    Exit (l2)
+  else if SatSolver.GetLiteralValue (l2)= gbFalse then
+    Exit (FalseLiteral)
+  else if SatSolver.GetLiteralValue (l2)= gbTrue then
+    Exit (l1)
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+    DescribeAND (l1, l2, Result);
+
+  end;
+
+end;
+
+
 function TVariableManager.CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer): TLiteral;
 var
   i, j: Integer;
@@ -210,6 +247,79 @@ begin
     WRiteLn ('Reused!', Literals.ToString, ':', LiteralToString (Result));
 }
 end;
+
+function TVariableManager.CreateVariableDescribingOr (l1, l2: TLiteral): TLiteral;
+var
+  Temp: TLiteral;
+
+begin
+  if l2< l1 then
+  begin
+    Temp:= l1;
+    l1:= l2;
+    l2:= Temp;
+ 
+  end;
+ 
+  if SatSolver.GetLiteralValue (l1)= gbFalse then
+    Exit (l2)
+  else if SatSolver.GetLiteralValue (l1)= gbTrue then
+    Exit (TrueLiteral)
+  else if SatSolver.GetLiteralValue (l2)= gbFalse then
+    Exit (l1)
+  else if SatSolver.GetLiteralValue (l2)= gbTrue then
+    Exit (TrueLiteral)
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+    DescribeOR (l1, l2, Result);
+
+  end;
+
+end;
+
+procedure TVariableManager.DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
+begin
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (l1);
+  SatSolver.AddLiteral (l2);
+
+//  WriteLn ('False=', SatSolver.NoOfLiteralInTopConstraint [gbFalse],
+//           'True=', SatSolver.NoOfLiteralInTopConstraint [gbTrue],
+//           'Unknown=', SatSolver.NoOfLiteralInTopConstraint [gbUnknown]);
+
+  if 0< SatSolver.NoOfLiteralInTopConstraint [gbFalse] then
+  begin
+    SatSolver.AbortConstraint;
+    if ResultLit<> FalseLiteral then
+    begin
+      SatSolver.BeginConstraint;
+      SatSolver.AddLiteral (NegateLiteral (ResultLit));
+      SatSolver.SubmitClause;
+
+    end;
+    Exit;
+
+  end
+  else if SatSolver.NoOfLiteralInTopConstraint [gbUnknown]= 0 then
+  begin
+    SatSolver.AbortConstraint;
+    if ResultLit<> TrueLiteral then
+    begin
+      SatSolver.BeginConstraint;
+      SatSolver.AddLiteral (ResultLit);
+      SatSolver.SubmitClause;
+
+    end;
+    Exit;
+
+  end;
+
+  SatSolver.SubmitAndGate (ResultLit);
+
+end;
+
 
 procedure TVariableManager.DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer);
 var
@@ -274,6 +384,46 @@ begin
   end;
 
   SatSolver.SubmitAndGate (ResultLit);
+
+end;
+
+procedure TVariableManager.DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
+begin
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (l1);
+  SatSolver.AddLiteral (l2);
+
+//  WriteLn ('False=', SatSolver.NoOfLiteralInTopConstraint [gbFalse],
+//           'True=', SatSolver.NoOfLiteralInTopConstraint [gbTrue],
+//           'Unknown=', SatSolver.NoOfLiteralInTopConstraint [gbUnknown]);
+  if 0< SatSolver.NoOfLiteralInTopConstraint [gbTrue] then
+  begin
+    SatSolver.AbortConstraint;
+    if ResultLit<> TrueLiteral then
+    begin
+      SatSolver.BeginConstraint;
+      SatSolver.AddLiteral (ResultLit);
+      SatSolver.SubmitClause;
+
+    end;
+    Exit;
+
+  end
+  else if SatSolver.NoOfLiteralInTopConstraint [gbUnknown]= 0 then
+  begin
+    SatSolver.AbortConstraint;
+    if ResultLit<> FalseLiteral then
+    begin
+      SatSolver.BeginConstraint;
+      SatSolver.AddLiteral (NegateLiteral (ResultLit));
+      SatSolver.SubmitClause;
+
+    end;
+    Exit;
+
+  end;
+
+  SatSolver.SubmitOrGate (ResultLit);
 
 end;
 

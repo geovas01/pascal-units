@@ -15,47 +15,12 @@ type
 
   TRunTimeParameterManager= class (TParameterList)
   private
-    function GetValueByName (Name: AnsiString): AnsiString; override;
+    function GetVerbosity: Integer;
 
-{
-    FInputFilename: AnsiString;
-    FOutputFilename: AnsiString;
-    FVerbosity: Integer;
-    FMinimalPrimes: Boolean; 
-    FMorePrimes: Extended; 
-    FDecisionVarMinization: Boolean;
-    FPolarityMode: TVariablePolarity;
-    FVarPolarityHeuristic: Boolean;
-    FMinimizeTseitinVars: Boolean;
-    FMinimizeTseitinVarsMethod: char;
-    FMinimalPrimesMethod: char;
-<<<<<<< .mine
-    FSATSolverType: TSatSolverType;
-    function GetValue(AName: AnsiString): AnsiString;
-
-=======
-}
->>>>>>> .r56
   public
-{
-    property Verbosity: Integer read FVerbosity;
-    property MinimalPrimes: Boolean read FMinimalPrimes;
-    property InputFilename: AnsiString read FInputFilename;
-    property OutputFilename: AnsiString read FOutputFilename;
-    property DecisionVarMinization: Boolean read FDecisionVarMinization;
-    property PolarityMode: TVariablePolarity read FPolarityMode;
-    property VarPolarityHeuristic: Boolean read FVarPolarityHeuristic;
-    property MinimizeTseitinVars: Boolean read FMinimizeTseitinVars;
-    property MinimalPrimesMethod: Char read FMinimalPrimesMethod;
-    property MinimizeTseitinVarsMethod: Char read FMinimizeTseitinVarsMethod;
-    property MorePrimes: Extended read FMorePrimes;
-<<<<<<< .mine
-    property _SATSolverType: TSatSolverType read FSATSolverType;
-    property Value [AName: AnsiString]: AnsiString read GetValue;
-=======
-}
->>>>>>> .r56
+    property Verbosity: Integer read GetVerbosity;
 
+    function GetValueByName (Name: AnsiString): AnsiString; override;
     procedure AddArgument (Name, Value: AnsiString);
     constructor Create;
     destructor Destroy; override;
@@ -68,7 +33,7 @@ function GetRunTimeParameterManager: TRunTimeParameterManager; inline;
 
 implementation
 uses
-  StreamUnit;
+  StreamUnit, ExceptionUnit;
 
 var
   RunTimeParameterManager: TRunTimeParameterManager;
@@ -93,6 +58,15 @@ begin
 end;
 
 { TRunTimeParameterManager }
+
+function TRunTimeParameterManager.GetVerbosity: Integer;
+begin
+  if GetValueByName ('--Verbosity')<> '' then
+    Exit (StrToInt (GetValueByName ('--Verbosity')))
+  else
+    Exit (0);
+
+end;
 
 procedure TRunTimeParameterManager.AddArgument (Name, Value: AnsiString);
 begin
@@ -132,7 +106,6 @@ begin
       Break;
     V:= ParamStr (i+ 1);
     AddArgument (Name, V);
-    
 
     Inc (i, 2);
 
@@ -150,7 +123,14 @@ end;
 
 function TRunTimeParameterManager.GetValueByName (Name: AnsiString): AnsiString;
 begin
-  Result:= inherited GetValueByName (UpperCase (Name));
+  try
+    Result:= inherited GetValueByName (UpperCase (Name))
+
+  except
+    on e: ENameNotFound do
+      Result:= '';
+
+  end;
 
 end;
 
