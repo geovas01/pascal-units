@@ -128,7 +128,7 @@ var
   i, j: Integer;
 
 begin
-  Literals.Sort (@CompareLiteral);
+///  Literals.Sort (@CompareLiteral);
 
   j:= 0;
   for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
@@ -167,6 +167,7 @@ begin
   else
     WRiteLn ('Reused!', Literals.ToString, ':', LiteralToString (Result));
 }
+
 end;
 
 function TVariableManager.CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
@@ -174,14 +175,6 @@ var
   Temp: TLiteral;
 
 begin
-  if l2< l1 then
-  begin
-    Temp:= l1;
-    l1:= l2;
-    l2:= Temp;
- 
-  end;
- 
   if SatSolver.GetLiteralValue (l1)= gbFalse then
     Exit (FalseLiteral)
   else if SatSolver.GetLiteralValue (l1)= gbTrue then
@@ -206,7 +199,7 @@ var
   i, j: Integer;
 
 begin
-  Literals.Sort (@CompareLiteral);
+//  Literals.Sort (@CompareLiteral);
 
   j:= 0;
   for i:= 0 to Math.Min (Literals.Count, Size)- 1 do

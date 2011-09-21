@@ -42,6 +42,7 @@ type
     property Root: PBSTNode read FRoot;
 
     function CreateNewBSTNode (Key: TKey; Data: TData; Parent: PBSTNode): PBSTNode;
+     procedure RecPrint (Node: PBSTNode);
 
   public
     property DataByKey [Key: TKey]: TData read GetDataByKey;
@@ -55,6 +56,8 @@ type
 
     constructor Create (CompareFunction: TCompareFunction);
     destructor Destroy; override;
+
+    procedure Print;
 
   end;
 
@@ -320,6 +323,27 @@ begin
   FreeNodes (Root);
 
   inherited Destroy;
+
+end;
+
+procedure TBSTree.RecPrint (Node: PBSTNode);
+begin
+  if Node<> nil then
+  begin
+    Write ('(', Node^.Data.ToString, ',');
+    RecPrint (Node^.LChild);
+    RecPrint (Node^.RChild);
+    Write (')');
+
+  end
+  else
+    Write ('()');
+
+end;
+
+procedure TBSTree.Print;
+begin
+  RecPrint (Root);
 
 end;
 
