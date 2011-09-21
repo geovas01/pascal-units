@@ -73,7 +73,6 @@ var
   Stream: TMyTextStream;
 
 begin
-  WriteLn ('Solve!', GetRunTimeParameterManager.GetValueByName ('--OutputFilename'));
 
   if GetRunTimeParameterManager.GetValueByName ('--OutputFilename') <> '' then
   begin
@@ -111,7 +110,7 @@ begin
   end;
 
 
-  AnStream.WriteLine ('p cnf '+ IntToStr (MaxVarIndex+ 1)+ ' '+ IntToStr (AllClauses.Count));
+  AnStream.WriteLine ('p cnf '+ IntToStr (MaxVarIndex)+ ' '+ IntToStr (AllClauses.Count));
   for i:= 0 to AllClauses.Count- 1 do
   begin
     ActiveClause:= AllClauses.Item [i];
