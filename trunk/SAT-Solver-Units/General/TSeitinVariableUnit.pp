@@ -5,7 +5,7 @@ unit TSeitinVariableUnit;
 interface
 
 uses
-  Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit;//, ClauseDicTreeUnit;
+  Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit, MyTypes;//, ClauseDicTreeUnit;
 
 type
   TName= Integer;
@@ -15,16 +15,28 @@ type
 
   TVariableManager= class (TObject)
   private
+    FSimulationMode: Boolean;
     FTrueVariable: TTseitinVariable;
     FTrueLiteral: TLiteral;
     FFalseLiteral: TLiteral;
     FLastUsedCNFIndex: Integer;
     FDecisionForNewVariable: Boolean;
 
+    {
+    Keep track of LastVariableIndex when the Variable Generator enter the simulation mode
+    }
+    SimulationModeStack: TIntegerCollection;
+
 //    AndDicTree, OrDicTree: TClauseDicTree;
 
     function GetSatSolver: TSATSolverInterface; inline;
+    procedure SetSimulationMode (const AValue: Boolean);
 
+
+    procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
+    procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
 
   public
     property TrueVariable: TTseitinVariable read FTrueVariable;
@@ -33,6 +45,7 @@ type
     property SatSolver: TSATSolverInterface read GetSatSolver;
     property LastUsedCNFIndex: Integer read FLastUsedCNFIndex;
     property DecisionForNewVariable: Boolean read FDecisionForNewVariable write FDecisionForNewVariable;
+    property SimulationMode: Boolean read FSimulationMode write SetSimulationMode;
 
     constructor Create;
     destructor Destroy; override;
@@ -44,11 +57,6 @@ type
     function CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
     function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
     function CreateVariableDescribingOR (l1, l2: TLiteral): TLiteral;
-
-    procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
-    procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
-    procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
-    procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
 
 //    procedure SetLastVariableIndex (Value: Integer);
   end;
@@ -78,6 +86,21 @@ begin
 
 end;
 
+procedure TVariableManager.SetSimulationMode (const AValue: Boolean);
+begin
+  FSimulationMode:= AValue;
+
+  if SimulationMode then
+    SimulationModeStack.AddItem (FLastUsedCNFIndex)
+  else
+  begin
+    FLastUsedCNFIndex:= SimulationModeStack.Item [0];
+    SimulationModeStack.Delete (0);
+
+  end;
+
+end;
+
 constructor TVariableManager.Create;
 begin
 
@@ -94,6 +117,9 @@ begin
   FTrueLiteral:= CreateLiteral (FTrueVariable, False);
   FFalseLiteral:= CreateLiteral (FTrueVariable, True);
 
+  SimulationModeStack:= TIntegerCollection.Create;
+  FSimulationMode:= False;
+
 {  AndDicTree:= TClauseDicTree.Create;
   OrDicTree:= TClauseDicTree.Create;
 }
@@ -104,6 +130,9 @@ begin
 {  AndDicTree.Free;
   OrDicTree.Free;
 }
+
+  SimulationModeStack.Free;
+
   inherited Destroy;
 
 end;
@@ -274,6 +303,9 @@ end;
 
 procedure TVariableManager.DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
 begin
+  if SimulationMode then
+    Exit;
+
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (l1);
   SatSolver.AddLiteral (l2);
@@ -319,6 +351,9 @@ var
   i: Integer;
 
 begin
+  if SimulationMode then
+    Exit;
+
   SatSolver.BeginConstraint;
   for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
     SatSolver.AddLiteral (Literals.Item [i]);
@@ -382,6 +417,9 @@ end;
 
 procedure TVariableManager.DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
 begin
+  if SimulationMode then
+    Exit;
+
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (l1);
   SatSolver.AddLiteral (l2);
@@ -425,6 +463,9 @@ var
   i: Integer;
 
 begin
+  if SimulationMode then
+    Exit;
+
   SatSolver.BeginConstraint;
   for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
     SatSolver.AddLiteral (Literals.Item [i]);
