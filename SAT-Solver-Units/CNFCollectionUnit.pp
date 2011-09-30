@@ -1,4 +1,4 @@
-unit CNFCollection;
+unit CNFCollectionUnit;
 {$mode objfpc}
 
 interface
