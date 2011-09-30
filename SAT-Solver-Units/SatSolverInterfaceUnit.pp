@@ -91,7 +91,7 @@ procedure Finalize;
 
 implementation
 uses
-  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollection,
+  TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollectionUnit,
   ParameterManagerUnit, StreamUnit;
 
 var
