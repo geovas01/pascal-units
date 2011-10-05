@@ -18,8 +18,9 @@ type
 
   protected
     procedure SyncInteractiveUPInfo; override;
-{
+
     function GetVarCount: Int64; override;
+{
     function GetClauseCount: Int64; override;
 }
 
@@ -42,7 +43,8 @@ type
   end;
 
 implementation
-
+uses
+  TSeitinVariableUnit;
 { TMiniSatSolver }
 
 procedure TMiniSatSolverInterface.SubmitClause;
@@ -103,13 +105,14 @@ begin
 
 end;
 
-{
+
 function TMiniSatSolverInterface.GetVarCount: Int64;
 begin
   Exit (MiniSatSolver.NoVars);
 
 end;
 
+{
 function TMiniSatSolverInterface.GetClauseCount: Int64;
 begin
   Exit (MiniSatSolver.NoClauses);

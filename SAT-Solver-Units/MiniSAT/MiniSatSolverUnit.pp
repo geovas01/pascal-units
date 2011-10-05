@@ -185,6 +185,11 @@ var
   v: Integer;
 
 begin
+  if GetVariableManager<> nil then
+    if GetVariableManager.SimulationMode then
+      if NoVars<= x then
+        Exit (gbUnknown);
+
   while NoVars<= x do
     GetNewVar;
 
