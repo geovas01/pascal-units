@@ -26,17 +26,21 @@ type
     Keep track of LastVariableIndex when the Variable Generator enter the simulation mode
     }
     SimulationModeStack: TIntegerCollection;
+    {
+    Keep track of SimulationMode when the Variable Generator enter/exit the simulation mode
+    }
+    SimulationModeStateStack: TIntegerCollection;
 
 //    AndDicTree, OrDicTree: TClauseDicTree;
 
     function GetSatSolver: TSATSolverInterface; inline;
-    procedure SetSimulationMode (const AValue: Boolean);
 
 
     procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
     procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
     procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
     procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
+
 
   public
     property TrueVariable: TTseitinVariable read FTrueVariable;
@@ -45,7 +49,7 @@ type
     property SatSolver: TSATSolverInterface read GetSatSolver;
     property LastUsedCNFIndex: Integer read FLastUsedCNFIndex;
     property DecisionForNewVariable: Boolean read FDecisionForNewVariable write FDecisionForNewVariable;
-    property SimulationMode: Boolean read FSimulationMode write SetSimulationMode;
+    property SimulationMode: Boolean read FSimulationMode;
 
     constructor Create;
     destructor Destroy; override;
@@ -57,6 +61,9 @@ type
     function CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
     function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
     function CreateVariableDescribingOR (l1, l2: TLiteral): TLiteral;
+
+    procedure SetSimulationMode;
+    procedure ResetSimulationMode;
 
 //    procedure SetLastVariableIndex (Value: Integer);
   end;
@@ -86,21 +93,6 @@ begin
 
 end;
 
-procedure TVariableManager.SetSimulationMode (const AValue: Boolean);
-begin
-  FSimulationMode:= AValue;
-
-  if SimulationMode then
-    SimulationModeStack.AddItem (FLastUsedCNFIndex)
-  else
-  begin
-    FLastUsedCNFIndex:= SimulationModeStack.Item [0];
-    SimulationModeStack.Delete (0);
-
-  end;
-
-end;
-
 constructor TVariableManager.Create;
 begin
 
@@ -118,6 +110,7 @@ begin
   FFalseLiteral:= CreateLiteral (FTrueVariable, True);
 
   SimulationModeStack:= TIntegerCollection.Create;
+  SimulationModeStateStack:= TIntegerCollection.Create;
   FSimulationMode:= False;
 
 {  AndDicTree:= TClauseDicTree.Create;
@@ -138,11 +131,20 @@ begin
 end;
 
 function TVariableManager.CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
+var
+  Temp: Integer;
+
 begin
   Inc (FLastUsedCNFIndex);
   Result:= LastUsedCNFIndex;
 
-  GetSatSolver.GenerateNewVariable (VariablePolarity, Decide and DecisionForNewVariable);
+
+  if not SimulationMode then
+  begin
+    Temp:= GetSatSolver.GenerateNewVariable (VariablePolarity, Decide and DecisionForNewVariable);
+    Assert (FLastUsedCNFIndex= Temp);
+
+  end;
 
 end;
 
@@ -200,9 +202,6 @@ begin
 end;
 
 function TVariableManager.CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
-var
-  Temp: TLiteral;
-
 begin
   if SatSolver.GetLiteralValue (l1)= gbFalse then
     Exit (FalseLiteral)
@@ -298,6 +297,24 @@ begin
     DescribeOR (l1, l2, Result);
 
   end;
+
+end;
+
+procedure TVariableManager.SetSimulationMode;
+begin
+  FSimulationMode:= True;
+  SimulationModeStack.AddItem (FLastUsedCNFIndex);
+  SimulationModeStateStack.AddItem (1);
+
+end;
+
+procedure TVariableManager.ResetSimulationMode;
+begin
+  FLastUsedCNFIndex:= SimulationModeStack.Item [0];
+
+  SimulationModeStack.Delete (0);
+  SimulationModeStateStack.Delete (0);
+  FSimulationMode:= (SimulationModeStateStack.Count<> 0);
 
 end;
 

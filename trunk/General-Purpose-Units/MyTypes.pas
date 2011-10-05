@@ -9,6 +9,7 @@ type
   PObject= ^TObject;
   TIntegerArray= array of Integer;
   TIntegerCollection= specialize TGenericCollectionForBuiltInData<Integer>;
+//  TBooleanCollection= specialize TGenericCollectionForBuiltInData<Boolean>;
 
   { TPair }
 
