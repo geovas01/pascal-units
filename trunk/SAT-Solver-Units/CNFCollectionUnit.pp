@@ -33,7 +33,7 @@ type
 
 implementation
 uses
-  ParameterManagerUnit;
+  ParameterManagerUnit, TSeitinVariableUnit;
 
 { TCNFCollection }
 
@@ -61,7 +61,8 @@ end;
 
 procedure TCNFCollection.SubmitClause; 
 begin
-  AllClauses.Add (TopConstraint.Copy);
+  if NoOfLiteralInTopConstraint [gbTrue]= 0 then
+    AllClauses.Add (TopConstraint.Copy);
 
   inherited;
 
@@ -109,6 +110,21 @@ begin
 
   end;
 
+  for i:= 0 to MaxVarIndex do
+    if GetValue (i)= gbTrue then
+    begin
+       ActiveClause:= TClause.Create (1);
+       ActiveClause.Item [0]:= CreateLiteral (i, False);
+       AllClauses.Add (ActiveClause);
+
+    end
+    else if GetValue (i)= gbFalse then
+    begin
+       ActiveClause:= TClause.Create (1);
+       ActiveClause.Item [0]:= CreateLiteral (i, True);
+       AllClauses.Add (ActiveClause);
+
+    end;
 
   AnStream.WriteLine ('p cnf '+ IntToStr (MaxVarIndex)+ ' '+ IntToStr (AllClauses.Count));
   for i:= 0 to AllClauses.Count- 1 do
