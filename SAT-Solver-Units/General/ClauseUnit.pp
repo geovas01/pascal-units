@@ -30,6 +30,8 @@ type
 
   end;
 
+  TListOfLiteralCollection= specialize TGenericCollection<TLiteralCollection>;
+
   TClause= TLiteralCollection;
   TGenericCollectionTClause= specialize TGenericCollection<TClause>;
 
@@ -56,12 +58,15 @@ type
   function IsNegated (Lit: TLiteral): Boolean;
   function GetValue (Lit: TLiteral): Integer; inline;
   function NegateLiteral   (Lit: TLiteral): TLiteral; inline;
+  function CopyLiteral   (Lit: TLiteral): TLiteral; inline;
 //  function CreateLiteral: TLiteral; inline;
   function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
   function LiteralToString (Lit: TLiteral): AnsiString;
 
 
 implementation
+uses
+  TSeitinVariableUnit;
 
 function TLiteralCollection.ToXML: AnsiString;
 var
@@ -149,6 +154,20 @@ begin
 
 end;
 }
+
+function CopyLiteral (Lit: TLiteral): TLiteral;
+begin
+  case TSeitinVariableUnit.GetVariableManager.SatSolver.GetLiteralValue (Lit) of
+    gbFalse:
+      Result:= GetVariableManager.FalseLiteral;
+    gbTrue:
+      Result:= GetVariableManager.TrueLiteral;
+    gbUnknown:
+      Result:= Lit;
+
+  end;
+
+end;
 
 function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
 begin

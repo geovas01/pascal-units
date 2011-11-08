@@ -36,12 +36,6 @@ type
     function GetSatSolver: TSATSolverInterface; inline;
 
 
-    procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
-    procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
-    procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
-    procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
-
-
   public
     property TrueVariable: TTseitinVariable read FTrueVariable;
     property TrueLiteral: TLiteral read FTrueLiteral;
@@ -66,6 +60,12 @@ type
     procedure ResetSimulationMode;
 
 //    procedure SetLastVariableIndex (Value: Integer);
+
+    procedure DescribeAND (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
+    procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
+
   end;
 
 function GetVariableManager: TVariableManager; 
@@ -125,6 +125,7 @@ begin
 }
 
   SimulationModeStack.Free;
+  SimulationModeStateStack.Free;
 
   inherited Destroy;
 
