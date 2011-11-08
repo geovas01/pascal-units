@@ -3,47 +3,13 @@ unit CollectionUnit;
 
 interface
 uses
-  Classes, SysUtils, MyTypes;
+  Classes, SysUtils, MyTypes, GenericCollectionUnit;
   
 type
 
   TCompareFunction= function (Obj1, Obj2: TObject): Boolean;
 
-  TBaseCollection= class (TObject)
-  protected
-    FMembers: array of TObject;
-    FSize: Integer;
-
-  private
-  
-  protected
-    function GetMember (Index: Integer): TObject;
-    (*No range checking while writing in*)
-    procedure SetMember (Index: Integer; const Value: TObject);
-
-
-  public
-    property Size: Integer read FSize;
-    property Member [Index: Integer]: TObject read GetMember write SetMember;
-
-    function GetPointerToFirst: PObject; inline;
-    constructor Create;
-    destructor Destroy; override;
-
-    //Remove all elements in collection but not free them
-    procedure Clear; virtual;
-
-    procedure Add (Data: TObject); virtual;
-    //Remove the index'th element and free it.
-    procedure Delete (Index: Integer); virtual;
-    procedure AddAnotherCollection (AnotherColleciton: TBaseCollection);
-
-   // Sort the members based on compare function (which is accept two TObject objects) and return true if the first one is smaller than the second
-    procedure Sort (CompareFunction: TCompareFunction);
-    procedure Allocate (_Size: Integer);
-
-  end;
-
+{
   TDoubleCollection= class (TObject)
   protected
     FMembers: array of Extended;
@@ -92,21 +58,14 @@ type
     function Avg: LongWord;
 
   end;
+  }
 
-  TInt64Collection= class (TBaseCollection)
-  private
-    function GetMember (Index: Integer): Int64;
-    procedure SetMember(Index: Integer; const Value: Int64);
+  _TInt64Collection= specialize TGenericCollectionForBuiltInData<Int64>;
 
+  { TInt64Collection }
+
+  TInt64Collection= class (_TInt64Collection)
   public
-    property MemberAt [Index: Integer]: Int64
-      read GetMember write SetMember;
-
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure Add (Data: Int64);
-    procedure Delete (Index: Integer);
 
     procedure FillWithZero (Length: Integer);
     function Min: Int64;
@@ -115,25 +74,16 @@ type
 
   end;
 
-  TIntegerCollection= class (TBaseCollection)
-  private
-    function GetMember (Index: Integer): Integer;
-    procedure SetMember(Index: Integer; const Value: Integer);
+  _TIntegerCollection= specialize TGenericCollectionForBuiltInData<Integer>;
 
+  { TIntegerCollection }
+
+  TIntegerCollection= class (_TIntegerCollection)
   public
-    property MemberAt [Index: Integer]: Integer read GetMember
-      write SetMember;
-
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure Add (Data: Integer);
-    procedure Delete (Index: Integer);
-
     procedure FillWithZero (Length: Integer);
 
   end;
-
+{
   TByteCollection= class (TBaseCollection)
   private
     function GetByteAt(Index: Integer): Byte;
@@ -149,14 +99,14 @@ type
   
   TBaseFixSizeCollection= TBaseCollection;
   TStringCollection= TStrings;
-  
+ }
  
 implementation
 
 uses ExceptionUnit, Math;
 
 { TBaseCollection }
-
+{
 procedure TBaseCollection.Add (Data: TObject);
 begin
   Inc (FSize);
@@ -655,217 +605,77 @@ begin
   Result:= PByte (Member [Index])^;
   
 end;
+}
 
 { TIntegerCollection }
-
-procedure TIntegerCollection.Add (Data: Integer);
-var
-  NewPtr: PInteger;
-
-begin
-  New (NewPtr);
-  NewPtr^:= Data;
-  
-  inherited Add (TObject (NewPtr));
-  
-end;
-
-constructor TIntegerCollection.Create;
-begin
-  inherited;
-  
-end;
-
-procedure TIntegerCollection.Delete (Index: Integer);
-begin
-  if Member [Index]<> nil then
-    Dispose (PInteger (Member [Index]));
-
-  inherited;
-  
-end;
 
 procedure TIntegerCollection.FillWithZero (Length: Integer);
 var
   i: Integer;
 
 begin
-  for i:= 1 to Length do
-    Self.Add (0);
+  Count:= Length;
+  for i:= 0 to Count- 1 do
+    Item [i]:= 0;
 
-end;
-
-destructor TIntegerCollection.Destroy;
-var
-  i: Integer;
-  Ptr: ^TObject;
-  
-begin
-  Ptr:= GetPointerToFirst;
-  
-  for i:= 1 to Size do
-  begin
-    Dispose (PInteger (Ptr^));
-    Inc (Ptr);
-    
-  end;
-
-  Clear;
-  inherited;
-
-end;
-
-function TIntegerCollection.GetMember(Index: Integer): Integer;
-begin
-  Result:= PInteger (Member [Index])^;
-
-end;
-
-procedure TIntegerCollection.SetMember (Index: Integer;
-  const Value: Integer);
-begin
-  PInteger (Member [Index])^:= Value;
-  
 end;
 
 { TInt64Collection }
 
-procedure TInt64Collection.Add (Data: Int64);
-var
-  NewPtr: PInt64;
-
-begin
-  NewPtr:= New (PInt64);
-  NewPtr^:= Data;
-  
-  inherited Add (TObject (NewPtr));
-  
-end;
-
 function TInt64Collection.Avg: Int64;
 var
   i: Integer;
-  Ptr: PObject;
 
 begin
-  Ptr:= GetPointerToFirst;
   Result:= 0;
 
-  for i:= 1 to Size do
-  begin
-    Inc (Result, PInt64 (Ptr^)^);
-    Inc (Ptr);
-    
-  end;
+  for i:= 0 to Count- 1 do
+    Inc (Result, Item [i]);
 
-  if Size<> 0 then
-    Result:= Result div Size;
+  if Count<> 0 then
+    Result:= Result div Count;
 
-end;
-
-constructor TInt64Collection.Create;
-begin
-  inherited;
-
-end;
-
-procedure TInt64Collection.Delete (Index: Integer);
-begin
-  Dispose (PInt64 (Member [Index]));
-
-  inherited;
-  
 end;
 
 procedure TInt64Collection.FillWithZero (Length: Integer);
 var
   i: Integer;
-  Ptr: PObject;
 
 begin
-  Allocate (Length);
-  Ptr:= GetPointerToFirst;
+  Count:= Length;
   
-  for i:= 1 to Length do
-  begin
-    Ptr^:= TObject (New (PInt64));
-    Inc (Ptr);
-
-  end;
-
-end;
-
-destructor TInt64Collection.Destroy;
-var
-  i: Integer;
-  Ptr: ^TObject;
-  
-begin
-  Ptr:= GetPointerToFirst;
-  
-  for i:= 1 to Size do
-  begin
-    Dispose (PInt64 (Ptr^));
-    Inc (Ptr);
-    
-  end;
-
-  Clear;
-  inherited Destroy;
-
-end;
-
-function TInt64Collection.GetMember (Index: Integer): Int64;
-begin
-  Result:= PInt64 (Member [Index])^;
+  for i:= 0 to Count- 1 do
+    Item [i]:= 0;
 
 end;
 
 function TInt64Collection.Max: Int64;
 var
-  Ptr: PObject;
   i: Integer;
 
 begin
   Result:= 0;
-  if 0< Size then
-    Result:= MemberAt [0];
-  Ptr:= GetPointerToFirst;
+  if 0< Count then
+    Result:= Item [0];
 
-  for i:= 2 to Size do
-  begin
-    Inc (Ptr);
-    if Result< PInt64 (Ptr^)^ then
-      Result:= PInt64 (Ptr^)^
-
-  end;
+  for i:= 1 to Count- 1 do
+    if Result< Item [i] then
+      Result:= Item [i];
 
 end;
 
 function TInt64Collection.Min: Int64;
 var
-  Ptr: PObject;
   i: Integer;
 
 begin
   Result:= 0;
-  if 0< Size then
-    Result:= MemberAt [0];
-  Ptr:= GetPointerToFirst;
+  if 0< Count then
+    Result:= Item [0];
 
-  for i:= 2 to Size do
-  begin
-    if PInt64 (Ptr^)^< Result then
-      Result:= PInt64 (Ptr^)^;
-    Inc (Ptr);
-    
-  end;
-
-end;
-
-procedure TInt64Collection.SetMember(Index: Integer; const Value: Int64);
-begin
-  PInt64 (Member [Index])^:= Value;
+  for i:= 1 to Count- 1 do
+    if Item [i]< Result then
+      Result:= Item [i];
 
 end;
 
