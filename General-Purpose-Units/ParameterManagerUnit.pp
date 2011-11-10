@@ -82,6 +82,65 @@ constructor TRunTimeParameterManager.Create;
     WriteLn (ExtractFileName (ParamStr (0))+ ' {Name Value}^* ');
 
   end;
+const
+  ValidArguments: array [1..7] of AnsiString=
+    ('--ModularEncoder',
+     '--SATSolverType',
+     '--Verbosity',
+     '--ExtraClausesLevel',
+     '--UseRandomPermutation',
+     '--InputFilename',
+     '--OutputFilename'
+    );
+  ValidArgumentsValues: array [1..7] of array [1..5] of AnsiString=
+    (
+//--ModularEncoder:
+     ('DP', 'DC', 'CARD.DP', 'CARD.DC', 'CARD.SN'),
+//     '--SATSolverType',
+     ('CNFCollection', 'InternalMiniSAT', 'NONE', 'NONE', 'NONE'),
+//     '--Verbosity',
+     ('0', '1', 'NONE', 'NONE', 'NONE'),
+//     '--ExtraClausesLevel',
+     ('Off', 'Medium', 'High', 'NONE', 'NONE'),
+//     '--UseRandomPermutation',
+     ('0', '1', 'None', 'NONE', 'NONE'),
+//     '--InputFilename',
+     ('NONE', 'NONE', 'None', 'NONE', 'NONE'),
+//     '--OutputFilename'
+     ('NONE', 'NONE', 'None', 'NONE', 'NONE')
+    );
+
+  procedure CheckParameter (Name, Value: AnsiString);
+  var
+    i, j: Integer;
+    Flag: Boolean;
+
+  begin
+    Flag:= False;
+    for i:= Low (ValidArguments) to High (ValidArguments)- 2 do
+    begin
+
+      if UpperCase (Name)= UpperCase (ValidArguments [i]) then
+        for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i]) do
+          if UpperCase (Value)= UpperCase (ValidArgumentsValues [i][j]) then
+            Exit;
+
+
+      WriteLn ('Invalid Argument Value:', Name, ' ', Value);
+      PrintHelp;
+      Halt (1);
+
+    end;
+
+  end;
+
+  procedure SetDefaultValues;
+  var
+    i: Integer;
+
+  begin
+    for i:= 0 to Count - 1 do ;
+  end;
 
 var
   i: Integer;
@@ -105,11 +164,14 @@ begin
     if Paramcount< i+ 1 then
       Break;
     V:= ParamStr (i+ 1);
+    CheckParameter (Name, V);
     AddArgument (Name, V);
 
     Inc (i, 2);
 
   end;
+
+  SetDefaultValues;
 
   Finalize;
 
