@@ -121,14 +121,17 @@ const
     begin
 
       if UpperCase (Name)= UpperCase (ValidArguments [i]) then
+      begin
         for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i]) do
           if UpperCase (Value)= UpperCase (ValidArgumentsValues [i][j]) then
             Exit;
 
 
-      WriteLn ('Invalid Argument Value:', Name, ' ', Value);
-      PrintHelp;
-      Halt (1);
+        WriteLn ('Invalid Argument Value:', Name, ' ', Value);
+        PrintHelp;
+        Halt (1);
+
+      end;
 
     end;
 
