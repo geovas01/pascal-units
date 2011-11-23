@@ -83,32 +83,7 @@ constructor TRunTimeParameterManager.Create;
 
   end;
 const
-  ValidArguments: array [1..7] of AnsiString=
-    ('--ModularEncoder',
-     '--SATSolverType',
-     '--Verbosity',
-     '--ExtraClausesLevel',
-     '--UseRandomPermutation',
-     '--InputFilename',
-     '--OutputFilename'
-    );
-  ValidArgumentsValues: array [1..7] of array [1..5] of AnsiString=
-    (
-//--ModularEncoder:
-     ('DP', 'DC', 'CARD.DP', 'CARD.DC', 'CARD.SN'),
-//     '--SATSolverType',
-     ('CNFCollection', 'InternalMiniSAT', 'NONE', 'NONE', 'NONE'),
-//     '--Verbosity',
-     ('0', '1', 'NONE', 'NONE', 'NONE'),
-//     '--ExtraClausesLevel',
-     ('Off', 'Medium', 'High', 'NONE', 'NONE'),
-//     '--UseRandomPermutation',
-     ('0', '1', 'None', 'NONE', 'NONE'),
-//     '--InputFilename',
-     ('NONE', 'NONE', 'None', 'NONE', 'NONE'),
-//     '--OutputFilename'
-     ('NONE', 'NONE', 'None', 'NONE', 'NONE')
-    );
+{$i ValidArguments.inc }
 
   procedure CheckParameter (Name, Value: AnsiString);
   var
