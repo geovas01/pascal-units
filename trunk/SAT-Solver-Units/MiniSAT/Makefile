@@ -22,5 +22,5 @@ LibMiniSatInterface: MiniSatInterface
 #	gcc -g -shared -o libMiniSatManager.so Interface.o Solver.o cInterface_cc.o && cd ../../../ && rm -f libMiniSatManager.so && ln -s SatSolver/MiniSat/Core/libMiniSatManager.so .
 
 clean:
-	rm -f *.o a.out *.or *.ppu *.o
+	rm -f *.{o,bak} a.out *.or *.ppu *.o
 	cd MiniSat-2.2.0 && export MROOT=`pwd` && cd core && make clean 

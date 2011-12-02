@@ -2,5 +2,5 @@ all:
 	cd MiniSAT/  && make clean
 
 clean:
-	rm -f *.o *.ppu General/*.{o,ppu} RandomWalk-SATSolver/*.{o,ppu} RWalk-SATSolver/*.{o,ppu} 
+	rm -f *.o *.{ppu,bak} General/*.{o,ppu,bak} RandomWalk-SATSolver/*.{o,ppu,bak} RWalk-SATSolver/*.{o,ppu,bak} 
 	cd MiniSAT/  && make clean
