@@ -219,6 +219,7 @@ end;
 
 function TSATSolverInterface.GetCNF: TClauseCollection;
 begin
+  Result:= nil;
   raise Exception.Create ('GetCNF is not implemented here');
 
 end;

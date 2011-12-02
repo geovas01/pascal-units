@@ -22,7 +22,7 @@ type
   TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   public
     function ToXML: AnsiString;
-    function ToString: AnsiString;
+    function ToString: AnsiString; override;
 
     function Copy: TLiteralCollection;
 
@@ -49,7 +49,7 @@ type
     constructor Create;
 
     function Copy: TClauseCollection;
-    function ToString: AnsiString;
+    function ToString: AnsiString; override;
 
   end;
 

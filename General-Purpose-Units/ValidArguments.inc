@@ -14,7 +14,7 @@
 //     '--SATSolverType',
      ('CNFCollection', 'InternalMiniSAT', 'NONE', 'NONE', 'NONE', 'NONE'),
 //     '--Verbosity',
-     ('0', '1', 'NONE', 'NONE', 'NONE', 'NONE'),
+     ('0', '1', '2', 'NONE', 'NONE', 'NONE'),
 //     '--ExtraClausesLevel',
      ('Off', 'Medium', 'High', 'NONE', 'NONE', 'NONE'),
 //     '--UseRandomPermutation',
