@@ -394,6 +394,7 @@ end;
 
 function TMyBinStream.ReadStr: AnsiString;
 begin
+  Result:= '';
   raise Exception.Create ('Not Implemented Yet!');
 
 end;

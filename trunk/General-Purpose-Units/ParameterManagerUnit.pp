@@ -102,7 +102,7 @@ const
             Exit;
 
 
-        WriteLn ('Invalid Argument Value:', Name, ' ', Value);
+        WriteLn ('Invalid Argument Value:', Name, ' ', Value, '.');
         PrintHelp;
         Halt (1);
 

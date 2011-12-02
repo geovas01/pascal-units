@@ -46,6 +46,9 @@ type
     {Returns a new BigInt which is equal to Self mod m}
     function Modulo (m: TBigInt): TBigInt;
 
+    {Returns a new BigInt which is equal to log of Self in base 2}
+    function Log: TBigInt;
+
     function SumOfDigits: Integer;
     function ShiftLeft (n: Integer): TBigInt;
     function Copy: TBigInt;
@@ -177,6 +180,25 @@ begin
       Result.Sub (m);
 
   end;
+
+end;
+
+function TBigInt.Log: TBigInt;
+var
+  TwoPower: TBigInt;
+
+begin
+  Result:= TBigInt.Create.SetValue (0);
+  TwoPower:= TBigInt.Create.SetValue (1);
+
+  while TwoPower.CompareWith (Self)< 0 do
+  begin
+    TwoPower.Mul2;
+    Result.Incr;
+
+  end;
+
+  TwoPower.Free;
 
 end;
 
