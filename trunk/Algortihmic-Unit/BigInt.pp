@@ -672,8 +672,8 @@ begin
 
   Higher.Free;
   Lower.Free;
-  Temp.Free;
   Mid.Free;
+  Temp.Free;
 
 end;
 
