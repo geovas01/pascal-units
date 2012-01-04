@@ -81,7 +81,7 @@ type
 
 implementation
 uses
-  Math;
+  Math, SysUtils;
 
 procedure TBigInt.SetDigit (Index: Integer; Value: Byte);
 begin
@@ -153,7 +153,7 @@ function TBigInt.Modulo (m: TBigInt): TBigInt;
   for i:= 0 to a.Length do
   begin
     Result:= 10* Result+ a [i];
-    Result:= Result mod n;
+    Result:= Result mod n;, i.e.,
     {
     while Result< m do
       Result-= m;
@@ -521,12 +521,19 @@ var
   i: Integer;
 
 begin
+
   Result:= 0;
 
   for i:= FLength- 1 downto 0 do
   begin
     Result*= 10;
     Result+= FDigits [i];
+    if Result< 0 then
+    begin
+      WriteLn ('Overflow in GetValue!');
+      raise Exception.Create ('Overflow in GetValue!');
+
+    end;
 
   end;
 
@@ -624,7 +631,7 @@ begin
   Mid:= nil;
   Result:= nil;
 
-  while Higher.CompareWith (Lower)> 0 do
+  while 0<= Higher.CompareWith (Lower) do
   begin
     Temp.Free;
     Mid.Free;
@@ -636,8 +643,10 @@ begin
 
     CompareRes:= Self.CompareWith (Temp);
 
-    if CompareRes> 0 then
+    if 0< CompareRes then
     begin
+      Result.Free;
+      Result:= Lower.Copy;
       Lower.Free;
       Lower:= Mid.Copy.Incr;
 
@@ -650,6 +659,7 @@ begin
     end
     else
     begin
+      Result.Free;
       Result:= Mid.Copy;
       Break;
 
