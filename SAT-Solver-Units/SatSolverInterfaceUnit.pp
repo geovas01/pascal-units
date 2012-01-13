@@ -63,6 +63,9 @@ type
 
     procedure SubmitAndGate (p: TLiteral); virtual;
     procedure SubmitOrGate (p: TLiteral); virtual;
+    procedure SubmitXOrGate (p: TLiteral); virtual;
+    procedure SubmitITEGate (p: TLiteral); virtual;
+    procedure SubmitFACarryGate (p: TLiteral); virtual;
     procedure SubmitClause; virtual;
 
     function Solve: Boolean; virtual; abstract;
@@ -463,6 +466,8 @@ begin
        AddLiteral (NegateLiteral (ActiveClause.Item [i]));
        AddLiteral (p);
        SubmitClause;
+//       ActiveClause.Item [i]:= ActiveClause.Item [i];
+
 
      end;
 
@@ -472,6 +477,163 @@ begin
    end;
 
   end;
+
+end;
+
+procedure TSATSolverInterface.SubmitXOrGate (p: TLiteral);
+var
+  pV: TGroundBool;
+  i, j: Integer;
+  ActiveClause: TClause;
+  Count: Integer;
+
+begin
+
+// p <=> l_1 \lxor l_2 \lxor ... ln;
+  {
+  ~l1, l2, p
+  l1, ~l2, p
+  ~l1,~l2, ~p
+  l1, l2, ~p
+  }
+
+  pv:= GetValue (GetVar (p));
+  ActiveClause:= FTopConstraint;
+
+  for i:= 0 to (1 shl ActiveClause.Count)- 1 do
+  begin
+
+    BeginConstraint;
+    Count:= 0;
+    for j:= 0 to ActiveClause.Count- 1 do
+      if (i and (1 shl j))= 0 then
+      begin
+        Inc (Count);
+        AddLiteral (NegateLiteral (ActiveClause.Item [j]));
+
+      end
+      else
+        AddLiteral (ActiveClause.Item [j]);
+
+    if Count mod 2= 1 then
+      AddLiteral (p)
+    else
+      AddLiteral (NegateLiteral (p));
+
+    SubmitClause;
+
+  end;
+
+  AbortConstraint;
+
+end;
+
+procedure TSATSolverInterface.SubmitITEGate (p: TLiteral);
+var
+  pV: TGroundBool;
+  i: Integer;
+  ActiveClause: TClause;
+  s, t, f: TLiteral;
+
+begin
+
+// p <=> (s \land t) \lor (\lnot s \land f);
+  {
+  ~s, ~t, p
+  ~s, t, ~p
+  s,~f, p
+  s, f, ~p
+  ~t, ~f, p
+  t, f, ~p
+  }
+
+  pv:= GetValue (GetVar (p));
+  ActiveClause:= FTopConstraint;
+  Assert (ActiveClause.Count= 3);
+
+//  ActiveClause.Sort (@CompareLiteral);
+
+  s:= ActiveClause.Item [0];
+  t:= ActiveClause.Item [1];
+  f:= ActiveClause.Item [2];
+
+  BeginConstraint;
+  AddLiteral (NegateLiteral (s));
+  AddLiteral (NegateLiteral (t));
+  AddLiteral (p);
+  SubmitClause;
+
+  BeginConstraint;
+  AddLiteral (NegateLiteral (s));
+  AddLiteral (t);
+  AddLiteral (NegateLiteral (p));
+  SubmitClause;
+
+  BeginConstraint;
+  AddLiteral (NegateLiteral (t));
+  AddLiteral (NegateLiteral (f));
+  AddLiteral (p);
+  SubmitClause;
+
+  BeginConstraint;
+  AddLiteral (t);
+  AddLiteral (f);
+  AddLiteral (NegateLiteral (p));
+  SubmitClause;
+
+  BeginConstraint;
+  AddLiteral (s);
+  AddLiteral (NegateLiteral (f));
+  AddLiteral (p);
+  SubmitClause;
+
+  BeginConstraint;
+  AddLiteral (s);
+  AddLiteral (f);
+  AddLiteral (NegateLiteral (p));
+  SubmitClause;
+
+  AbortConstraint;
+
+end;
+
+procedure TSATSolverInterface.SubmitFACarryGate (p: TLiteral);
+var
+  i, j: Integer;
+  ActiveClause: TClause;
+
+
+begin
+  ActiveClause:= TopConstraint;
+  Assert (ActiveClause.Count= 3);
+
+  for i:= 0 to ActiveClause.Count - 1 do
+    for j:= i+ 1 to ActiveClause.Count - 1 do
+    begin
+      BeginConstraint;
+
+      AddLiteral (NegateLiteral (ActiveClause.Item [i]));
+      AddLiteral (NegateLiteral (ActiveClause.Item [j]));
+      AddLiteral (p);
+
+      SubmitClause;
+
+    end;
+
+
+  for i:= 0 to ActiveClause.Count - 1 do
+    for j:= i+ 1 to ActiveClause.Count - 1 do
+    begin
+      BeginConstraint;
+
+      AddLiteral (ActiveClause.Item [i]);
+      AddLiteral (ActiveClause.Item [j]);
+      AddLiteral (NegateLiteral (p));
+
+      SubmitClause;
+
+    end;
+  AbortConstraint;
 
 end;
 
