@@ -55,6 +55,22 @@ type
     function CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
     function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
     function CreateVariableDescribingOR (l1, l2: TLiteral): TLiteral;
+    function CreateVariableDescribingXOR (l1, l2: TLiteral): TLiteral;
+    function CreateVariableDescribingXOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
+
+    {
+      Result:= ITE (s, t, f) means
+      if (s)
+        Result:= t
+      else
+        Result:= f
+    }
+    function CreateVariableDescribingITE (s, t, f: TLiteral): TLiteral;
+
+    {
+     its output, x, is the carry pin of a full-adder, i.e., x= l1+ l2+ l3>=2
+    }
+    function CreateVariableDescribingFACarry (l1, l2, l3: TLiteral): TLiteral;
 
     procedure SetSimulationMode;
     procedure ResetSimulationMode;
@@ -65,6 +81,14 @@ type
     procedure DescribeAND (l1, l2: TLiteral; ResultLit: TLiteral);
     procedure DescribeOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
     procedure DescribeOR (l1, l2: TLiteral; ResultLit: TLiteral);
+
+    procedure DescribeXOR (Literals: TLiteralCollection; ResultLit: TLiteral; Size: Integer= MaxInt);
+    procedure DescribeXOR (l1, l2: TLiteral; ResultLit: TLiteral);
+
+    procedure DescribeITE (s, t, f: TLiteral; ResultLit: TLiteral);
+    procedure DescribeFACarry (l1, l2, l3: TLiteral; ResultLit: TLiteral);
+
+
 
   end;
 
@@ -301,6 +325,99 @@ begin
 
 end;
 
+function TVariableManager.CreateVariableDescribingXOR (l1, l2: TLiteral): TLiteral;
+begin
+  if SatSolver.GetLiteralValue (l1)= gbFalse then
+    Exit (l2)
+  else if SatSolver.GetLiteralValue (l1)= gbTrue then
+    Exit (NegateLiteral (l2))
+  else if SatSolver.GetLiteralValue (l2)= gbFalse then
+    Exit (l1)
+  else if SatSolver.GetLiteralValue (l2)= gbTrue then
+    Exit (NegateLiteral (l1))
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+    DescribeXOR (l1, l2, Result);
+
+  end;
+
+end;
+
+function TVariableManager.CreateVariableDescribingXOR(
+  Literals: TLiteralCollection; Size: Integer): TLiteral;
+var
+  i, j: Integer;
+
+begin
+//  Literals.Sort (@CompareLiteral);
+
+  j:= 0;
+  for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
+    case SatSolver.GetLiteralValue (Literals.Item [i]) of
+      gbTrue:
+        Exit (TrueLiteral);
+      gbFalse: ;
+      gbUnknown:
+      begin
+        Literals.Item [j]:= Literals.Item [i];
+        Inc (j);
+        {TODO: It can be improved. ..}
+
+      end;
+
+    end;
+
+  if j= 0 then
+    Exit (FalseLiteral);
+  if j= 1 then
+    Exit (Literals.Item [0]);
+
+{
+  Result:= OrDicTree.Search (Literals, j);
+  if Result.FRawValue= 0 then
+  begin
+}
+
+  Result:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
+
+  DescribeXOR (Literals, Result, j);
+
+{
+    OrDicTree.Insert (Literals, Result, j);
+
+  end
+  else
+    WRiteLn ('Reused!', Literals.ToString, ':', LiteralToString (Result));
+}
+
+end;
+
+function TVariableManager.CreateVariableDescribingITE (s, t, f: TLiteral): TLiteral;
+begin
+  if SatSolver.GetLiteralValue (s)= gbTrue then
+    Exit (t)
+  else if SatSolver.GetLiteralValue (s)= gbFalse then
+    Exit (f)
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+    DescribeITE (s, t, f, Result);
+
+  end;
+
+end;
+
+function TVariableManager.CreateVariableDescribingFACarry (l1, l2, l3: TLiteral): TLiteral;
+begin
+  Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+  DescribeFACarry (l1, l2, l3, Result);
+
+end;
+
 procedure TVariableManager.SetSimulationMode;
 begin
   FSimulationMode:= True;
@@ -473,6 +590,86 @@ begin
   end;
 
   SatSolver.SubmitOrGate (ResultLit);
+
+end;
+
+procedure TVariableManager.DescribeXOR (Literals: TLiteralCollection;
+  ResultLit: TLiteral; Size: Integer);
+var
+  i: Integer;
+
+begin
+  if SimulationMode then
+    Exit;
+
+  SatSolver.BeginConstraint;
+
+  for i:= 0 to Literals.Count- 1 do
+    SatSolver.AddLiteral (Literals.Item [i]);
+
+  SatSolver.SubmitXOrGate (ResultLit);
+
+end;
+
+procedure TVariableManager.DescribeXOR (l1, l2: TLiteral; ResultLit: TLiteral);
+begin
+  if SimulationMode then
+    Exit;
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (l1);
+  SatSolver.AddLiteral (l2);
+
+  SatSolver.SubmitXOrGate (ResultLit);
+
+end;
+
+procedure TVariableManager.DescribeITE (s, t, f: TLiteral; ResultLit: TLiteral);
+begin
+  if SimulationMode then
+    Exit;
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (s);
+  SatSolver.AddLiteral (t);
+  SatSolver.AddLiteral (f);
+
+  SatSolver.SubmitITEGate (ResultLit);
+
+end;
+
+procedure TVariableManager.DescribeFACarry (l1, l2, l3: TLiteral;
+    ResultLit: TLiteral);
+var
+  i, j: Integer;
+  Literals: TLiteralCollection;
+
+begin
+  if SimulationMode then
+    Exit;
+
+  {
+  b & c=> x
+  a& c=> x
+  a& b=>x
+
+  ~b & ~c=> ~x
+  ~a & ~c=> ~x
+  ~a & ~b=> ~x
+  }
+
+  Literals:= TLiteralCollection.Create (3);
+  Literals.Item [0]:= l1;
+  Literals.Item [1]:= l1;
+  Literals.Item [2]:= l1;
+
+
+  SatSolver.BeginConstraint;
+  for i:= 0 to Literals.Count- 1 do
+    SatSolver.AddLiteral (Literals.Item [i]);
+
+  Literals.Free;
+  SatSolver.SubmitFACarryGate (ResultLit);
 
 end;
 
