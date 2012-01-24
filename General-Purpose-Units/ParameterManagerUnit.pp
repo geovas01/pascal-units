@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, SatSolverInterfaceUnit, NameValueCollectionUnit;
 
 type
-  TVerbosityMode= (vbNone= 0, vbMedium, vbFull);
+  TVerbosityMode= (vbNone= 0, vbMedium, vbFull, vbEveryThing= 4);
   TParameterList= specialize TGenericNameValueCollection<AnsiString>;
 
   { TRunTimeParameterManager }
