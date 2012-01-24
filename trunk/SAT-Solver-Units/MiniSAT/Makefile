@@ -14,7 +14,7 @@ cInterface_cc.or: cInterface.cc
 
 Solver.or:
 #	cd MiniSat-2.2.0 && cd core && make r 
-	cd MiniSat-2.2.0 && export MROOT=`pwd` && cd core && make r 
+	cd MiniSat-2.2.0 && export MROOT=`pwd` && cd core && make rs
 	cp MiniSat-2.2.0/core/Solver.or .
 
 LibMiniSatInterface: MiniSatInterface

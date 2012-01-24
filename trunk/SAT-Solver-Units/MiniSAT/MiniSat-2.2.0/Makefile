@@ -1,5 +1,3 @@
 all:
-	export MROOT=`pwd`
-	cd core
-	gmake rs
+	export MROOT=`pwd` && cd core && gmake rs
 
