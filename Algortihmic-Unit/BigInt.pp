@@ -188,8 +188,8 @@ var
   TwoPower: TBigInt;
 
 begin
-  Result:= TBigInt.Create.SetValue (0);
-  TwoPower:= TBigInt.Create.SetValue (1);
+  Result:= TBigInt.Create.SetValue (1);
+  TwoPower:= TBigInt.Create.SetValue (2);
 
   while TwoPower.CompareWith (Self)< 0 do
   begin
