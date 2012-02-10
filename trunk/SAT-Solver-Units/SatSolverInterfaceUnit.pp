@@ -95,7 +95,7 @@ procedure Finalize;
 implementation
 uses
   TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollectionUnit,
-  ParameterManagerUnit, StreamUnit;
+  ParameterManagerUnit, StreamUnit, CNFStreamUnit;
 
 var
   SatSolverInterface: TSATSolverInterface;
@@ -129,14 +129,21 @@ procedure Initialize;
 begin
   if UpperCase (GetRunTimeParameterManager.GetValueByName ('--SatSolverType'))= UpperCase ('CNFCollection') then
     SatSolverInterface:= TCNFCollection.Create
-  else 
-    SatSolverInterface:= TMiniSatSolverInterface.Create;
+  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--SatSolverType'))= UpperCase ('CNFStream') then
+    SatSolverInterface:= TCNFStream.Create (GetRunTimeParameterManager.GetValueByName ('--OutputFilename'))
+  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--SatSolverType'))= UpperCase ('InternalMiniSAT') then
+    SatSolverInterface:= TMiniSatSolverInterface.Create
+  else
+  begin
+    WriteLn ('Invalid SatSolveType!');
+    Halt (1);
 
 {  if GetRunTimeParameterManager.SATSolverType= ssMiniSatSolver then
      SatSolverInterface:= TMiniSatSolverInterface.Create
   else if GetRunTimeParameterManager.SATSolverType= ssCNFCollection then
       SatSolverInterface:= TCNFCollection.Create;
 }
+  end;
 
 end;
 
