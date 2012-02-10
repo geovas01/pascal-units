@@ -180,6 +180,7 @@ end;
 
 procedure TGenericCollectionForBuiltInData.AddItem (NewItem: TData);
 begin
+
   inherited Add (nil);
   Items [Count- 1]:= Pointer (NewItem);
 
