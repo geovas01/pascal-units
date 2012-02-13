@@ -471,7 +471,7 @@ end;
 constructor TBigInt.Create;
 begin
   FLength:= 0;
-  FillChar (FDigits, SizeOf(FDigits), 0);
+//  FillChar (FDigits, SizeOf(FDigits), 0);
 
 end;
 
@@ -501,7 +501,7 @@ end;
 
 function TBigInt.SetValue (n: Int64): TBigInt;
 begin
-  FillChar (FDigits, SizeOf(FDigits), 0);
+//  FillChar (FDigits, SizeOf(FDigits), 0);
   FLength:= 0;
 
   while n> 0 do
