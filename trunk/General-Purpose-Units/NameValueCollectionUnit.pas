@@ -36,7 +36,7 @@ type
   private
     function GetValueByIndex (Index: Integer): TValue;
     function GetValueByName (Name: AnsiString): TValue; virtual;
-  type public
+  public type
     TNameValue= record
 //      Name: AnsiString;
       Value: TValue;
