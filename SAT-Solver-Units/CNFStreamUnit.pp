@@ -5,14 +5,14 @@ unit CNFStreamUnit;
 interface
 
 uses
-  Classes, SysUtils, MiniSatSolverInterfaceUnit, ClauseUnit,
+  Classes, SysUtils, SatSolverInterfaceUnit, ClauseUnit,
    StreamUnit;
 
 type
 
   { TCNFStream }
 
-  TCNFStream= class (TMiniSatSolverInterface)
+  TCNFStream= class (TSATSolverInterface)
   protected
     MaxVarIndex: Integer;
     SubmittedClauseCount: Integer;
@@ -26,9 +26,10 @@ type
 
     procedure SubmitClause; override;
     function Solve: Boolean; override;
+    function GenerateNewVariable (VariablePolrity: TVariablePolarity; Decide: Boolean): Integer; override;
 
-    procedure SaveToFile (AnStream: TMyTextStream);
-    procedure LoadFromFile (AnStream: TMyTextStream);
+    procedure SaveToFile;
+//    procedure LoadFromFile (AnStream: TMyTextStream);
 
   end;
 
@@ -39,6 +40,7 @@ implementation
 function TCNFStream.GetCNF: TClauseCollection;
 begin
   WriteLn ('TCNFStream does not provide GetCNF function');
+  Result:= nil;
   Halt (1);
 
 end;
@@ -51,6 +53,7 @@ begin
      TFileStream.Create (OutputFilename, fmCreate), True);
   OutputStream.WriteLine ('                                                   ');
   SubmittedClauseCount:= 0;
+  MaxVarIndex:= 0;
 
 end;
 
@@ -104,10 +107,20 @@ end;
 function TCNFStream.Solve: Boolean;
 begin
   Result:= False;
+  SaveToFile;
 
 end;
 
-procedure TCNFStream.SaveToFile(AnStream: TMyTextStream);
+function TCNFStream.GenerateNewVariable (VariablePolrity: TVariablePolarity;
+                                 Decide: Boolean): Integer;
+begin
+  Inc (MaxVarIndex);
+  Inc (FVarCount);
+  Result:= MaxVarIndex;
+
+end;
+
+procedure TCNFStream.SaveToFile;
 var
   i: Integer;
   NewClause: TClause;
@@ -135,12 +148,7 @@ begin
     end;
 
   OutputStream.Position:= 0;
-  AnStream.WriteLine ('p cnf '+ IntToStr (MaxVarIndex)+ ' '+ IntToStr (SubmittedClauseCount));
-
-end;
-
-procedure TCNFStream.LoadFromFile(AnStream: TMyTextStream);
-begin
+  OutputStream.WriteStr ('p cnf '+ IntToStr (MaxVarIndex)+ ' '+ IntToStr (SubmittedClauseCount));
 
 end;
 

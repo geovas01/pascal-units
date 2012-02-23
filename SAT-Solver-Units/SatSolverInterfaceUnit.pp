@@ -95,7 +95,7 @@ procedure Finalize;
 implementation
 uses
   TSeitinVariableUnit,  MiniSatSolverInterfaceUnit, CNFCollectionUnit,
-  ParameterManagerUnit, StreamUnit, CNFStreamUnit;
+  ParameterManagerUnit, CNFStreamUnit;
 
 var
   SatSolverInterface: TSATSolverInterface;
@@ -489,7 +489,6 @@ end;
 
 procedure TSATSolverInterface.SubmitXOrGate (p: TLiteral);
 var
-  pV: TGroundBool;
   i, j: Integer;
   ActiveClause: TClause;
   Count: Integer;
@@ -504,7 +503,6 @@ begin
   l1, l2, ~p
   }
 
-  pv:= GetValue (GetVar (p));
   ActiveClause:= FTopConstraint;
 
   for i:= 0 to (1 shl ActiveClause.Count)- 1 do
@@ -656,6 +654,8 @@ begin
 
   FClausesStack:= TStackOfClauses.Create;
   FTopConstraint:= nil;
+  FVarCount:= 0;
+  FClauseCount:= 0;
 
 end;
 
