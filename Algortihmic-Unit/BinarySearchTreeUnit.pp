@@ -11,7 +11,7 @@ type
   { TBSTree }
 
   generic TBSTree<TKey, TData>= class (TObject)
-  type private
+  private type
 
     PBSTNode= ^TBSTNode;
 

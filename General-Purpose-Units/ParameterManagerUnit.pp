@@ -103,7 +103,9 @@ const
 
 
         WriteLn ('Invalid Argument Value:', Name, ' ', Value, '.');
-        PrintHelp;
+        WriteLn ('Valid Arguments for ', Name, ' are');
+        for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i])  do
+          Write (ValidArgumentsValues [i, j], ' , ');
         Halt (1);
 
       end;
