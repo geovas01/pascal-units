@@ -34,6 +34,8 @@ type
   end;
 
 implementation
+uses
+  TSeitinVariableUnit;
 
 { TCNFStream }
 
@@ -129,7 +131,7 @@ begin
   for i:= 0 to MaxVarIndex do
     if GetValue (i)= gbTrue then
     begin
-       NewClause:= TClause.Create (1);
+       NewClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        NewClause.Item [0]:= CreateLiteral (i, False);
        Inc (SubmittedClauseCount);
        OutputStream.WriteStr (IntToStr (i));
@@ -139,7 +141,7 @@ begin
     end
     else if GetValue (i)= gbFalse then
     begin
-       NewClause:= TClause.Create (1);
+       NewClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        NewClause.Item [0]:= CreateLiteral (i, True);
        Inc (SubmittedClauseCount);
        OutputStream.WriteStr (IntToStr (-i));

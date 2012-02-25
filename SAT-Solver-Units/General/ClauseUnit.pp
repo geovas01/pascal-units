@@ -97,10 +97,11 @@ var
   i: Integer;
 
 begin
-  Result:= TLiteralCollection.Create (Self.Count);
+  Result:= TLiteralCollection.Create (Self.Count, 3);
 
   for i:= 0 to Self.Count- 1 do
     Result.Item [i]:= Self.Item [i];
+  Result.Count:= Self.Count;
 
 end;
 

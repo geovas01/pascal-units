@@ -254,14 +254,10 @@ var
 
 begin
   FTopConstraint:= TClause.Create;
-  FNoOfLiteralInTopConstraint:= TArrayOfInteger.Create (3);
+  FNoOfLiteralInTopConstraint:= TArrayOfInteger.Create (3, 0);
   Pair:= TClauseArrayOfIntegerPair.Create (FTopConstraint, FNoOfLiteralInTopConstraint);
   Stack.Push (Pair);
   Result:= FTopConstraint;
-
-  FNoOfLiteralInTopConstraint.Item [0]:= 0;
-  FNoOfLiteralInTopConstraint.Item [1]:= 0;
-  FNoOfLiteralInTopConstraint.Item [2]:= 0;
 
 end;
 
