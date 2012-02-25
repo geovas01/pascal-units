@@ -2,18 +2,28 @@ unit BigInt;
 {$Mode objfpc}
 
 interface
+uses
+  GenericCollectionUnit;
 const
   MaxLen= 9999;
 type
+{ Feb 23, 2012.
+    Type of FDigits has been changed from "array [0..MaxLen] of Byte" to
+      array of Byte. And all calls to FillChar function has been deleted.
+    I noticed that FillChar function is called automatically in InitInstance function,
+    and so FDigits array is already filled with 0. This call wastes a lot of time
+    and is unnecessary.
 
+
+}
   { TBigInt }
 
   TBigInt= class
   private
-    FDigits: array [0..MaxLen] of Byte;
+    FDigits: array of Byte;
     FLength: Integer;
 
-    function GetDigit (Index: Integer): Byte;
+    function GetDigit (Index: Integer): Byte; inline;
     function GetIsZero: Boolean; inline;
     procedure SetDigit (Index: Integer; Value: Byte); inline;
     procedure SetLen (Value: Integer); inline;
@@ -470,6 +480,7 @@ end;
 
 constructor TBigInt.Create;
 begin
+  SetLength (FDigits, MaxLen+ 1);
   FLength:= 0;
 //  FillChar (FDigits, SizeOf(FDigits), 0);
 
@@ -483,6 +494,7 @@ begin
   inherited Create;
 
   Assert (System.Length (S)<= MaxLen);
+  SetLength (FDigits, MaxLen+ 1);
 
   Length:= System.Length (S);
   for i:= 0 to System.Length (S)- 1 do
@@ -563,6 +575,7 @@ end;
 destructor TBigInt.Destroy;
 begin
   FLength:= 0;
+  SetLength (FDigits, 0);
   
   Inherited;
   

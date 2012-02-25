@@ -113,14 +113,14 @@ begin
   for i:= 0 to MaxVarIndex do
     if GetValue (i)= gbTrue then
     begin
-       ActiveClause:= TClause.Create (1);
+       ActiveClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        ActiveClause.Item [0]:= CreateLiteral (i, False);
        AllClauses.Add (ActiveClause);
 
     end
     else if GetValue (i)= gbFalse then
     begin
-       ActiveClause:= TClause.Create (1);
+       ActiveClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        ActiveClause.Item [0]:= CreateLiteral (i, True);
        AllClauses.Add (ActiveClause);
 

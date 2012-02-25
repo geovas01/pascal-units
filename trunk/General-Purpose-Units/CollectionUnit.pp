@@ -614,9 +614,9 @@ var
   i: Integer;
 
 begin
-  Count:= Length;
+  FCount:= Length;
   for i:= 0 to Count- 1 do
-    Item [i]:= 0;
+    Items [i]:= 0;
 
 end;
 
@@ -642,10 +642,10 @@ var
   i: Integer;
 
 begin
-  Count:= Length;
+  FCount:= Length;
   
   for i:= 0 to Count- 1 do
-    Item [i]:= 0;
+    Items [i]:= 0;
 
 end;
 

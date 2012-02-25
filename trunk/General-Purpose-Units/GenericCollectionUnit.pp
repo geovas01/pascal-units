@@ -39,20 +39,26 @@ type
 
   { TGenericCollectionForBuiltInData }
 
-  generic TGenericCollectionForBuiltInData<TData>= class (TList)
+  generic TGenericCollectionForBuiltInData<TData>= class (TObject)
   private
-    function GetItem (Index: Integer): TData;
-    procedure SetItem (Index: Integer; const AValue: TData);
+    function GetItem (Index: Integer): TData; inline;
+    procedure SetCount(AValue: Integer);
+    procedure SetItem (Index: Integer; const AValue: TData); inline;
+  protected
+    Items: array of TData;
+    Capacity: Integer;
+    FCount: Integer;
 
   public
+    property Count: Integer read FCount write SetCount;
     property Item [Index: Integer]: TData read GetItem write SetItem;
 
-    constructor Create (Size: Integer);
+    constructor Create (InitCap: Integer; InitValue: TData);
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddItem (NewItem: TData);
-    procedure AddAnotherCollection (AnotherCollection: TList);
+    procedure AddItem (NewItem: TData); inline;
+    procedure AddAnotherCollection (AnotherCollection: TGenericCollectionForBuiltInData);
 
     {
       Deletes the Index-th item from the list and return it.
@@ -148,59 +154,101 @@ end;
 
 function TGenericCollectionForBuiltInData.GetItem (Index: Integer): TData;
 begin
-  Result:= TData (Get (Index));
+  Result:= Items [Index];
+
+end;
+
+procedure TGenericCollectionForBuiltInData.SetCount(AValue: Integer);
+begin
+  if FCount< AValue then
+  begin
+    FCount:= AValue;
+    SetLength (Items, FCount);
+
+  end;
 
 end;
 
 procedure TGenericCollectionForBuiltInData.SetItem (Index: Integer; const AValue: TData);
 begin
-  Items [Index]:= Pointer (AValue);
+  Items [Index]:= AValue;
 
 end;
 
-constructor TGenericCollectionForBuiltInData.Create (Size: Integer);
+constructor TGenericCollectionForBuiltInData.Create (InitCap: Integer;
+  InitValue: TData);
+var
+  i: Integer;
+
 begin
   inherited Create;
 
-  Count:= Size;
+  SetLength (Items, InitCap);
+  Capacity:= InitCap;
+  FCount:= Capacity;
+
+  for i:= 0 to FCount- 1 do
+    Items [i]:= InitValue;
 
 end;
 
 constructor TGenericCollectionForBuiltInData.Create;
 begin
-  inherited;
+  inherited Create;
+
+  FCount:= 0;
+  Capacity:= 0;
+  SetLength (Items, Capacity);
 
 end;
 
 destructor TGenericCollectionForBuiltInData.Destroy;
 begin
+  SetLength (Items, 0);
+
   inherited Destroy;
 
 end;
 
 procedure TGenericCollectionForBuiltInData.AddItem (NewItem: TData);
 begin
+  if Count< Capacity then
+  begin
+    Items [Count]:= NewItem;
+    Inc (FCount);
 
-  inherited Add (nil);
-  Items [Count- 1]:= Pointer (NewItem);
+  end
+  else
+  begin
+    SetLength (Items, 2* Capacity);
+    Capacity*= 2;
+    AddItem (NewItem);
+
+  end;
+
 
 end;
 
-procedure TGenericCollectionForBuiltInData.AddAnotherCollection(
-  AnotherCollection: TList);
+procedure TGenericCollectionForBuiltInData.AddAnotherCollection (
+     AnotherCollection: TGenericCollectionForBuiltInData);
 var
   i: Integer;
 
 begin
   for i:= 0 to AnotherCollection.Count- 1 do
-    Add (Pointer (AnotherCollection [i]));
+    AddItem (AnotherCollection.Item [i]);
 
 end;
 
 function TGenericCollectionForBuiltInData.Delete (Index: Integer): TData;
+var
+  i: Integer;
+
 begin
   Result:= Item [Index];
-  inherited Delete (Index);
+  for i:= Index+ 1 to Count - 1 do
+    Items [i- 1]:= Items [i];
+  Dec (FCount);
 
 end;
 

@@ -658,7 +658,7 @@ begin
   ~a & ~b=> ~x
   }
 
-  Literals:= TLiteralCollection.Create (3);
+  Literals:= TLiteralCollection.Create (3, VariableManager.FalseLiteral);
   Literals.Item [0]:= l1;
   Literals.Item [1]:= l1;
   Literals.Item [2]:= l1;
