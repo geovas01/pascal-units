@@ -5,7 +5,8 @@ unit TSeitinVariableUnit;
 interface
 
 uses
-  Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit, MyTypes;//, ClauseDicTreeUnit;
+  Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit, MyTypes,
+     GenericCollectionUnit;
 
 type
   TName= Integer;
@@ -88,7 +89,12 @@ type
     procedure DescribeITE (s, t, f: TLiteral; ResultLit: TLiteral);
     procedure DescribeFACarry (l1, l2, l3: TLiteral; ResultLit: TLiteral);
 
+  end;
 
+  _TAssignments= specialize TGenericCollectionForBuildInData<Boolean>;
+  TAssignments= class (_TAssignments)
+  private
+  public
 
   end;
 

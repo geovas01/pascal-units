@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, GenericCollectionUnit, GenericStackUnit, ClauseUnit, MyTypes;
 
 type
-  TArrayofInteger=  specialize TGenericCollectionForBuiltInData<Integer>;
+  TArrayofInteger=  specialize TGenericCollectionForBuildInData<Integer>;
   TClauseArrayOfIntegerPair= specialize TPair<TClause, TArrayofInteger>;
   TStackOfClauses= specialize TGenericStack<TClauseArrayOfIntegerPair>;
   TVariablePolarity= (vpFalse= 0, vpTrue, vpNone);

@@ -17,7 +17,7 @@ type
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
-  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
+  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuildInData<TLiteral>;
 
   TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   public

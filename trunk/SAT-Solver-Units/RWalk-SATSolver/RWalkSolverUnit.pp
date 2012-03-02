@@ -72,7 +72,6 @@ type
     procedure SetDecisionVar (Variable: Integer; SetFlag: Boolean); override;
     function GetValue (x: Integer): TGroundBool; override;
     function GetValueInModel (x: Integer): TGroundBool; override; 
-    function NoAssigns: Integer; override;
     function NoClauses: Integer; override;
     function NoVars: Integer; override; 
 
@@ -420,9 +419,6 @@ function TRWalkSolver.GetValueInModel (x: Integer): TGroundBool;
 begin
 end;
 
-function TRWalkSolver.NoAssigns: Integer; 
-begin
-end;
 
 function TRWalkSolver.NoClauses: Integer;
 begin
