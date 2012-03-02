@@ -112,6 +112,17 @@ const
 
     end;
 
+    for i:= Low (ValidArguments) to High (ValidArguments) do
+      if UpperCase (Name)= UpperCase (ValidArguments [i]) then
+        Exit;
+
+    WriteLn ('Invalid Name :', Name, '.');
+    WriteLn ('Valid Parameters are: ');
+    for i:= Low (ValidArguments) to High (ValidArguments)  do
+      Write (ValidArguments [i], ' , ');
+    Halt (1);
+
+
   end;
 
   procedure SetDefaultValues;
