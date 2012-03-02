@@ -220,8 +220,8 @@ begin
   end
   else
   begin
-    SetLength (Items, 2* Capacity);
-    Capacity*= 2;
+    SetLength (Items, 2* Capacity+ 1);
+    Capacity:= 2* Capacity+ 1;
     AddItem (NewItem);
 
   end;
