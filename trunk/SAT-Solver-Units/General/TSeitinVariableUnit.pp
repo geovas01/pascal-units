@@ -91,10 +91,24 @@ type
 
   end;
 
-  _TAssignments= specialize TGenericCollectionForBuildInData<Boolean>;
+  _TAssignments= specialize TGenericCollectionForBuiltInData<TGroundBool>;
+
+  { TAssignments }
+
   TAssignments= class (_TAssignments)
   private
+    function GetFalseVarCount: Integer;
+    function GetTrueVarCount: Integer;
+    function GetUnknownVarCount: Integer;
+
+    procedure SetCount (AValue: Integer); override;
+
   public
+    property TrueVarCount: Integer read GetTrueVarCount;
+    property FalseVarCount: Integer read GetFalseVarCount;
+    property UnknownVarCount: Integer read GetUnknownVarCount;
+
+    function GetValue (Lit: TLiteral): TGroundBool;
 
   end;
 
@@ -112,6 +126,75 @@ var
 function GetVariableManager: TVariableManager;
 begin
   Result:= VariableManager;
+
+end;
+
+{ TAssignments }
+
+function TAssignments.GetFalseVarCount: Integer;
+var
+  i: Integer;
+
+begin
+  Result:= 0;
+  for i:= 0 to Count- 1 do
+    if Item [i]=  gbFalse then
+      Inc (Result);
+
+end;
+
+function TAssignments.GetTrueVarCount: Integer;
+var
+  i: Integer;
+
+begin
+  Result:= 0;
+  for i:= 0 to Count- 1 do
+    if Item [i]=  gbTrue then
+      Inc (Result);
+
+
+end;
+
+function TAssignments.GetUnknownVarCount: Integer;
+var
+  i: Integer;
+
+begin
+  Result:= 0;
+  for i:= 0 to Count- 1 do
+    if Item [i]=  gbUnknown then
+      Inc (Result);
+
+
+end;
+
+procedure TAssignments.SetCount (AValue: Integer);
+var
+  l, i: Integer;
+
+begin
+  l:= Count;
+
+  inherited SetCount (AValue);
+  for i:= 0 to Count - 1 do
+    Items [i]:= gbUnknown;
+
+end;
+
+function TAssignments.GetValue (Lit: TLiteral): TGroundBool;
+var
+  v: TVariable;
+
+begin
+  v:= GetVar (Lit);
+  if v< Count then
+    Exit (gbUnknown);
+
+  if IsNegated (Lit) then
+    Result:= TGroundBool (2- Ord (Item [v]))
+  else
+  Result:= Item [v];
 
 end;
 
