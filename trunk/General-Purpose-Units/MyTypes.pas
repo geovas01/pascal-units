@@ -34,6 +34,7 @@ type
   end;
 
   TIntegerCollection= specialize TGenericCollectionForBuiltInData<Integer>;
+  TBooleanCollection= specialize TGenericCollectionForBuiltInData<Boolean>;
 
 implementation
 

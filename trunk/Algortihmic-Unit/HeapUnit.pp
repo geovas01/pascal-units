@@ -1,11 +1,13 @@
 unit HeapUnit; 
-
+{
+  Tested with mowlawn @ USACO OPEN11 GOLD.
+}
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, LinkedListUnit;
+  Classes, SysUtils;
 
 type
 
@@ -33,6 +35,9 @@ type
 
     constructor Create (HeapSize: Integer;
         GreaterThanFunction: TIsGreaterThanFunction);
+    {
+    Destroy does not Free the object passed to it.
+    }
     destructor Destroy; override;
 
     procedure Insert (Data: T);
@@ -156,10 +161,11 @@ begin
 end;
 
 procedure THeap.Print;
-var
+{var
   i, j: Integer;
-
+}
 begin
+  {
   Write ('(');
 
   for i:= 1 to FCount- 1 do
@@ -170,6 +176,8 @@ begin
   end;
 
   WriteLn (')');
+ }
+  Halt (1);
 
 end;
 
