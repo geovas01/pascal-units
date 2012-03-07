@@ -5,7 +5,7 @@ unit ClauseUnit;
 interface
 
 uses
-  Classes, SysUtils, GenericCollectionUnit;
+  Classes, SysUtils, GenericCollectionUnit, MyTypes, StreamUnit;
 
 type
   TGroundBool= (gbFalse= 0, gbUnknown= 1, gbTrue= 2);// TODO: Change the default Values ..
@@ -17,17 +17,27 @@ type
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
-  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuildInData<TLiteral>;
+  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
 
   TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
+  private
+    FLiteralCount: Integer;
+    FMaxVar: TVariable;
+
   public
+    {
+    MaxVar is always greater or equal to maximum variable in the TLiteralCollection
+    }
+    property MaxVar: TVariable read FMaxVar;
+
     function ToXML: AnsiString;
     function ToString: AnsiString; override;
 
     function Copy: TLiteralCollection;
 
     function IsExist (Lit: TLiteral): Boolean;
-
+    procedure AddItem (Lit: TLiteral); override;
+    procedure SetItem (Index: Integer; const Lit: TLiteral); override;
   end;
 
   TListOfLiteralCollection= specialize TGenericCollection<TLiteralCollection>;
@@ -40,18 +50,27 @@ type
   TClauseCollection= class (TGenericCollectionTClause)
   private
     FMaxVar: TVariable;
+    FLiteralCount: Integer;
 
+    function GetCount: Integer;
     function GetMaxVar: TVariable;
+    procedure SetItem (Index: Integer; const AClause: TClause); override;
 
   public
     property MaxVar: TVariable read GetMaxVar;
+    property ClauseCount: Integer read GetCount;
+    property LiteralCount: Integer read FLiteralCount;
 
     constructor Create;
 
     function Copy: TClauseCollection;
     function ToString: AnsiString; override;
 
+    procedure AddItem (NewClause: TClause); override;
+    procedure Load (Stream: TMyTextStream); override;
+
   end;
+
 
 
   function GetVar (Lit: TLiteral): TVariable; inline;
@@ -66,7 +85,7 @@ type
 
 implementation
 uses
-  TSeitinVariableUnit;
+  TSeitinVariableUnit, Math;
 
 function TLiteralCollection.ToXML: AnsiString;
 var
@@ -117,6 +136,21 @@ begin
       Exit;
 
   Result:= False;
+
+end;
+
+procedure TLiteralCollection.AddItem (Lit: TLiteral);
+begin
+  FMaxVar:= Math.Max (GetVar (Lit), MaxVar);
+
+  inherited AddItem(Lit);
+end;
+
+procedure TLiteralCollection.SetItem (Index: Integer; const Lit: TLiteral);
+begin
+  FMaxVar:= Math.Max (GetVar (Lit), MaxVar);
+
+  inherited SetItem (Index, Lit);
 
 end;
 
@@ -191,7 +225,7 @@ end;
 
 { TClauseCollection }
 
-function TClauseCollection.GetMaxVar: Integer;
+function TClauseCollection.GetMaxVar: TVariable;
 var
   i, j: Integer;
   ActiveClause: TClause;
@@ -217,11 +251,29 @@ begin
 
 end;
 
+function TClauseCollection.GetCount: Integer;
+begin
+  Result:= Count;
+end;
+
+procedure TClauseCollection.SetItem (Index: Integer; const AClause: TClause);
+var
+  i: Integer;
+
+begin
+  FMaxVar:= Math.Max (FMaxVar, AClause.MaxVar);
+  FLiteralCount+= AClause.Count;
+
+  inherited SetItem (Index, AClause);
+
+end;
+
 constructor TClauseCollection.Create;
 begin
   inherited Create;
 
-  FMaxVar:= -1;
+  //FMaxVar:= 0;
+  //FLiteralCount:= 0;
 
 end;
 
@@ -246,6 +298,58 @@ begin
 
   for i:= 0 to Self.Count- 1 do
     Result+= Self.Item [i].ToString+ #10;
+
+end;
+
+procedure TClauseCollection.AddItem (NewClause: TClause);
+var
+  i: Integer;
+
+begin
+  for i:= 0 to NewClause.Count- 1 do
+    if FMaxVar< GetVar (NewClause.Item [i]) then
+      FMaxVar:= GetVar (NewClause.Item [i]);
+  FLiteralCount+= NewClause.Count;
+
+  inherited AddItem (NewClause);
+
+end;
+
+procedure TClauseCollection.Load (Stream: TMyTextStream);
+var
+  S: AnsiString;
+  ActiveClause: TClause;
+  n: Integer;
+  Lit: TLiteral;
+
+begin
+  S:= Stream.ReadLine;
+  if System.Copy (S, 1, Length ('p cnf'))<> 'p cnf' then
+  begin
+    WriteLn ('Invalid file!');
+    Halt (1);
+
+  end;
+
+  while not Stream.EoStream do
+  begin
+    ActiveClause:= TClause.Create;
+
+    n:= Stream.ReadInteger;
+
+    while n<> 0 do
+    begin
+      Lit:= CreateLiteral (abs (n), n< 0);
+      ActiveClause.AddItem (Lit);
+
+      n:= Stream.ReadInteger;
+
+    end;
+    Stream.ReadLine;
+
+    Self.AddItem (ActiveClause);
+
+  end;
 
 end;
 
