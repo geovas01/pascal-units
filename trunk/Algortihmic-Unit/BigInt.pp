@@ -28,7 +28,7 @@ type
     procedure SetDigit (Index: Integer; Value: Byte); inline;
     procedure SetLen (Value: Integer); inline;
     {
-      Multiplies Self by n and returns itself
+      Multiplies itself by n and returns a new TBigint
     }
     function MulByDigit (n: Integer): TBigInt;
     
