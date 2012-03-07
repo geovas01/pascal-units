@@ -202,7 +202,7 @@ const
   IntDigitChar: set of Char= ['0'..'9'];
 
 var
-  Ch: Char;
+  Ch, Sign: Char;
 
 begin
   Result:= 0;
@@ -213,6 +213,14 @@ begin
   if Ch in SpaceChars then
     Exit;
 
+  Sign:= '+';
+  if Ch in ['+', '-'] then
+  begin
+    Sign:= Ch;
+    Ch:= ReadCh;
+
+  end;
+
   while (Ch in IntDigitChar) and (Position< Size) do
   begin
     Result:= 10* Result+ Ord (Ch)- 48;
@@ -222,6 +230,9 @@ begin
 
   if not (Ch in IntDigitChar) then
     SetPosition (Position- 1);
+
+  if Sign= '-' then
+    Result*= -1;
 
 end;
 

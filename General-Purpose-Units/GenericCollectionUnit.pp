@@ -5,17 +5,17 @@ unit GenericCollectionUnit;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, StreamUnit;
 
 type
   { TGenericCollection }
 
   generic TGenericCollection<TData>= class (TList)
   private
-    function GetFirstItem: TData;
-    function GetItem (Index: Integer): TData;
-    function GetLastItem: TData;
-    procedure SetItem (Index: Integer; const AValue: TData);
+    function GetFirstItem: TData; virtual;
+    function GetItem (Index: Integer): TData; virtual;
+    function GetLastItem: TData; virtual;
+    procedure SetItem (Index: Integer; const AValue: TData); virtual;
 
   public
     property Item [Index: Integer]: TData read GetItem write SetItem;
@@ -26,7 +26,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddItem (NewItem: TData);
+    procedure AddItem (NewItem: TData); virtual;
     procedure AddAnotherCollection (AnotherCollection: TList);
 
     {
@@ -35,15 +35,17 @@ type
     }
     function Delete (Index: Integer): TData;
 
+    procedure Load (Stream: TMyTextStream); virtual;
+
   end;
 
   { TGenericCollectionForBuiltInData }
 
   generic TGenericCollectionForBuiltInData<TData>= class (TObject)
   private
-    function GetItem (Index: Integer): TData; inline;
-    procedure SetCount(AValue: Integer);
-    procedure SetItem (Index: Integer; const AValue: TData); inline;
+    function GetItem (Index: Integer): TData; virtual;
+    procedure SetCount (AValue: Integer); virtual;
+    procedure SetItem (Index: Integer; const AValue: TData); virtual;
   protected
     Items: array of TData;
     Capacity: Integer;
@@ -57,7 +59,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddItem (NewItem: TData); inline;
+    procedure AddItem (NewItem: TData); virtual;
     procedure AddAnotherCollection (AnotherCollection: TGenericCollectionForBuiltInData);
 
     {
@@ -147,6 +149,12 @@ function TGenericCollection.Delete (Index: Integer): TData;
 begin
   Result:= Item [Index];
   inherited Delete (Index);
+
+end;
+
+procedure TGenericCollection.Load (Stream: TMyTextStream);
+begin
+  //Do nothing
 
 end;
 
