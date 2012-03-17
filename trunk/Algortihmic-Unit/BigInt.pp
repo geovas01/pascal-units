@@ -14,13 +14,20 @@ type
     and so FDigits array is already filled with 0. This call wastes a lot of time
     and is unnecessary.
 
+  March 16 2012
+    I noticed that SetLength function in fpc, automatically calls fillchar function.
+    So, I changed FDigigts from "array of Byte" to a pointer to "array of Byte".
 
 }
   { TBigInt }
 
   TBigInt= class
+  private type
+    TByteArray= array of Byte;
+    PByteArray= ^TByteArray;
+
   private
-    FDigits: array of Byte;
+    FDigits: PByteArray;
     FLength: Integer;
 
     function GetDigit (Index: Integer): Byte; inline;
@@ -98,11 +105,11 @@ begin
   if FLength<= Index  then
     Length:= Index+ 1;
 
-  FDigits [Index]:= Value;
+  FDigits^ [Index]:= Value;
 
   while FLength> 0 do
   begin
-    if FDigits [FLength- 1]= 0 then
+    if FDigits^ [FLength- 1]= 0 then
       Dec (FLength)
     else
       Break;
@@ -138,13 +145,13 @@ begin
 
   for i:= Self.FLength- 1 downto 0 do
   begin
-    if Self.FDigits [i]< n.FDigits [i] then
+    if Self.FDigits^ [i]< n.FDigits^ [i] then
     begin
       Result:= -1;
       Exit;
 
     end
-    else if n.FDigits [i]< Self.FDigits [i] then
+    else if n.FDigits^ [i]< Self.FDigits^ [i] then
     begin
       Result:= 1;
       Exit;
@@ -184,7 +191,7 @@ begin
 
   for i:= Self.Length- 1 downto 0 do
   begin
-    Result.ShiftLeft (1).SetDigit (0, FDigits [i]);
+    Result.ShiftLeft (1).SetDigit (0, FDigits^ [i]);
 
     while Result.CompareWith (m)>= 0 do
       Result.Sub (m);
@@ -220,7 +227,7 @@ begin
   Result:= 0;
 
   for i:= 0 to Length- 1 do
-    Inc (Result, FDigits [i]);
+    Inc (Result, FDigits^ [i]);
 
 end;
 
@@ -237,7 +244,7 @@ begin
 
   for i:= 0 to Len- 1 do
   begin
-    Digit:= Self.FDigits [i]- m.FDigits [i]- Borrow;
+    Digit:= Self.FDigits^ [i]- m.FDigits^ [i]- Borrow;
     if Digit< 0 then
     begin
       Inc (Digit, 10);
@@ -247,14 +254,14 @@ begin
     else
       Borrow:= 0;
 
-    FDigits [i]:= Byte (Digit);
+    FDigits^ [i]:= Byte (Digit);
 
   end;
 
   Assert (Borrow<> 0, 'Sorry!! TBigInt can not handle Negative Numbers');
   while FLength> 0 do
   begin
-    if FDigits [FLength- 1]= 0 then
+    if FDigits^ [FLength- 1]= 0 then
       Dec (FLength)
     else
       Break;
@@ -279,10 +286,10 @@ begin
 
   for i:= 0 to Len- 1 do
   begin
-    Digit:= Carry+ m.FDigits [i]+ Self.FDigits [i];
+    Digit:= Carry+ m.FDigits^ [i]+ Self.FDigits^ [i];
     Carry:= Digit div 10;
     Digit:= Digit mod 10;
-    FDigits [i]:= Byte (Digit);
+    FDigits^ [i]:= Byte (Digit);
     
   end;
 
@@ -290,7 +297,7 @@ begin
   if Carry> 0 then
   begin
     Length:= Len+ 1;
-    FDigits [Len]:= Byte (Carry);
+    FDigits^ [Len]:= Byte (Carry);
 
   end;
 
@@ -308,17 +315,17 @@ begin
 
   for i:= 0 to FLength- 1 do
   begin
-    Carry:= FDigits [i]+ Carry;
+    Carry:= FDigits^ [i]+ Carry;
 
     if Carry= 10 then
     begin
-      FDigits [i]:= 0;
+      FDigits^ [i]:= 0;
       Carry:= 1;
 
     end
     else
     begin
-      FDigits [i]:= Byte (Carry);
+      FDigits^ [i]:= Byte (Carry);
       Carry:= 0;
       Break;
 
@@ -329,7 +336,7 @@ begin
   if Carry> 0 then
   begin
     Length:= FLength+ 1;
-    FDigits [FLength- 1]:= Byte (Carry);
+    FDigits^ [FLength- 1]:= Byte (Carry);
 
   end;
 
@@ -347,17 +354,17 @@ begin
 
   for i:= 0 to Length- 1 do
   begin
-    Borrow:= FDigits [i]- Borrow;
+    Borrow:= FDigits^ [i]- Borrow;
 
     if Borrow< 0 then
     begin
-      FDigits [i]:= 10+ Borrow;
+      FDigits^ [i]:= 10+ Borrow;
       Borrow:= 1;
 
     end
     else
     begin
-      FDigits [i]:= Byte (Borrow);
+      FDigits^ [i]:= Byte (Borrow);
       Borrow:= 0;
       Break;
 
@@ -365,7 +372,7 @@ begin
 
   end;
 
-  while FDigits [FLength- 1]= 0 do
+  while FDigits^ [FLength- 1]= 0 do
     Dec (FLength);
 
   Result:= Self;
@@ -386,9 +393,9 @@ begin
 
   j:= FLength- 1+ n;
 
-  TargetPtr:= @FDigits [0];
+  TargetPtr:= @(FDigits^ [0]);
   Inc (TargetPtr, j);
-  SourcePtr:= @FDigits [FLength- 1];
+  SourcePtr:= @(FDigits^ [FLength- 1]);
 
   for i:= FLength- 1 downto 0 do
   begin
@@ -398,7 +405,7 @@ begin
 
   end;
 
-  TargetPtr:= @FDigits [0];
+  TargetPtr:= @(FDigits^ [0]);
   for i:= 0 to n- 1 do
   begin
     TargetPtr^:= 0;
@@ -421,9 +428,9 @@ begin
   Result:= TBigInt.Create.SetValue (0);
 
   for i:= 0 to Self.FLength- 1 do
-    if Self.FDigits [i]<> 0 then
+    if Self.FDigits^ [i]<> 0 then
     begin
-      Temp:= n.MulByDigit (Self.FDigits [i]);
+      Temp:= n.MulByDigit (Self.FDigits^ [i]);
       Temp.ShiftLeft (i);
       Result.Add (Temp);
       Temp.Free;
@@ -442,9 +449,9 @@ begin
   Temp1:= Self.Copy;
   Temp2:= n.Copy;
 
-  while (Temp1.Length>= 1) or (Temp1.FDigits [0]<> 0) do
+  while (Temp1.Length>= 1) or (Temp1.FDigits^ [0]<> 0) do
   begin
-    if Odd (Temp1.FDigits [0]) then
+    if Odd (Temp1.FDigits^ [0]) then
       Result.Add (Temp2);
 
     Temp2.Add (Temp2);
@@ -471,7 +478,7 @@ begin
   Result:= '';
 
   for i:= FLength- 1 downto 0 do
-    Result:= Result+ DigitChar [FDigits [i]];
+    Result:= Result+ DigitChar [FDigits^ [i]];
 
   if Result= '' then
     Result:= '0';
@@ -480,7 +487,8 @@ end;
 
 constructor TBigInt.Create;
 begin
-  SetLength (FDigits, MaxLen+ 1);
+//  SetLength (FDigits, MaxLen+ 1);
+  New (FDigits);
   FLength:= 0;
 //  FillChar (FDigits, SizeOf(FDigits), 0);
 
@@ -494,15 +502,16 @@ begin
   inherited Create;
 
   Assert (System.Length (S)<= MaxLen);
-  SetLength (FDigits, MaxLen+ 1);
+//  SetLength (FDigits, MaxLen+ 1);
+  New (FDigits);
 
   Length:= System.Length (S);
   for i:= 0 to System.Length (S)- 1 do
-    FDigits [Length- 1- i]:= Ord (S [i])- 48;
+    FDigits^ [Length- 1- i]:= Ord (S [i])- 48;
 
   while Length> 0 do
   begin
-    if FDigits [FLength- 1]= 0 then
+    if FDigits^ [FLength- 1]= 0 then
       Dec (FLength)
     else
       Break;
@@ -518,7 +527,7 @@ begin
 
   while n> 0 do
   begin
-    FDigits [FLength]:= n mod 10;
+    FDigits^ [FLength]:= n mod 10;
     n:= n div 10;
     Inc (FLength);
 
@@ -539,7 +548,7 @@ begin
   for i:= FLength- 1 downto 0 do
   begin
     Result*= 10;
-    Result+= FDigits [i];
+    Result+= FDigits^ [i];
     if Result< 0 then
     begin
       WriteLn ('Overflow in GetValue!');
@@ -575,16 +584,16 @@ end;
 destructor TBigInt.Destroy;
 begin
   FLength:= 0;
-  SetLength (FDigits, 0);
+  Dispose (FDigits);
   
   Inherited;
   
 end;
 
-function TBigInt.GetDigit (Index: Integer): Byte;
+function TBigInt.GetDigit (Index: Integer): Byte; inline;
 begin
   if Index< FLength then
-    Result:= FDigits [Index]
+    Result:= FDigits^ [Index]
   else
     Result:= 0;
 
@@ -782,8 +791,8 @@ begin
   Carry:= 0;
   for i:= 0 to FLength- 1 do
   begin
-    Inc (Carry, FDigits [i]* n);
-    Result.FDigits [i]:= Carry mod 10;
+    Inc (Carry, FDigits^ [i]* n);
+    Result.FDigits^ [i]:= Carry mod 10;
     Carry:= Carry div 10;
 
   end;
@@ -791,7 +800,7 @@ begin
   while Carry> 0 do
   begin
     Result.Length:= Result.Length+ 1;
-    Result.FDigits [Result.FLength- 1]:=
+    Result.FDigits^ [Result.FLength- 1]:=
             Carry mod 10;
     Carry:= Carry div 10;
 
@@ -851,16 +860,16 @@ begin
     if i= FLength- 1 then
     begin
 
-      if FDigits [i]< 2 then
+      if FDigits^ [i]< 2 then
       begin
         Result.Length:= FLength- 1;
         j:= FLength- 2;
-        Borrow:= FDigits [i];
+        Borrow:= FDigits^ [i];
         if 1<= i then
-          Borrow:= Borrow* 10+ FDigits [i- 1];
+          Borrow:= Borrow* 10+ FDigits^ [i- 1];
 
         if 0<= j then
-          Result.FDigits [j]:= Borrow div 2;
+          Result.FDigits^ [j]:= Borrow div 2;
 
         Borrow:= Borrow mod 2;
         Dec (i);
@@ -871,8 +880,8 @@ begin
         Result.Length:= FLength;
 
         j:= Result.Length- 1;
-        Borrow:= FDigits [i];
-        Result.FDigits [j]:= Borrow div 2;
+        Borrow:= FDigits^ [i];
+        Result.FDigits^ [j]:= Borrow div 2;
         Borrow:= Borrow mod 2;
 
       end;
@@ -880,8 +889,8 @@ begin
     end
     else
     begin
-      Borrow:= Borrow* 10+ FDigits [i];
-      Result.FDigits [j]:= Borrow div 2;
+      Borrow:= Borrow* 10+ FDigits^ [i];
+      Result.FDigits^ [j]:= Borrow div 2;
       Borrow:= Borrow mod 2;
 
     end;
@@ -905,8 +914,8 @@ begin
   Carry:= 0;
   for i:= 0 to FLength- 1 do
   begin
-    Inc (Carry, FDigits [i]* n);
-    Result.FDigits [i]:= Carry mod 10;
+    Inc (Carry, FDigits^ [i]* n);
+    Result.FDigits^ [i]:= Carry mod 10;
     Carry:= Carry div 10;
 
   end;
@@ -914,7 +923,7 @@ begin
   while Carry> 0 do
   begin
     Result.Length:= Result.Length+ 1;
-    Result.FDigits [Result.FLength- 1]:=
+    Result.FDigits^ [Result.FLength- 1]:=
             Carry mod 10;
     Carry:= Carry div 10;
 

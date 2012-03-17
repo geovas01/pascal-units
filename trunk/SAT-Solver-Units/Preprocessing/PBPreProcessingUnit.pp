@@ -133,10 +133,16 @@ begin
   Sum.Add (Temp);//Sum:= 3* Sum
   Temp.Free;
 
-  for i:= 0 to High (Ci) do
-    WriteLn (Ci [i].ToString, ' x', i);
-  WriteLn ('=');
+  for i:= 0 to High (Ci)- 1 do
+    Write (Ci [i].ToString, ' x', i+ 1, ' + ');
+  i:= High (Ci);
+  Write (Ci [i].ToString, ' x', i+ 1);
+  Write (' = ');
   WriteLn (Sum.ToString);
+
+  for i:= 0 to High (Ci) do
+    Ci [i].Free;
+  SetLength (Ci, 0);
 
 end;
 
