@@ -23,7 +23,7 @@ type
 
   TBigInt= class
   private type
-    TByteArray= array of Byte;
+    TByteArray= array [0..MaxLen] of Byte;
     PByteArray= ^TByteArray;
 
   private
@@ -613,7 +613,7 @@ begin
   Result:= TBigInt.Create;
   Result.Length:= Self.FLength;
 
-  System.Move (FDigits [0], Result.FDigits [0], Sizeof (FDigits [0])* (MaxLen+ 1));
+  System.Move (FDigits^ [0], Result.FDigits^ [0], Sizeof (FDigits^ [0])* (MaxLen+ 1));
 {  for i:= 0 to FLength- 1 do
     Result.FDigits [i]:= FDigits [i];
 }
