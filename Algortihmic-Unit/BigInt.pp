@@ -102,8 +102,12 @@ uses
 
 procedure TBigInt.SetDigit (Index: Integer; Value: Byte);
 begin
-  if FLength<= Index  then
-    Length:= Index+ 1;
+  while FLength<= Index do
+  begin
+    FDigits^ [FLength]:= 0;
+    Inc (FLength);
+
+  end;
 
   FDigits^ [Index]:= Value;
 
@@ -244,7 +248,7 @@ begin
 
   for i:= 0 to Len- 1 do
   begin
-    Digit:= Self.FDigits^ [i]- m.FDigits^ [i]- Borrow;
+    Digit:= Self.Digits [i]- m.Digits [i]- Borrow;
     if Digit< 0 then
     begin
       Inc (Digit, 10);
@@ -254,14 +258,14 @@ begin
     else
       Borrow:= 0;
 
-    FDigits^ [i]:= Byte (Digit);
+    Digits [i]:= Byte (Digit);
 
   end;
 
   Assert (Borrow<> 0, 'Sorry!! TBigInt can not handle Negative Numbers');
   while FLength> 0 do
   begin
-    if FDigits^ [FLength- 1]= 0 then
+    if Digits [FLength- 1]= 0 then
       Dec (FLength)
     else
       Break;
@@ -286,7 +290,7 @@ begin
 
   for i:= 0 to Len- 1 do
   begin
-    Digit:= Carry+ m.FDigits^ [i]+ Self.FDigits^ [i];
+    Digit:= Carry+ m.Digits [i]+ Self.Digits [i];
     Carry:= Digit div 10;
     Digit:= Digit mod 10;
     FDigits^ [i]:= Byte (Digit);
@@ -613,7 +617,9 @@ begin
   Result:= TBigInt.Create;
   Result.Length:= Self.FLength;
 
-  System.Move (FDigits^ [0], Result.FDigits^ [0], Sizeof (FDigits^ [0])* (MaxLen+ 1));
+  System.Move (FDigits^ [0], Result.FDigits^ [0], Sizeof (FDigits^ [0])*
+                 Min (Length+ 1, MaxLen));
+
 {  for i:= 0 to FLength- 1 do
     Result.FDigits [i]:= FDigits [i];
 }
