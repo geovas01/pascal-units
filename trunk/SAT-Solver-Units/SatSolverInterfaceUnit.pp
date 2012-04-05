@@ -8,8 +8,8 @@ uses
   Classes, SysUtils, GenericCollectionUnit, GenericStackUnit, ClauseUnit, MyTypes;
 
 type
-  TArrayofInteger=  specialize TGenericCollectionForBuiltInData<Integer>;
-  TClauseArrayOfIntegerPair= specialize TPair<TClause, TArrayofInteger>;
+  TArrayofInteger=  array [0..2] of Integer;
+  TClauseArrayOfIntegerPair= specialize TPairForBuiltInData<TClause, TArrayofInteger>;
   TStackOfClauses= specialize TGenericStack<TClauseArrayOfIntegerPair>;
   TVariablePolarity= (vpFalse= 0, vpTrue, vpNone);
 
@@ -205,7 +205,7 @@ end;
 
 function TSATSolverInterface.GetNoOfLiteralInTopConstraint (gbValue: TGroundBool): Integer;
 begin
-  Result:= FNoOfLiteralInTopConstraint.Item [Ord (gbValue)];
+  Result:= FNoOfLiteralInTopConstraint [Ord (gbValue)];
 
 end;
 
@@ -253,8 +253,8 @@ var
   Pair: TClauseArrayOfIntegerPair;
 
 begin
-  FTopConstraint:= TClause.Create;
-  FNoOfLiteralInTopConstraint:= TArrayOfInteger.Create (3, 0);
+  FTopConstraint:= TClause.Create (3);
+  FillChar (FNoOfLiteralInTopConstraint, SizeOf (FNoOfLiteralInTopConstraint), 0);
   Pair:= TClauseArrayOfIntegerPair.Create (FTopConstraint, FNoOfLiteralInTopConstraint);
   Stack.Push (Pair);
   Result:= FTopConstraint;
@@ -270,9 +270,9 @@ begin
   begin
     Pair:= Stack.Pop;
 
+    Pair.First.Free;
     Pair.Free;
     FTopConstraint:= nil;
-    FNoOfLiteralInTopConstraint:= nil;
 
   end;
 
@@ -305,7 +305,7 @@ begin
   if IsNegated (Lit) then
     LiteralValue:= TGroundBool (2- Ord (LiteralValue));
 
-  FNoOfLiteralInTopConstraint.Item [Ord (LiteralValue)]:= FNoOfLiteralInTopConstraint.Item [Ord (LiteralValue)]+ 1;
+  Inc (FNoOfLiteralInTopConstraint [Ord (LiteralValue)]);
 
 end;
 

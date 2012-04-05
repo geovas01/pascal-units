@@ -55,7 +55,12 @@ type
     property Count: Integer read FCount write SetCount;
     property Item [Index: Integer]: TData read GetItem write SetItem;
 
-    constructor Create (InitCap: Integer; InitValue: TData);
+    constructor Create (InitSize: Integer; InitValue: TData);
+
+    {
+    Note that Capacity is different from Count!
+    }
+    constructor Create (InitCap: Integer);
     constructor Create;
     destructor Destroy; override;
 
@@ -183,7 +188,7 @@ begin
 
 end;
 
-constructor TGenericCollectionForBuiltInData.Create (InitCap: Integer;
+constructor TGenericCollectionForBuiltInData.Create (InitSize: Integer;
   InitValue: TData);
 var
   i: Integer;
@@ -191,12 +196,22 @@ var
 begin
   inherited Create;
 
-  SetLength (Items, InitCap);
-  Capacity:= InitCap;
+  SetLength (Items, InitSize);
+  Capacity:= InitSize;
   FCount:= Capacity;
 
   for i:= 0 to FCount- 1 do
     Items [i]:= InitValue;
+
+end;
+
+constructor TGenericCollectionForBuiltInData.Create (InitCap: Integer);
+begin
+  inherited Create;
+
+  SetLength (Items, InitCap);
+  Capacity:= InitCap;
+  FCount:= 0;
 
 end;
 

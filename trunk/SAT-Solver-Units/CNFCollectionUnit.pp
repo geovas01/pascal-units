@@ -136,7 +136,11 @@ begin
       Lit:= ActiveClause.Item [0];
    
       if IsNegated (Lit) then
-        AnStream.WriteStr ('-'+ IntToStr (GetVar (Lit)))
+      begin
+        AnStream.WriteStr ('-');
+        AnStream.WriteStr (IntToStr (GetVar (Lit)));
+
+      end
       else
         AnStream.WriteStr (IntToStr (GetVar (Lit)));
   
