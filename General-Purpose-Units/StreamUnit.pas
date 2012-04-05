@@ -37,9 +37,9 @@ type
     function ReadLnWideString: WideString;
     function ReadWideString: WideString;
 
-    procedure WriteLine (const S: String);
+    procedure WriteLine (const S: AnsiString);
     procedure WriteChar (Ch: Char);
-    procedure WriteStr (S: String);
+    procedure WriteStr (const S: AnsiString);
 
     {
       Does not reset the position of AnStream
@@ -348,7 +348,7 @@ begin
 
 end;
 
-procedure TMyTextStream.WriteStr (S: String);
+procedure TMyTextStream.WriteStr (const S: AnsiString);
 begin
   FTargerStream.Write (Pointer (@S[1])^, Length (S));
 
@@ -378,7 +378,7 @@ begin
   
 end;
 
-procedure TMyTextStream.WriteLine (const S: String);
+procedure TMyTextStream.WriteLine (const S: AnsiString);
 begin
   FTargerStream.Write (Pointer (@S[1])^, Length (S));
     

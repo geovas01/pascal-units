@@ -80,7 +80,11 @@ begin
     Lit:= TopConstraint.Item [0];
 
     if IsNegated (Lit) then
-      OutputStream.WriteStr ('-'+ IntToStr (GetVar (Lit)))
+    begin
+      OutputStream.WriteStr ('-');
+      OutputStream.WriteStr (IntToStr (GetVar (Lit)));//To avoid the overhead of fpc_ansichar_concat
+
+    end
     else
       OutputStream.WriteStr (IntToStr (GetVar (Lit)));
 
@@ -92,9 +96,17 @@ begin
         MaxVarIndex:= GetVar (Lit);
 
       if IsNegated (Lit) then
-        OutputStream.WriteStr (' -'+ IntToStr (GetVar (Lit)))
+      begin
+        OutputStream.WriteStr (' -');
+        OutputStream.WriteStr (IntToStr (GetVar (Lit)));
+
+      end
       else
-        OutputStream.WriteStr (' '+ IntToStr (GetVar (Lit)));
+      begin
+        OutputStream.WriteStr (' ');
+        OutputStream.WriteStr (IntToStr (GetVar (Lit)));
+
+      end;
 
     end;
 
