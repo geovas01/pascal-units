@@ -36,7 +36,69 @@ type
 implementation
 uses
   TSeitinVariableUnit;
+{
+function IntToStr (n: Int64): AnsiString; inline;
+var
+  CurDigit: PChar;
 
+begin
+  if n< 0 then
+    Exit ('-'+ IntToStr (-n));
+  if n= 0 then
+    Exit ('0');
+
+  SetLength (Result, 20);
+  CurDigit:= @(Result [1]);
+
+  while n<> 0 do
+  begin
+    CurDigit^:= Char (48+ n mod 10);
+    Inc (CurDigit);
+    n:= n div 10;
+
+  end;
+  SetLength (Result, CurDigit- @(Result [1]));
+
+end;
+
+function IntToStr (n: Integer): AnsiString; inline;
+const
+  MaxLength= 15;
+
+var
+  CurDigit: PChar;
+  l: Integer;
+
+begin
+  if n< 0 then
+    Exit ('-'+ IntToStr (-n));
+  if n= 0 then
+    Exit ('0');
+
+  SetLength (Result, MaxLength);
+  CurDigit:= @(Result [MaxLength]);
+
+  l:= 0;
+  while n<> 0 do
+  begin
+    CurDigit^:= Char (48+ n mod 10);
+    Dec (CurDigit);
+    n:= n div 10;
+    Inc (l);
+
+  end;
+
+  while l< MaxLength do
+  begin
+    Inc (l);
+  end;
+  SetLength (Result, CurDigit- @(Result [1]));
+
+  CurDigit:= @(Result [1]);
+  LastDigit:=  @(Result []);
+
+end;
+}
 { TCNFStream }
 
 function TCNFStream.GetCNF: TClauseCollection;

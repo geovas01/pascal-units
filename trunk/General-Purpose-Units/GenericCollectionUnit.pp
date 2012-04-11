@@ -171,14 +171,17 @@ begin
 
 end;
 
-procedure TGenericCollectionForBuiltInData.SetCount(AValue: Integer);
+procedure TGenericCollectionForBuiltInData.SetCount (AValue: Integer);
 begin
-  if FCount< AValue then
+  FCount:= AValue;
+
+  if Capacity< Count then
   begin
-    FCount:= AValue;
-    SetLength (Items, FCount);
+    Capacity:= Count;
+    SetLength (Items, Capacity);
 
   end;
+
 
 end;
 
