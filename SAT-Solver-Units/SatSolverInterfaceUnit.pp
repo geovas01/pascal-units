@@ -253,7 +253,7 @@ var
   Pair: TClauseArrayOfIntegerPair;
 
 begin
-  FTopConstraint:= TClause.Create (3);
+  FTopConstraint:= TClause.Create (30);
   FillChar (FNoOfLiteralInTopConstraint, SizeOf (FNoOfLiteralInTopConstraint), 0);
   Pair:= TClauseArrayOfIntegerPair.Create (FTopConstraint, FNoOfLiteralInTopConstraint);
   Stack.Push (Pair);
