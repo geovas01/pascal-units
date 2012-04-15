@@ -180,7 +180,7 @@ begin
   l:= Count;
 
   inherited SetCount (AValue);
-  for i:= 0 to Count - 1 do
+  for i:= l to Count- 1 do
     Items [i]:= gbUnknown;
 
 end;
@@ -252,6 +252,14 @@ begin
         break;
 
     end;
+
+    if Count< n+ 1 then
+      Count:= n+ 1;
+    if Sign then
+      Item [n]:= gbTrue
+    else
+      Item [n]:= gbFalse;
+
     Inc (i);
     if Length(S)< i then
       break;

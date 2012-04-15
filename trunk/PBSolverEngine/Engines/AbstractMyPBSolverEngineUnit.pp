@@ -849,6 +849,8 @@ begin
 
     end;
 
+    break;
+
   end;
 
   Result:= VariableGenerator.CreateVariableDescribingAND (Literals);

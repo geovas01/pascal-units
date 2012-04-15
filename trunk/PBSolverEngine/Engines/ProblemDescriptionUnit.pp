@@ -80,7 +80,7 @@ type
 
 implementation
 uses
-  SatSolverInterfaceUnit, PBParserUnit;
+  SatSolverInterfaceUnit;
 
 { TPBSpecification }
 
