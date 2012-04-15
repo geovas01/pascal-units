@@ -92,7 +92,7 @@ const
 
   begin
     Flag:= False;
-    for i:= Low (ValidArguments) to High (ValidArguments)- 2 do
+    for i:= Low (ValidArguments) to High (ValidArguments)- 3 do
     begin
 
       if UpperCase (Name)= UpperCase (ValidArguments [i]) then

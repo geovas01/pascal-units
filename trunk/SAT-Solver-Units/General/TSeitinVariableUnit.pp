@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ClauseUnit, SatSolverInterfaceUnit, MyTypes,
-     GenericCollectionUnit;
+     GenericCollectionUnit, StreamUnit;
 
 type
   TName= Integer;
@@ -97,6 +97,7 @@ type
 
   TAssignments= class (_TAssignments)
   private
+    FStream: TMyTextStream;
     function GetFalseVarCount: Integer;
     function GetTrueVarCount: Integer;
     function GetUnknownVarCount: Integer;
@@ -109,6 +110,8 @@ type
     property UnknownVarCount: Integer read GetUnknownVarCount;
 
     function GetValue (Lit: TLiteral): TGroundBool;
+    constructor Load (Stream: TStream);//Stream will be freed by destructor
+    destructor Destroy; override;
 
   end;
 
@@ -196,6 +199,72 @@ begin
   else
   Result:= Item [v];
 
+end;
+
+constructor TAssignments.Load (Stream: TStream);
+var
+  S: AnsiString;
+  i, n: Integer;
+  Sign: Boolean;
+
+begin
+  inherited Create;
+
+  FStream:= TMyTextStream.Create (Stream, True);
+  S:= FStream.ReadLine;
+
+  while (S= '') or (UpCase (S [1])<> UpCase ('v')) do
+    S:= FStream.ReadLine;
+
+  i:= 2;
+  while i<= Length (S) do
+  begin
+
+    while S [i]= ' ' do
+    begin
+      Inc (i);
+      if Length(S)< i then
+        break;
+
+    end;
+
+    if Length(S)< i then
+      break;
+
+    Sign:= True;
+    if S [i]= '-' then
+    begin
+      Sign:= False;
+      Inc (i);
+
+    end;
+
+    if S [i]= 'x' then
+      Inc (i);
+    n:= 0;
+    while S [i]<> ' ' do
+    begin
+      n*= 10;
+      n+= Ord (S [i])- 48;
+
+      Inc (i);
+      if Length(S)< i then
+        break;
+
+    end;
+    Inc (i);
+    if Length(S)< i then
+      break;
+
+  end;
+
+end;
+
+destructor TAssignments.Destroy;
+begin
+  FStream.Free;
+
+  inherited Destroy;
 end;
 
 { TVariableManager }
