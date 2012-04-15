@@ -27,6 +27,8 @@ type
     property LastModel: TIntegerCollection read FLastModel;
 
     function EncodeHardConstraint (AConstraint: TPBConstraint): TLiteral; virtual; abstract;
+    function VerifyHardConstraint (AConstraint: TPBConstraint;
+                                Assignment: TAssignments): Boolean; virtual;
     function EncodeEqualityConstraint (AConstraint: TPBConstraint): TLiteral; virtual; abstract;
     function EncodeGreaterThanOrEqualConstraint (AConstraint: TPBConstraint): TLiteral; virtual; abstract;
 
@@ -39,6 +41,7 @@ type
 
     function SolveOptimizationProblem (Problem: TPBSpecification; PrintResult: Boolean): Int64;
     function SolveDecisionProblem (Problem: TPBSpecification; PrintResult: Boolean; BreakSymmetry: Boolean): Boolean;
+    function VerifyDecisionProblem (Problem: TPBSpecification; Assignment: TAssignments): Boolean;
 
     function SimplifyEqualityConstraint (AConstraint: TPBConstraint): TPBConstraint; virtual;
 
@@ -47,6 +50,8 @@ type
     destructor Destroy; override;
 
     function Solve (Problem: TPBSpecification): Boolean; virtual;
+    function Verify (Problem: TPBSpecification;
+                     Assignments: TAssignments): Boolean; virtual;
     procedure ProcessSigTerm;
 
   end;
@@ -260,6 +265,35 @@ function TAbstractPBSolverEngine.GetVariableGenerator: TVariableManager;
 begin
   Result:= TSeitinVariableUnit.GetVariableManager;
 
+end;
+
+function TAbstractPBSolverEngine.VerifyHardConstraint (AConstraint: TPBConstraint;
+                   Assignment: TAssignments): Boolean;
+var
+  LHSValue: TBigInt;
+  i: Integer;
+  CompareResult: Integer;
+
+begin
+  LHSValue:= TBigInt.Create.SetValue (0);
+
+  for i:= 0 to AConstraint.LHS.Count- 1 do
+  begin
+    if Assignment.GetValue (AConstraint.LHS.Item [i].Literal)= gbTrue then
+      LHSValue.Add (AConstraint.LHS.Item [i].Coef);
+
+  end;
+
+  CompareResult:= LHSValue.CompareWith (AConstraint.RHS);
+
+  case AConstraint.CompareOperator of
+    coEquality:
+      Result:= (CompareResult= 0);
+    coLessThanOrEqual:
+      Result:= (CompareResult<= 0);
+    coGreaterThanOrEqual:
+      Result:= (0<= CompareResult);
+  end;
 end;
 
 function TAbstractPBSolverEngine.BreakSymmetries (Problem: TPBSpecification): Boolean;
@@ -815,6 +849,7 @@ begin
   for i:= 0 to Problem.ConstraintCount- 1 do
   begin
     ActiveConstraint:= Problem.Constraint [i];
+
     Lit:= EncodeHardConstraint (ActiveConstraint);
 
     if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
@@ -889,10 +924,37 @@ begin
 
 end;
 
+function TAbstractPBSolverEngine.VerifyDecisionProblem(
+  Problem: TPBSpecification; Assignment: TAssignments): Boolean;
+var
+  i: Integer;
+  ActiveConstraint: TPBConstraint;
+  Lit: TLiteral;
+
+begin
+  if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+    GetCNFGenerator.ReportForcedVariables;
+
+  Result:= False;
+
+  if Problem.NonLinearVariableDescriptions.Count<> 0 then
+    Halt; //Problem.VerifyNonLinearVariables;
+
+  for i:= 0 to Problem.ConstraintCount- 1 do
+  begin
+    ActiveConstraint:= Problem.Constraint [i];
+    if not VerifyHardConstraint (ActiveConstraint, Assignment) then
+      Exit;
+
+  end;
+
+  Result:= True;
+
+end;
+
 function TAbstractPBSolverEngine.Solve (Problem: TPBSpecification): Boolean;
 var
   i, j: Integer;
-  OptResult: Int64;
   ActiveClause: TClause;
   Lit: TLiteral;
 
@@ -924,12 +986,57 @@ begin
     smOptimization:
     begin
       Halt (1);
-      OptResult:= SolveOptimizationProblem (Problem, True);
-      Result:= OptResult<> 0;
+//      OptResult:= SolveOptimizationProblem (Problem, True);
+//      Result:= OptResult<> 0;
 
 
     end;
     smWeightedOptimization:;
+  end;
+
+end;
+
+function TAbstractPBSolverEngine.Verify (Problem: TPBSpecification;
+  Assignments: TAssignments): Boolean;
+var
+  i, j: Integer;
+  ActiveClause: TClause;
+  Lit: TLiteral;
+  Satisfied: Boolean;
+
+begin
+
+  Result:= False;
+
+  for i:= 0 to Problem.ClauseCount- 1 do
+  begin
+    ActiveClause:= Problem.Clause [i];
+
+    Satisfied:= False;
+    for j:= 0 to ActiveClause.Count- 1 do
+    begin
+      Lit:= ActiveClause.Item [j];
+      if Assignments.GetValue (Lit)= gbTrue then
+      begin
+        Satisfied:= True;
+        Break;
+
+      end;
+
+    end;
+
+    if not Satisfied then
+      Exit;
+
+  end;
+
+  case Problem.SpecMode of
+    smDecision:
+      Result:= VerifyDecisionProblem (Problem, Assignments);
+    smOptimization:
+      Halt (1);
+    smWeightedOptimization:
+      Halt (1);
   end;
 
 end;

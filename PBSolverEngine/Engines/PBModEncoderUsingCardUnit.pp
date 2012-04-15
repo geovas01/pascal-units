@@ -50,6 +50,7 @@ begin
   if VariableGenerator.SimulationMode then
     Exit;
 
+
   for n1:= 1 to Modulo- 1 do
   begin
     VariableGenerator.SatSolver.BeginConstraint;
@@ -76,6 +77,7 @@ begin
             VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b2]}
 
           end;
+
 end;
 
 procedure TPBModEncoderUsingCard.AddExtraClauses_High;
@@ -229,6 +231,10 @@ begin
       Dp.Item [i].Item [j]:= 0;
 
   end;
+
+  Dp.Item [0].Item [0]:= VariableGenerator.TrueLiteral;
+  for i:= 1 to Modulo- 1 do
+    Dp.Item [0].Item [i]:= VariableGenerator.FalseLiteral;
 
   for i:= 0 to Modulo- 1 do
     Encode (Modulo- 1, i, TrueLiteralCountModModuloPerSorter);
