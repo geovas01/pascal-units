@@ -113,6 +113,8 @@ type
     constructor Load (Stream: TStream);//Stream will be freed by destructor
     destructor Destroy; override;
 
+    function ToString: AnsiString;
+
   end;
 
 function GetVariableManager: TVariableManager; 
@@ -191,13 +193,13 @@ var
 
 begin
   v:= GetVar (Lit);
-  if v< Count then
+  if Count<= v then
     Exit (gbUnknown);
 
   if IsNegated (Lit) then
     Result:= TGroundBool (2- Ord (Item [v]))
   else
-  Result:= Item [v];
+    Result:= Item [v];
 
 end;
 
@@ -273,6 +275,23 @@ begin
   FStream.Free;
 
   inherited Destroy;
+end;
+
+function TAssignments.ToString: AnsiString;
+var
+  i: Integer;
+
+begin
+  Result:= '';
+
+  for i:= 0 to Count- 1 do
+    if Item [i]= gbTrue then
+      Result+= ' x'+ IntToStr (i)
+    else if Item [i]= gbFalse then
+      Result+= ' ~x'+ IntToStr (i)
+    else
+    Result+= ' ?x'+ IntToStr (i);
+
 end;
 
 { TVariableManager }
