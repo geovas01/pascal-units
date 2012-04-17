@@ -89,8 +89,6 @@ type
     constructor Create; overload;
     constructor Create (S: PChar); overload;
     public
-    constructor GCreate; overload;
-    constructor Create (i: Integer); overload;
     destructor Destroy; override;
 
     {
@@ -549,16 +547,6 @@ begin
       Break;
 
   end;
-
-end;
-
-constructor TBigInt.GCreate;
-begin
-
-end;
-
-constructor TBigInt.Create(i: Integer);
-begin
 
 end;
 
