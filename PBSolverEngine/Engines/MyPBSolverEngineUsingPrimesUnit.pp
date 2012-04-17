@@ -62,7 +62,7 @@ type
 
 implementation
 uses
-  Classes, SysUtils, ParameterManagerUnit;
+  Classes, SysUtils, ParameterManagerUnit, UtilityUnit;
 
 { TMyPBSolverEngineUsingPrimePowerModulos }
 
@@ -79,27 +79,27 @@ begin
   CandidatePrimes:= inherited GenerateModulos (m);
 
   Logm:= m.Log.Incr;
-  Prod:= TBigInt.Create.SetValue (1);
+  Prod:= BigIntFactory.GetNewMemeber.SetValue (1);
 
   Result:= TIntegerCollection.Create;
 
   for i:= 0 to CandidatePrimes.Count- 1 do
   begin
-    PrimePower:= TBigInt.Create.SetValue (1);
-    p:= TBigInt.Create.SetValue (CandidatePrimes.Item [i]);
+    PrimePower:= BigIntFactory.GetNewMemeber.SetValue (1);
+    p:= BigIntFactory.GetNewMemeber.SetValue (CandidatePrimes.Item [i]);
 
     while PrimePower.CompareWith (Logm)<= 0 do
     begin
       Temp:= PrimePower.Mul (p);
-      PrimePower.Free;
+      BigIntFactory.ReleaseMemeber (PrimePower);
       PrimePower:= Temp;
 
     end;
-    p.Free;
+    BigIntFactory.ReleaseMemeber (p);
 
     Result.AddItem (PrimePower.GetValue);
     Temp:= Prod.Mul (PrimePower);
-    Prod.Free;
+    BigIntFactory.ReleaseMemeber (Prod);
     Prod:= Temp;
 
     if m.CompareWith (Prod)< 0 then
@@ -107,7 +107,7 @@ begin
 
   end;
 
-  Logm.Free;
+  BigIntFactory.ReleaseMemeber (Logm);
   CandidatePrimes.Free;
 
 end;
@@ -141,7 +141,7 @@ function TMyPBSolverEngineUsingMinimalPrimeModulos.GenerateModulos (m: TBigInt):
           begin
             Result.Free;
             Result:= TIntegerCollection.Create;
-            MinProd.Free;
+            BigIntFactory.ReleaseMemeber (MinProd);
             MinProd:= CurrentProd.Copy;
 
             for i:= 0 to High (IsThere) do
@@ -160,13 +160,13 @@ function TMyPBSolverEngineUsingMinimalPrimeModulos.GenerateModulos (m: TBigInt):
 
         IsThere [Index]:= False;
         Find (Index- 1, CurrentProd);
-        p:= TBigInt.Create.SetValue (CandidatePrimeSet.Item [Index]);
+        p:= BigIntFactory.GetNewMemeber.SetValue (CandidatePrimeSet.Item [Index]);
         IsThere [Index]:= True;
 
         Temp:= CurrentProd.Mul (p);
-        p.Free;
+        BigIntFactory.ReleaseMemeber (p);
         Find (Index- 1, Temp);
-        Temp.Free;
+        BigIntFactory.ReleaseMemeber (Temp);
 
       end;
 
@@ -180,11 +180,11 @@ function TMyPBSolverEngineUsingMinimalPrimeModulos.GenerateModulos (m: TBigInt):
       SetLength (IsThere, CandidatePrimeSet.Count);
       FillChar (IsThere [0], SizeOf (IsThere), 0);
 
-      MinProd:= TBigInt.Create ('1000000000000000000000000000000000000000');
-      CurrentProd:= TBigInt.Create.SetValue (1);
+      MinProd:= BigIntFactory.GetNewMemeber.LoadFromString ('1000000000000000000000000000000000000000');
+      CurrentProd:= BigIntFactory.GetNewMemeber.SetValue (1);
       Find  (CandidatePrimeSet.Count- 1, CurrentProd);
-      CurrentProd.Free;
-      MinProd.Free;
+      BigIntFactory.ReleaseMemeber (CurrentProd);
+      BigIntFactory.ReleaseMemeber (MinProd);
       SetLength (IsThere, 0);
 
      end;
@@ -285,8 +285,8 @@ var
   P: Integer;
 
 begin
-  Prod:= TBigInt.Create.SetValue (1);
-  Temp:= TBigInt.Create;
+  Prod:= BigIntFactory.GetNewMemeber.SetValue (1);
+  Temp:= BigIntFactory.GetNewMemeber;
   Result:= TIntegerCollection.Create;
 
   for i:= 0 to Primes.Count- 1 do
@@ -295,13 +295,13 @@ begin
     Result.AddItem (Primes.Item [i]);
 
     ProdTemp:= Prod.Mul (Temp);
-    Prod.Free;
+    BigIntFactory.ReleaseMemeber (Prod);
     Prod:= ProdTemp;
 
     if m.CompareWith (Prod)< 0 then
     begin
-      Prod.Free;
-      Temp.Free;
+      BigIntFactory.ReleaseMemeber (Temp);
+      BigIntFactory.ReleaseMemeber (Prod);
       Exit;
 
     end;
@@ -324,14 +324,14 @@ begin
     Result.AddItem (p);
 
     ProdTemp:= Prod.Mul (Temp);
-    Prod.Free;
+    BigIntFactory.ReleaseMemeber (Prod);
     Prod:= ProdTemp;
 
     p+= 2;
 
   end;
-  Temp.Free;
-  Prod.Free;
+  BigIntFactory.ReleaseMemeber (Temp);
+  BigIntFactory.ReleaseMemeber (Prod);
 
 end;
 

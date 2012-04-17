@@ -107,7 +107,7 @@ type
 implementation
 uses
   GenericCollectionUnit, BigInt, SatSolverInterfaceUnit,
-  LazyProblemDescriptionUnit;
+  LazyProblemDescriptionUnit, UtilityUnit;
 
 type
   EExpectationFailed= class (Exception);
@@ -520,7 +520,7 @@ function TPBParser.ParseSum: TPBSum;
 
     end;
 
-    Result:= TTerm.Create (Lit, TBigInt.Create (@c [2]));
+    Result:= TTerm.Create (Lit, BigIntFactory.GetNewMemeber.LoadFromString (@c [2]));
     if CoefSign= '-' then
       TargetPBSum.ConstantTerm.Add (Result.Coef);
 
@@ -600,13 +600,13 @@ begin
   for i:= 0 to Literals.Count- 1 do
   begin
     Lit:= Literals.Item [i];
-    ActiveTerm:= TTerm.Create (Lit, TBigInt.Create.SetValue (1));
+    ActiveTerm:= TTerm.Create (Lit, BigIntFactory.GetNewMemeber.SetValue (1));
     PBSum.AddItem (ActiveTerm);
 
   end;
 
   Result:= TPBConstraint.Create (PBSum, '=', True,
-          TBigInt.Create (@ RHS [2]));
+          BigIntFactory.GetNewMemeber.LoadFromString (@ RHS [2]));
 
 end;
 
@@ -635,7 +635,7 @@ begin
 
   RHS:= S;
   Result:= TPBConstraint.Create (PBSum, ConstraintOperator, RHS [1]= '+',
-          TBigInt.Create (@ RHS [2]));
+          BigIntFactory.GetNewMemeber.LoadFromString (@ RHS [2]));
 
 end;
 
