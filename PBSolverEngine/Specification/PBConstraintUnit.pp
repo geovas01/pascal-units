@@ -286,7 +286,7 @@ end;
 destructor TPBConstraint.Destroy;
 begin
   LHS.Free;
-  BigIntFactory.ReleaseMemeber (RHS);
+  RHS.Free;
 
   inherited Destroy;
 
@@ -375,7 +375,7 @@ begin
     for i:= 1 to LHS.Count- 1 do
     begin
       Temp:= GcdLeft.gcd (LHS.Item [i].Coef);
-      BigIntFactory.ReleaseMemeber (GcdLeft);
+      GcdLeft.Free;
       GcdLeft:= Temp;
 
     end;
@@ -383,7 +383,7 @@ begin
     if not RHS.IsZero then
     begin
       Temp:= GcdLeft.gcd (RHS);
-      BigIntFactory.ReleaseMemeber (GcdLeft);
+      GcdLeft.Free;
       GcdLeft:= Temp;
 
     end;
@@ -395,11 +395,11 @@ begin
       LHS.Finalize;
 
       Temp:= RHS.Divide (GcdLeft);
-      BigIntFactory.ReleaseMemeber (RHS);
+      RHS.Free;
       FRHS:= Temp;
 
     end;
-    BigIntFactory.ReleaseMemeber (GCDLeft);
+    GCDLeft.Free;
 
   end;
 
@@ -448,7 +448,7 @@ begin
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm (Items [i]).Copy);
 
-  BigIntFactory.ReleaseMemeber (Result.FConstantTerm);
+  Result.FConstantTerm.Free;
   Result.FConstantTerm:= Self.ConstantTerm.Copy;
 
 end;
@@ -466,7 +466,7 @@ begin
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm.Create (Self.Item [i].Literal, Self.Item [i].Coef.Divide (nBigInt)));
   Result.FConstantTerm:= ConstantTerm.Divide (nBigInt);
-  BigIntFactory.ReleaseMemeber (nBigInt);
+  nBigInt.Free;
 
 end;
 
@@ -479,7 +479,7 @@ begin
 
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm.Create (Self.Item [i].Literal, Self.Item [i].Coef.Divide (n)));
-  BigIntFactory.ReleaseMemeber (Result.ConstantTerm);
+  Result.ConstantTerm.Free;
   Result.FConstantTerm:= ConstantTerm.Divide (n);
 
 end;
@@ -504,9 +504,9 @@ begin
   else
   begin
     Temp:= Result.Copy;
-    BigIntFactory.ReleaseMemeber (Result);
+    Result.Free;
     Result:= ConstantTerm.Copy.Sub (Temp);
-    BigIntFactory.ReleaseMemeber (Temp);
+    Temp.Free;
     IsPositive:= False;
 
   end;
@@ -598,7 +598,7 @@ begin
   end;
 
 //  AllTermsInBST.Free;
-  BigIntFactory.ReleaseMemeber (FConstantTerm);
+  FConstantTerm.Free;
   Clear;
 
   inherited Destroy;
