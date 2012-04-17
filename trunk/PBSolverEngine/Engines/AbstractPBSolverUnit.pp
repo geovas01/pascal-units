@@ -63,7 +63,8 @@ function GetSolverEngine: TAbstractPBSolverEngine; inline;
 implementation
 uses
   Math, ParameterManagerUnit,
-  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit;
+  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit,
+  UtilityUnit;
 
 var
   PBSolver: TAbstractPBSolverEngine;
@@ -96,8 +97,8 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
     for i:= 0 to AConstraint.LHS.Count- 1 do
       TermExistsInSimplifiedCons [i]:= True;
   
-    TrueIntegers:= TBigInt.Create.SetValue (0);
-    UnknownIntegers:= TBigInt.Create.SetValue (0);
+    TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
+    UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
     Changed:= False;
     Done:= False;
   
@@ -275,7 +276,7 @@ var
   CompareResult: Integer;
 
 begin
-  LHSValue:= TBigInt.Create.SetValue (0);
+  LHSValue:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to AConstraint.LHS.Count- 1 do
   begin

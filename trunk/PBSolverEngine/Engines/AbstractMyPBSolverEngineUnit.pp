@@ -238,7 +238,7 @@ var
 
     while b<= SumOfCoefs do
     begin
-      NewConstraint:= TPBConstraint.Create (OrigSum.Copy, coEquality, True, TBigInt.Create.SetValue (b));
+      NewConstraint:= TPBConstraint.Create (OrigSum.Copy, coEquality, True, BigIntFactory.GetNewMemeber.SetValue (b));
       
       Literals.AddItem (EncodeEqualityConstraint (NewConstraint));
 
@@ -293,14 +293,14 @@ begin
   Permutation:= GenerateRandomPermutation (OrigSum.Count);
   Coefs:= TInt64Collection.Create (OrigSum.Count, GetVariableManager.FalseLiteral);
 
-  BModulo:= TBigInt.Create.SetValue (Modulo);
+  BModulo:= BigIntFactory.GetNewMemeber.SetValue (Modulo);
   for i:= 0 to OrigSum.Count- 1 do
   begin
     BA_i:= OrigSum.Item [Permutation.Item [i]].Coef;
 //    BA_i:= Sum.Item [i].Coef;
     Temp:= BA_i.Modulo (BModulo);
     Coefs.Item [i]:= Temp.GetValue;
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Assert (Coefs.Item [i]< Modulo);
   
   end;
@@ -400,7 +400,7 @@ begin
     PBModEncoder.AddExtraClauses;
   PBModEncoder.Free;
 
-  BModulo.Free;
+  BigIntFactory.ReleaseMemeber (BModulo);
   Coefs.Free;
   Permutation.Free;
 
@@ -803,7 +803,7 @@ begin
   SumOfCoefs:= ActiveConstraint.LHS.SumOfCoefs;
 
   Modulos:= GenerateModulos (SumOfCoefs);
-  SumOfCoefs.Free;
+  BigIntFactory.ReleaseMemeber (SumOfCoefs);
 
   if (GetRunTimeParameterManager.Verbosity and Ord (vbFull))<> 0 then
   begin
@@ -827,11 +827,11 @@ begin
     if GetRunTimeParameterManager.Verbosity<> 0 then
       WriteLn ('c ', bp);
 
-    BigIntbp:= TBigInt.Create.SetValue (bp);
+    BigIntbp:= BigIntFactory.GetNewMemeber.SetValue (bp);
     Temp:= ActiveConstraint.RHS.Modulo (BigIntbp);
     bResidue:= Temp.GetValue;
-    Temp.Free;
-    BigIntbp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
+    BigIntFactory.ReleaseMemeber (BigIntbp);
 
     Residue:= bResidue;
 
@@ -888,8 +888,8 @@ begin
   NewLHS:= TPBSum.Create;
   ForcedLiterals:= TLiteralCollection.Create;
 
-  TrueIntegers:= TBigInt.Create.SetValue (0);
-  UnknownIntegers:= TBigInt.Create.SetValue (0);
+  TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
+  UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to AConstraint.LHS.Count- 1 do
     if AConstraint.RHS.CompareWith (AConstraint.LHS.Item [i].Coef)<= 0 then
@@ -903,8 +903,8 @@ begin
         begin
           ForcedLiterals.Free;
           NewLHS.Free;
-          TrueIntegers.Free;
-          UnknownIntegers.Free;
+          BigIntFactory.ReleaseMemeber (TrueIntegers);
+          BigIntFactory.ReleaseMemeber (UnknownIntegers);
           Exit (VariableGenerator.TrueLiteral);
 
         end;
@@ -933,8 +933,8 @@ begin
     NewLHS.Free;
     ForcedLiterals.Free;
 
-    TrueIntegers.Free;
-    UnknownIntegers.Free;
+    BigIntFactory.ReleaseMemeber (TrueIntegers);
+    BigIntFactory.ReleaseMemeber (UnknownIntegers);
     Exit (VariableGenerator.TrueLiteral);
 
   end;
@@ -954,17 +954,17 @@ begin
       Result:= VariableGenerator.FalseLiteral;
 
     ForcedLiterals.Free;
-    TrueIntegers.Free;
-    UnknownIntegers.Free;
+    BigIntFactory.ReleaseMemeber (TrueIntegers);
+    BigIntFactory.ReleaseMemeber (UnknownIntegers);
     NewLHS.Free;
-    NewRHS.Free;
+    BigIntFactory.ReleaseMemeber (NewRHS);
     Exit;
 
   end;
 
   Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
 
-  TwoPower:= TBigInt.Create.SetValue (1);
+  TwoPower:= BigIntFactory.GetNewMemeber.SetValue (1);
 
   while TwoPower.CompareWith (Dif)<= 0 do
   begin
@@ -989,12 +989,12 @@ begin
 
   end;
 
-  TrueIntegers.Free;
-  UnknownIntegers.Free;
+  BigIntFactory.ReleaseMemeber (TrueIntegers);
+  BigIntFactory.ReleaseMemeber (UnknownIntegers);
   ForcedLiterals.Free;
   NewConstraint.Free;
-  TwoPower.Free;
-  Dif.Free;
+  BigIntFactory.ReleaseMemeber (TwoPower);
+  BigIntFactory.ReleaseMemeber (Dif);
 
 end;
 
@@ -1014,7 +1014,7 @@ function TAbstractMyPBSolverEngine.EncodeLessThanOrEqualConstraint (AConstraint:
         a:= AConstraint.LHS.Coef [i].Copy.Add (AConstraint.LHS.Coef [j]);
         if a.CompareWith (AConstraint.RHS)<= 0 then// a<= RHS
         begin
-          a.Free;
+          BigIntFactory.ReleaseMemeber (a);
           Exit;
 
         end;
@@ -1071,8 +1071,8 @@ begin
   NewLHS:= TPBSum.Create;
   ForcedLiterals:= TLiteralCollection.Create;
 
-  TrueIntegers:= TBigInt.Create.SetValue (0);
-  UnknownIntegers:= TBigInt.Create.SetValue (0);
+  TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
+  UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to AConstraint.LHS.Count- 1 do
     if AConstraint.RHS.CompareWith (AConstraint.LHS.Item [i].Coef)< 0 then
@@ -1086,8 +1086,8 @@ begin
         begin
           ForcedLiterals.Free;
           NewLHS.Free;
-          TrueIntegers.Free;
-          UnknownIntegers.Free;
+          BigIntFactory.ReleaseMemeber (TrueIntegers);
+          BigIntFactory.ReleaseMemeber (UnknownIntegers);
           Exit (VariableGenerator.TrueLiteral);
 
         end;
@@ -1116,8 +1116,8 @@ begin
     NewLHS.Free;
     ForcedLiterals.Free;
 
-    TrueIntegers.Free;
-    UnknownIntegers.Free;
+    BigIntFactory.ReleaseMemeber (TrueIntegers);
+    BigIntFactory.ReleaseMemeber (UnknownIntegers);
     Exit (VariableGenerator.FalseLiteral);
 
   end;
@@ -1126,7 +1126,7 @@ begin
 
   Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
 
-  TwoPower:= TBigInt.Create.SetValue (1);
+  TwoPower:= BigIntFactory.GetNewMemeber.SetValue (1);
 
   while TwoPower.CompareWith (NewRHS)<= 0 do
   begin
@@ -1149,12 +1149,12 @@ begin
 
   end;
 
-  TrueIntegers.Free;
-  UnknownIntegers.Free;
+  BigIntFactory.ReleaseMemeber (TrueIntegers);
+  BigIntFactory.ReleaseMemeber (UnknownIntegers);
   ForcedLiterals.Free;
   NewConstraint.Free;
-  TwoPower.Free;
-  Dif.Free;
+  BigIntFactory.ReleaseMemeber (TwoPower);
+  BigIntFactory.ReleaseMemeber (Dif);
 
 end;
 

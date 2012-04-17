@@ -16,15 +16,20 @@ type
     Stack: TStack;
 
     function GetCount: Integer;
+    function GetIsEmpty: Boolean;
     function GetTop: TData;
   public
     property Count: Integer read GetCount;
+    property IsEmpty: Boolean read GetIsEmpty;
     property Top: TData read GetTop;
 
     function Pop: TData;
     procedure Push (Data: Tdata);
 
     constructor Create;
+    {
+    TGenericStack does not free the members stored in it.
+    }
     destructor Destroy; override;
 
   end;
@@ -36,6 +41,12 @@ implementation
 function TGenericStack.GetCount: Integer;
 begin
   Result:= Stack.Count;
+
+end;
+
+function TGenericStack.GetIsEmpty: Boolean;
+begin
+  Result:= (Count= 0);
 
 end;
 
@@ -70,8 +81,6 @@ var
   i: Integer;
 
 begin
-  for i:= 0 to Stack.Count- 1 do
-    Pop.Free;
   Stack.Free;
 
   inherited Destroy;

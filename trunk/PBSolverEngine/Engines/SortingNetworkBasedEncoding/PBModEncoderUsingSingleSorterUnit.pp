@@ -128,7 +128,7 @@ var
 
 begin
   InputLiterals:= TLiteralCollection.Create;
-  m:= TBigInt.Create.SetValue (Modulo);
+  m:= BigIntFactory.GetNewMemeber.SetValue (Modulo);
 
   for i:= 0 to OrigSum.Count- 1 do
   begin

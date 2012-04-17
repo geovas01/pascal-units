@@ -286,7 +286,7 @@ end;
 destructor TPBConstraint.Destroy;
 begin
   LHS.Free;
-  RHS.Free;
+  BigIntFactory.ReleaseMemeber (RHS);
 
   inherited Destroy;
 
@@ -363,7 +363,7 @@ begin
 
   end;
 
-  FRHS.Free;
+  BigIntFactory.ReleaseMemeber (FRHS);
   FRHS:= NewRHSValue;
   FRHSSign:= NewRHSSign;
 
@@ -375,7 +375,7 @@ begin
     for i:= 1 to LHS.Count- 1 do
     begin
       Temp:= GcdLeft.gcd (LHS.Item [i].Coef);
-      GcdLeft.Free;
+      BigIntFactory.ReleaseMemeber (GcdLeft);
       GcdLeft:= Temp;
 
     end;
@@ -383,7 +383,7 @@ begin
     if not RHS.IsZero then
     begin
       Temp:= GcdLeft.gcd (RHS);
-      GcdLeft.Free;
+      BigIntFactory.ReleaseMemeber (GcdLeft);
       GcdLeft:= Temp;
 
     end;
@@ -395,11 +395,11 @@ begin
       LHS.Finalize;
 
       Temp:= RHS.Divide (GcdLeft);
-      RHS.Free;
+      BigIntFactory.ReleaseMemeber (RHS);
       FRHS:= Temp;
 
     end;
-    GCDLeft.Free;
+    BigIntFactory.ReleaseMemeber (GCDLeft);
 
   end;
 
@@ -448,7 +448,7 @@ begin
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm (Items [i]).Copy);
 
-  Result.FConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (Result.FConstantTerm);
   Result.FConstantTerm:= Self.ConstantTerm.Copy;
 
 end;
@@ -459,14 +459,14 @@ var
   nBigInt: TBigInt;
 
 begin
-  nBigInt:= TBigInt.Create.SetValue (n);
+  nBigInt:= BigIntFactory.GetNewMemeber.SetValue (n);
 
   Result:= TPBSum.Create;
 
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm.Create (Self.Item [i].Literal, Self.Item [i].Coef.Divide (nBigInt)));
   Result.FConstantTerm:= ConstantTerm.Divide (nBigInt);
-  nBigInt.Free;
+  BigIntFactory.ReleaseMemeber (nBigInt);
 
 end;
 
@@ -479,7 +479,7 @@ begin
 
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm.Create (Self.Item [i].Literal, Self.Item [i].Coef.Divide (n)));
-  Result.ConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (Result.ConstantTerm);
   Result.FConstantTerm:= ConstantTerm.Divide (n);
 
 end;
@@ -492,7 +492,7 @@ var
 
 begin
   Assert (Finalized);
-  Result:= TBigInt.Create.SetValue (0);
+  Result:= BigIntFactory.GetNewMemeber.SetValue (0);
   IsPositive:= True;
 
   for i:= 0 to Count- 1 do
@@ -504,9 +504,9 @@ begin
   else
   begin
     Temp:= Result.Copy;
-    Result.Free;
+    BigIntFactory.ReleaseMemeber (Result);
     Result:= ConstantTerm.Copy.Sub (Temp);
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     IsPositive:= False;
 
   end;
@@ -546,7 +546,7 @@ var
 
 begin
   Assert (Finalized);
-  Result:= TBigInt.Create.SetValue (0);
+  Result:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to Self.Count- 1 do
     Result.Add (Item [i].Coef);
@@ -580,7 +580,7 @@ begin
 //  AllTermsInBST:= TPairBST.Create (@CompareLiterals);
   Finalized:= False;
 
-  FConstantTerm:= TBigInt.Create.SetValue (0);
+  FConstantTerm:= BigIntFactory.GetNewMemeber.SetValue (0);
 
 end;
 
@@ -598,7 +598,7 @@ begin
   end;
 
 //  AllTermsInBST.Free;
-  FConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (FConstantTerm);
   Clear;
 
   inherited Destroy;
@@ -733,7 +733,7 @@ end;
 
 destructor TTerm.Destroy;
 begin
-  Coef.Free;
+  BigIntFactory.ReleaseMemeber (Coef);
 
   inherited Destroy;
 end;

@@ -100,13 +100,13 @@ begin
 
   SetLength (Ci, n+ 2* m+ 1);
 
-  Base:= TBigInt.Create.SetValue (7);
+  Base:= BigIntFactory.GetNewMemeber.SetValue (7);
   PToBase:= Base.Pow (m);
   { Add a clause stating at least one of the variables should be true. }
   for i:= 0 to n do
     ci [i]:= PToBase.Copy;
   PToBase.SetValue (1);
-  Sum:= TBigInt.Create.SetValue (0);
+  Sum:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to m- 1 do
   begin
@@ -123,7 +123,7 @@ begin
 
     Sum.Add (PToBase);
     Temp:= PToBase.Mul (Base);
-    PToBase.Free;
+    BigIntFactory.ReleaseMemeber (PToBase.Free);
     PToBase:= Temp;
 
   end;
@@ -131,7 +131,7 @@ begin
   Temp:= Sum.Copy;
   Sum.Mul2;
   Sum.Add (Temp);//Sum:= 3* Sum
-  Temp.Free;
+  BigIntFactory.ReleaseMemeber (Temp);
 
   for i:= 0 to High (Ci)- 1 do
     Write (Ci [i].ToString, ' x', i+ 1, ' + ');
@@ -141,7 +141,7 @@ begin
   WriteLn (Sum.ToString);
 
   for i:= 0 to High (Ci) do
-    Ci [i].Free;
+    BigIntFactory.ReleaseMemeber (Ci [i]);
   SetLength (Ci, 0);
 
 end;

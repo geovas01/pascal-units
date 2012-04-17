@@ -3,7 +3,8 @@ unit BigInt;
 
 interface
 uses
-  GenericCollectionUnit;
+  GenericCollectionUnit, GenericFactoryUnit;
+
 const
   MaxLen= 9999;
 type
@@ -17,6 +18,11 @@ type
   March 16 2012
     I noticed that SetLength function in fpc, automatically calls fillchar function.
     So, I changed FDigigts from "array of Byte" to a pointer to "array of Byte".
+
+  April 16, 2012
+    The factory class has been added to TBigInt, and constructors are made private.
+    To create a new BigInt, one can call BigIntFactory.GetNewMember. Instead of freeing
+    a BigInt, one has to call BigIntFactory.Release (Obj).
 
 }
   { TBigInt }
@@ -79,9 +85,18 @@ type
     {Returns a new TBigInt which is equal to Self^n}
     function Pow (n: Integer): TBigInt;
 
+    private
     constructor Create; overload;
     constructor Create (S: PChar); overload;
+    public
+    constructor GCreate; overload;
+    constructor Create (i: Integer); overload;
     destructor Destroy; override;
+
+    {
+      Sets Self to the integer represented by S, and return Self
+    }
+    function LoadFromString (S: PChar): TBigInt;
 
     {
       Imports n and returns Self
@@ -94,7 +109,20 @@ type
     }
     function gcd (b: TBigInt): TBigInt;
 
+    {
+    Set Bigint to Zero...
+    }
+    procedure Reset;
+
   end;
+
+  TBigIntFactory= specialize TGenericFactoy<TBigInt>;
+
+  procedure Initialize;
+  procedure Finalize;
+
+var
+  BigIntFactory: TBigIntFactory;
 
 implementation
 uses
@@ -190,7 +218,7 @@ var
 
 begin
 
-  Result:= TBigInt.Create;
+  Result:= BigIntFactory.GetNewMemeber;
   Result.SetValue (0);
 
   for i:= Self.Length- 1 downto 0 do
@@ -209,8 +237,8 @@ var
   TwoPower: TBigInt;
 
 begin
-  Result:= TBigInt.Create.SetValue (1);
-  TwoPower:= TBigInt.Create.SetValue (2);
+  Result:= BigIntFactory.GetNewMemeber.SetValue (1);
+  TwoPower:= BigIntFactory.GetNewMemeber.SetValue (2);
 
   while TwoPower.CompareWith (Self)< 0 do
   begin
@@ -219,7 +247,7 @@ begin
 
   end;
 
-  TwoPower.Free;
+  BigIntFactory.ReleaseMemeber (TwoPower);
 
 end;
 
@@ -429,7 +457,7 @@ var
   Temp: TBigInt;
 
 begin
-  Result:= TBigInt.Create.SetValue (0);
+  Result:= BigIntFactory.GetNewMemeber.SetValue (0);
 
   for i:= 0 to Self.FLength- 1 do
     if Self.FDigits^ [i]<> 0 then
@@ -437,7 +465,7 @@ begin
       Temp:= n.MulByDigit (Self.FDigits^ [i]);
       Temp.ShiftLeft (i);
       Result.Add (Temp);
-      Temp.Free;
+      BigIntFactory.ReleaseMemeber (Temp);
 
     end;
 
@@ -448,7 +476,7 @@ var
   Temp1, Temp2, Temp3: TBigInt;
 
 begin
-  Result:= TBigInt.Create;
+  Result:= BigIntFactory.GetNewMemeber;
   Result.SetValue (0);
   Temp1:= Self.Copy;
   Temp2:= n.Copy;
@@ -460,13 +488,13 @@ begin
 
     Temp2.Add (Temp2);
     Temp3:= Temp1.Div2;
-    Temp1.Free;
+    BigIntFactory.ReleaseMemeber (Temp1);
     Temp1:= Temp3;
 
   end;
 
-  Temp1.Free;
-  Temp2.Free;
+  BigIntFactory.ReleaseMemeber (Temp1);
+  BigIntFactory.ReleaseMemeber (Temp2);
 
 end;
 
@@ -524,6 +552,16 @@ begin
 
 end;
 
+constructor TBigInt.GCreate;
+begin
+
+end;
+
+constructor TBigInt.Create(i: Integer);
+begin
+
+end;
+
 function TBigInt.SetValue (n: Int64): TBigInt;
 begin
 //  FillChar (FDigits, SizeOf(FDigits), 0);
@@ -575,13 +613,20 @@ begin
   while not b.IsZero do
   begin
     c:= a.Modulo (b);
-    a.Free;
+    BigIntFactory.ReleaseMemeber (a);
     a:= b;
     b:= c;
 
   end;
-  b.Free;
+
+  BigIntFactory.ReleaseMemeber (b);
   Result:= a;
+
+end;
+
+procedure TBigInt.Reset;
+begin
+  FLength:= 0;
 
 end;
 
@@ -592,6 +637,33 @@ begin
   
   Inherited;
   
+end;
+
+function TBigInt.LoadFromString (S: PChar): TBigInt;
+var
+  i: Integer;
+
+begin
+
+  Assert (System.Length (S)<= MaxLen);
+//  SetLength (FDigits, MaxLen+ 1);
+  New (FDigits);
+
+  Length:= System.Length (S);
+  for i:= 0 to System.Length (S)- 1 do
+    FDigits^ [Length- 1- i]:= Ord (S [i])- 48;
+
+  while 0< Length do
+  begin
+    if FDigits^ [FLength- 1]= 0 then
+      Dec (FLength)
+    else
+      Break;
+
+  end;
+
+  Result:= Self;
+
 end;
 
 function TBigInt.GetDigit (Index: Integer): Byte; inline;
@@ -614,7 +686,7 @@ var
   i: Integer;
 
 begin
-  Result:= TBigInt.Create;
+  Result:= BigIntFactory.GetNewMemeber;
   Result.Length:= Self.FLength;
 
   System.Move (FDigits^ [0], Result.FDigits^ [0], Sizeof (FDigits^ [0])*
@@ -637,18 +709,18 @@ var
 begin
   if Self.CompareWith (n)< 0 then
   begin
-    Result:= TBigInt.Create.SetValue (0);
+    Result:= BigIntFactory.GetNewMemeber.SetValue (0);
     Exit;
 
   end;
 
-  Lower:= TBigInt.Create.SetValue (1);
+  Lower:= BigIntFactory.GetNewMemeber.SetValue (1);
   Temp:= Lower.NewMul (n);
 
   while Self.CompareWith (Temp)> 0 do
   begin
     Lower.Mul2;
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Temp:= Lower.NewMul (n);
 
   end;
@@ -661,33 +733,33 @@ begin
 
   while 0<= Higher.CompareWith (Lower) do
   begin
-    Temp.Free;
-    Mid.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
+    BigIntFactory.ReleaseMemeber (Mid);
 
     Temp:= Lower.Copy.Add (Higher);
     Mid:= Temp.Div2;
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Temp:= n.NewMul (Mid);
 
     CompareRes:= Self.CompareWith (Temp);
 
     if 0< CompareRes then
     begin
-      Result.Free;
+      BigIntFactory.ReleaseMemeber (Result);
       Result:= Lower.Copy;
-      Lower.Free;
+      BigIntFactory.ReleaseMemeber (Lower);
       Lower:= Mid.Copy.Incr;
 
     end
     else if CompareRes< 0 then
     begin
-      Higher.Free;
+      BigIntFactory.ReleaseMemeber (Higher);
       Higher:= Mid.Copy.Decr;
 
     end
     else
     begin
-      Result.Free;
+      BigIntFactory.ReleaseMemeber (Result);
       Result:= Mid.Copy;
       Break;
 
@@ -698,10 +770,10 @@ begin
   if Result= nil then
     Result:= Lower.Copy;
 
-  Higher.Free;
-  Lower.Free;
-  Mid.Free;
-  Temp.Free;
+  BigIntFactory.ReleaseMemeber (Higher);
+  BigIntFactory.ReleaseMemeber (Lower);
+  BigIntFactory.ReleaseMemeber (Mid);
+  BigIntFactory.ReleaseMemeber (Temp);
 
 end;
 
@@ -713,40 +785,40 @@ var
   Higher: TBigInt;
 
 begin
-  Lower:= TBigInt.Create;
+  Lower:= BigIntFactory.GetNewMemeber;
   Lower.SetValue (1);
   Higher:= Lower.Copy;
   Temp:= Lower.Mul (Lower);
 
   while Self.CompareWith (Temp)> 0 do
   begin
-    Lower.Free;
+    BigIntFactory.ReleaseMemeber (Lower);
     Lower:= Higher.Copy;
-    Higher.Free;
+    BigIntFactory.ReleaseMemeber (Higher);
     Higher:= Lower.MulByDigit (2);
 
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Temp:= Higher.Mul (Higher);
 
   end;
 
-  Temp.Free;
+  BigIntFactory.ReleaseMemeber (Temp);
   Temp:= Lower.Mul (Lower);
 
   while Higher.CompareWith (Lower)>= 0 do
   begin
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Temp:= Lower.Copy;
     Temp.Add (Higher);
     Mid:= Temp.Div2;
 
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp);
     Temp:= Mid.Mul (Mid);
 
     case Self.CompareWith (Temp) of
     +1:
       begin
-        Lower.Free;
+        BigIntFactory.ReleaseMemeber (Lower);
         Lower:= Mid.Incr;
 
       end;
@@ -755,7 +827,7 @@ begin
 
     -1:
       begin
-        Higher.Free;
+        BigIntFactory.ReleaseMemeber (Higher);
         Higher:= Mid.Decr;
 
       end;
@@ -768,7 +840,7 @@ begin
   Temp.Add (Higher);
   Mid:= Temp.Div2;
 
-  Temp.Free;
+  BigIntFactory.ReleaseMemeber (Temp);
   Temp:= Mid.Mul (Mid);
 
   Result:= Mid;
@@ -776,12 +848,12 @@ begin
     Result.Decr;
 
   if Higher<> Mid then
-    Higher.Free;
+    BigIntFactory.ReleaseMemeber (Higher);
 
   if Lower<> Mid then
-    Lower.Free;
+    BigIntFactory.ReleaseMemeber (Lower);
 
-  Temp.Free;
+  BigIntFactory.ReleaseMemeber (Temp);
 
 end;
 
@@ -791,7 +863,7 @@ var
 
 begin
   Assert (n< 10);
-  Result:= TBigInt.Create;
+  Result:= BigIntFactory.GetNewMemeber;
 
   Result.Length:= FLength;
   Carry:= 0;
@@ -823,7 +895,7 @@ begin
 
   if n= 0 then
   begin
-    Result:= TBigInt.Create;
+    Result:= BigIntFactory.GetNewMemeber;
     Result.SetValue (1);
 
   end
@@ -835,13 +907,13 @@ begin
     Temp:= Self.Pow (n div 2);
     Temp1:= Temp.Copy;
     Result:= Temp.Mul (Temp1);
-    Temp1.Free;
-    Temp.Free;
+    BigIntFactory.ReleaseMemeber (Temp1);
+    BigIntFactory.ReleaseMemeber (Temp);
 
     if n mod 2= 1 then
     begin
       Temp:= Result.Mul (Self);
-      Result.Free;
+      BigIntFactory.ReleaseMemeber (Result);
       Result:= Temp;
 
     end;
@@ -855,7 +927,7 @@ var
   i, j, Borrow: Integer;
 
 begin
-  Result:= TBigInt.Create;
+  Result:= BigIntFactory.GetNewMemeber;
 
   Borrow:= 0;
   i:= FLength- 1;
@@ -934,6 +1006,18 @@ begin
     Carry:= Carry div 10;
 
   end;
+
+end;
+
+procedure Initialize;
+begin
+  BigIntFactory:= TBigIntFactory.Create;
+
+end;
+
+procedure Finalize;
+begin
+  BigIntFactory.Free;
 
 end;
 
