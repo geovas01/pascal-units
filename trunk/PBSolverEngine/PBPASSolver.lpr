@@ -12,7 +12,8 @@ uses
   Classes, SysUtils, TSeitinVariableUnit, SatSolverInterfaceUnit, PBParserUnit,
   ProblemDescriptionUnit, AbstractPBSolverUnit,
   //heaptrc,
-  BaseUnix, ParameterManagerUnit;
+  BigInt,
+  BaseUnix, ParameterManagerUnit, WideStringUnit;
 
 var
   ProblemType: TSpecMode;
@@ -35,6 +36,7 @@ end;
 
 procedure Initialize;
 begin
+  BigInt.Initialize;
   FpSignal (SIGTerm, @TermSignHandler);
   ParameterManagerUnit.Initialize;
   SatSolverInterfaceUnit.Initialize;
@@ -49,6 +51,7 @@ begin
   TSeitinVariableUnit.Finalize;
   AbstractPBSolverUnit.Finalize;
   ParameterManagerUnit.Finalize;
+  BigInt.Finalize;
 
 end;
 
@@ -85,6 +88,35 @@ begin
 end;
 
 {$IFDEF WINDOWS}{$R PBPASSolver.rc}{$ENDIF}
+
+procedure Verify;
+var
+  Assignment: TAssignments;
+  PBParser: TPBParser;
+  Spec: TPBSpecification;
+  Stream: TFileStream;
+
+begin
+  WriteLn ('<Main>');
+
+  Stream:= TFileStream.Create (GetRunTimeParameterManager.GetValueByName ('--InputFilename'), fmOpenRead);
+  Assignment:= TAssignments.Load (
+        TFileStream.Create (GetRunTimeParameterManager.ValueByName ['--Assignment'], fmOpenRead));
+
+  PBParser:= CreateLazyPBParser (Stream);
+  Spec:= PBParser.ParsePB;
+
+  if GetSolverEngine.Verify (Spec, Assignment) then
+    WriteLn ('<Verified\>')
+  else
+    WriteLn ('<Incorrect\>');
+
+  Spec.Free;
+  Finalize;
+  WriteLn ('</Main>');
+
+end;
+
 var
   PBParser: TPBParser;
   Stream: TFileStream;
@@ -93,8 +125,16 @@ var
 begin
   Initialize;
 
+  if UpperCase (GetRunTimeParameterManager.ValueByName ['--Assignment'])<> '' then
+  begin
+    Verify;
+    Exit;
+
+  end;
+
   WriteLn ('<Main>');
   Stream:= TFileStream.Create (GetRunTimeParameterManager.GetValueByName ('--InputFilename'), fmOpenRead);
+
   if UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser') then
   begin
     PBParser:= CreateLazyPBParser (Stream);

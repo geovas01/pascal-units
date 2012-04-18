@@ -30,6 +30,8 @@ type
   end;
 
 implementation
+uses
+  GenericFactoryUnit;
 
 { TDCBasedSorterEncoder }
 
@@ -37,50 +39,69 @@ procedure TDCBasedSorterEncoder.AddExtraClauses_Medium;
 var
   l, i, b1, b2: Integer;
   ActiveResult: TLiteralCollection;
+  Ignore: Boolean;
 
 begin
-  for l:= 0 to InputLiterals.Count- 1 do
-    for i:= 0 to DC [l].Count- 1 do
-    begin
-      ActiveResult:= DC [l].Item [i];
-
-      for b1:= 0 to Modulo- 1 do
-        for b2:= b1+ 1 to Modulo- 1 do
-        begin
-          VariableManager.SatSolver.BeginConstraint;
-
-          VariableManager.SatSolver.AddLiteral (NegateLiteral (ActiveResult.Item [b1]));
-          VariableManager.SatSolver.AddLiteral (NegateLiteral (ActiveResult.Item [b2]));
-
-          VariableManager.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
-
-        end;
-
-    end;
-
-
   for l:= 0 to InputLiterals.Count- 1 do
     for i:= 0 to DC [l].Count- 1 do
     begin
       ActiveResult:= DC [l].Item [i];
       VariableManager.SatSolver.BeginConstraint;
 
-     for b1:= 0 to Modulo- 1 do
-       if GetVar (ActiveResult.Item [b1])<> 0 then
-         VariableManager.SatSolver.AddLiteral (ActiveResult.Item [b1]);
+      Ignore:= False;
+      for b1:= 0 to Modulo- 1 do
+        if GetVar (ActiveResult.Item [b1])<> 0 then
+          if ActiveResult.Item [b1]= VariableManager.FalseLiteral then
+          else if ActiveResult.Item [b1]= VariableManager.TrueLiteral then
+            begin
+              VariableManager.SatSolver.AbortConstraint;
+              Ignore:= True;
+              Break;
 
-     VariableManager.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
+            end
+            else
+              VariableManager.SatSolver.AddLiteral (ActiveResult.Item [b1]);
+
+     if not Ignore then
+       VariableManager.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
 
     end;
+
+    for l:= 0 to InputLiterals.Count- 1 do
+      for i:= 0 to DC [l].Count- 1 do
+      begin
+        ActiveResult:= DC [l].Item [i];
+
+        for b1:= 0 to Modulo- 1 do
+          for b2:= b1+ 1 to Modulo- 1 do
+            if (ActiveResult.Item [b1]<> VariableManager.FalseLiteral) and
+               (ActiveResult.Item [b2]<> VariableManager.FalseLiteral) then
+            begin
+
+              VariableManager.SatSolver.BeginConstraint;
+
+              VariableManager.SatSolver.AddLiteral (NegateLiteral (ActiveResult.Item [b1]));
+              VariableManager.SatSolver.AddLiteral (NegateLiteral (ActiveResult.Item [b2]));
+
+              VariableManager.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
+
+            end;
+
+      end;
 
 end;
 
 procedure TDCBasedSorterEncoder.AddExtraClauses_High;
 begin
-// Donothig
+
 end;
 
+type
+  TLiteralCollectionFactory= specialize TGenericFactoy<TLiteralCollection>;
+
 function TDCBasedSorterEncoder.Encode: TLiteralCollection;
+ var
+   LiteralCollectionFactory: TLiteralCollectionFactory;
 
   function _CreateDCSorter (Index: Integer; Len: Integer; Level: Integer): TLiteralCollection;
    {
@@ -109,7 +130,10 @@ function TDCBasedSorterEncoder.Encode: TLiteralCollection;
      Left:= _CreateDCSorter (Index, Len div 2, Level+ 1);
      Right:= _CreateDCSorter (Index+ Len div 2, Len- Len div 2, Level+ 1);
 
-     TempLiteralCollection:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+//     TempLiteralCollection:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+     TempLiteralCollection:= LiteralCollectionFactory.GetNewMemeber;
+     TempLiteralCollection.Count:= Modulo;
+
      for i:= 0 to Modulo- 1 do
      begin
 
@@ -123,12 +147,16 @@ function TDCBasedSorterEncoder.Encode: TLiteralCollection;
 
      end;
 
-     TempLiteralCollection.Free;
+     LiteralCollectionFactory.ReleaseMemeber (TempLiteralCollection);
 
    end;
 
 begin
+  LiteralCollectionFactory:= TLiteralCollectionFactory.Create;
+
   Result:= _CreateDCSorter (0, InputLiterals.Count, 0).Copy;
+
+  LiteralCollectionFactory.Free;
 
 end;
 

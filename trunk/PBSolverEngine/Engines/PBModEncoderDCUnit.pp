@@ -33,7 +33,7 @@ type
 
 implementation
 uses
-  ParameterManagerUnit;
+  ParameterManagerUnit, GenericFactoryUnit;
 
 { TPBModEncoderDC }
 
@@ -42,6 +42,7 @@ var
   l, i: Integer;
   ActiveAnswer: TLiteralCollection;
   b1, b2: Integer;
+  Ignore: Boolean;
 
 begin
   for l:= 0 to High (Memory) do
@@ -53,15 +54,17 @@ begin
           if GetVar (ActiveAnswer.Item [b1])<> 0 then
             for b2:= b1+ 1 to Modulo- 1 do
               if GetVar (ActiveAnswer.Item [b2])<> 0 then
-              begin
-                VariableGenerator.SatSolver.BeginConstraint;
+                if (ActiveAnswer.Item [b1]<> VariableGenerator.FalseLiteral) and
+                   (ActiveAnswer.Item [b2]<> VariableGenerator.FalseLiteral) then
+                begin
+                  VariableGenerator.SatSolver.BeginConstraint;
 
-                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b1]));
-                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b2]));
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b1]));
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b2]));
 
-                VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
+                  VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
 
-              end;
+                end;
 
       end;
 
@@ -69,11 +72,22 @@ begin
     for i:= 0 to Memory [l].Count- 1 do
     begin
       ActiveAnswer:= Memory [l].Item [i];
+      Ignore:= False;
 
       VariableGenerator.SatSolver.BeginConstraint;
-      for b1:= 0 to Modulo- 1 do
-        VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
-      VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [m]
+      if ActiveAnswer.Item [b1]= VariableGenerator.FalseLiteral then
+      else if ActiveAnswer.Item [b1]= VariableGenerator.TrueLiteral then
+        begin
+          VariableGenerator.SatSolver.AbortConstraint;
+          Ignore:= True;
+          Break;
+
+        end
+        else
+          VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
+
+      if not Ignore then
+        VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
 
     end;
 
@@ -84,7 +98,12 @@ begin
 // Do Nothing ..
 end;
 
+type
+  TLiteralCollectionFactory= specialize TGenericFactoy<TLiteralCollection>;
+
 function TPBModEncoderDC.EncodePBMod: TLiteral;
+var
+  LiteralCollectionFactory: TLiteralCollectionFactory;
 
   function Encode (Index: Integer; Len: Integer): TLiteralCollection;
   {
@@ -120,7 +139,9 @@ function TPBModEncoderDC.EncodePBMod: TLiteral;
 
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
 
-      Temp:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+//      Temp:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+      Temp:= LiteralCollectionFactory.GetNewMemeber;
+      Temp.Count:= Modulo;
 
       for i:= 0 to Modulo- 1 do
       begin
@@ -135,7 +156,7 @@ function TPBModEncoderDC.EncodePBMod: TLiteral;
 
       end;
 
-      Temp.Free;
+      LiteralCollectionFactory.ReleaseMemeber (Temp);
 
 {
       Left.Free;
@@ -151,6 +172,8 @@ var
   Temp: TLiteralCollection;
 
 begin
+  LiteralCollectionFactory:= TLiteralCollectionFactory.Create;
+
   if OrigSum.Count= 0 then
   begin
     if b= 0 then
@@ -165,6 +188,7 @@ begin
     Result:= Temp.Item [b];
 
   end;
+  LiteralCollectionFactory.Free;
 
 end;
 

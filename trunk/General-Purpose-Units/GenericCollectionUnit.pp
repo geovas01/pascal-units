@@ -46,6 +46,7 @@ type
     function GetItem (Index: Integer): TData; virtual;
     procedure SetCount (AValue: Integer); virtual;
     procedure SetItem (Index: Integer; const AValue: TData); virtual;
+
   protected
     Items: array of TData;
     Capacity: Integer;

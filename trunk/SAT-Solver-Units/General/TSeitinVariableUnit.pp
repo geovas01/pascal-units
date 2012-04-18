@@ -52,12 +52,12 @@ type
     function CreateNewVariable (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable; inline;
 //    function CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
 
-    function CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
-    function CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
-    function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
-    function CreateVariableDescribingOR (l1, l2: TLiteral): TLiteral;
-    function CreateVariableDescribingXOR (l1, l2: TLiteral): TLiteral;
-    function CreateVariableDescribingXOR (Literals: TLiteralCollection; Size: Integer= MaxInt): TLiteral;
+    function CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer= MaxInt; Simplify: Boolean= True): TLiteral;
+    function CreateVariableDescribingAND (l1, l2: TLiteral; Simplify: Boolean= True): TLiteral;
+    function CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer= MaxInt; Simplify: Boolean= True): TLiteral;
+    function CreateVariableDescribingOR (l1, l2: TLiteral; Simplify: Boolean= True): TLiteral;
+    function CreateVariableDescribingXOR (l1, l2: TLiteral; Simplify: Boolean= True): TLiteral;
+    function CreateVariableDescribingXOR (Literals: TLiteralCollection; Size: Integer= MaxInt; Simplify: Boolean= True): TLiteral;
 
     {
       Result:= ITE (s, t, f) means
@@ -364,28 +364,34 @@ begin
 
 end;
 
-function TVariableManager.CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer): TLiteral;
+function TVariableManager.CreateVariableDescribingAND (Literals: TLiteralCollection; Size: Integer; Simplify: Boolean): TLiteral;
 var
   i, j: Integer;
 
 begin
 ///  Literals.Sort (@CompareLiteral);
 
-  j:= 0;
-  for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
-    case SatSolver.GetLiteralValue (Literals.Item [i]) of
-      gbTrue:;
-      gbFalse:
-        Exit (FalseLiteral);
-      gbUnknown:
-      begin
-        Literals.Item [j]:= Literals.Item [i];
-        Inc (j);
-        {TODO: It can be improved. ..}
+  if Simplify then
+  begin
+    j:= 0;
+    for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
+      case SatSolver.GetLiteralValue (Literals.Item [i]) of
+        gbTrue:;
+        gbFalse:
+          Exit (FalseLiteral);
+        gbUnknown:
+        begin
+          Literals.Item [j]:= Literals.Item [i];
+          Inc (j);
+          {TODO: It can be improved. ..}
+
+        end;
 
       end;
 
-    end;
+  end
+  else
+    j:= Math.Min (Literals.Count, Size);
 
   if j= 0 then
     Exit (TrueLiteral);
@@ -411,28 +417,40 @@ begin
 
 end;
 
-function TVariableManager.CreateVariableDescribingAND (l1, l2: TLiteral): TLiteral;
+function TVariableManager.CreateVariableDescribingAND (l1, l2: TLiteral; Simplify: Boolean): TLiteral;
 begin
-  if SatSolver.GetLiteralValue (l1)= gbFalse then
-    Exit (FalseLiteral)
-  else if SatSolver.GetLiteralValue (l1)= gbTrue then
-    Exit (l2)
-  else if SatSolver.GetLiteralValue (l2)= gbFalse then
-    Exit (FalseLiteral)
-  else if SatSolver.GetLiteralValue (l2)= gbTrue then
-    Exit (l1)
+  if Simplify then
+  begin
+    if SatSolver.GetLiteralValue (l1)= gbFalse then
+      Exit (FalseLiteral)
+    else if SatSolver.GetLiteralValue (l1)= gbTrue then
+      Exit (l2)
+    else if SatSolver.GetLiteralValue (l2)= gbFalse then
+      Exit (FalseLiteral)
+    else if SatSolver.GetLiteralValue (l2)= gbTrue then
+      Exit (l1)
+    else
+    begin
+      Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+      DescribeAND (l1, l2, Result);
+
+    end;
+
+  end
   else
   begin
     Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
-
     DescribeAND (l1, l2, Result);
 
   end;
 
+
 end;
 
 
-function TVariableManager.CreateVariableDescribingOR (Literals: TLiteralCollection; Size: Integer): TLiteral;
+function TVariableManager.CreateVariableDescribingOR(
+  Literals: TLiteralCollection; Size: Integer; Simplify: Boolean): TLiteral;
 var
   i, j: Integer;
 
@@ -479,27 +497,38 @@ begin
 }
 end;
 
-function TVariableManager.CreateVariableDescribingOr (l1, l2: TLiteral): TLiteral;
+function TVariableManager.CreateVariableDescribingOr (l1, l2: TLiteral; Simplify: Boolean): TLiteral;
 var
   Temp: TLiteral;
 
 begin
-  if l2< l1 then
+  if Simplify then
   begin
-    Temp:= l1;
-    l1:= l2;
-    l2:= Temp;
- 
-  end;
- 
-  if SatSolver.GetLiteralValue (l1)= gbFalse then
-    Exit (l2)
-  else if SatSolver.GetLiteralValue (l1)= gbTrue then
-    Exit (TrueLiteral)
-  else if SatSolver.GetLiteralValue (l2)= gbFalse then
-    Exit (l1)
-  else if SatSolver.GetLiteralValue (l2)= gbTrue then
-    Exit (TrueLiteral)
+    if l2< l1 then
+    begin
+      Temp:= l1;
+      l1:= l2;
+      l2:= Temp;
+
+    end;
+
+    if SatSolver.GetLiteralValue (l1)= gbFalse then
+      Exit (l2)
+    else if SatSolver.GetLiteralValue (l1)= gbTrue then
+      Exit (TrueLiteral)
+    else if SatSolver.GetLiteralValue (l2)= gbFalse then
+      Exit (l1)
+    else if SatSolver.GetLiteralValue (l2)= gbTrue then
+      Exit (TrueLiteral)
+    else
+    begin
+      Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+      DescribeOR (l1, l2, Result);
+
+    end;
+
+  end
   else
   begin
     Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
@@ -510,16 +539,27 @@ begin
 
 end;
 
-function TVariableManager.CreateVariableDescribingXOR (l1, l2: TLiteral): TLiteral;
+function TVariableManager.CreateVariableDescribingXOR (l1, l2: TLiteral; Simplify: Boolean): TLiteral;
 begin
-  if SatSolver.GetLiteralValue (l1)= gbFalse then
-    Exit (l2)
-  else if SatSolver.GetLiteralValue (l1)= gbTrue then
-    Exit (NegateLiteral (l2))
-  else if SatSolver.GetLiteralValue (l2)= gbFalse then
-    Exit (l1)
-  else if SatSolver.GetLiteralValue (l2)= gbTrue then
-    Exit (NegateLiteral (l1))
+  if Simplify then
+  begin
+    if SatSolver.GetLiteralValue (l1)= gbFalse then
+      Exit (l2)
+    else if SatSolver.GetLiteralValue (l1)= gbTrue then
+      Exit (NegateLiteral (l2))
+    else if SatSolver.GetLiteralValue (l2)= gbFalse then
+      Exit (l1)
+    else if SatSolver.GetLiteralValue (l2)= gbTrue then
+      Exit (NegateLiteral (l1))
+    else
+    begin
+      Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+      DescribeXOR (l1, l2, Result);
+
+    end;
+
+  end
   else
   begin
     Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
@@ -528,16 +568,18 @@ begin
 
   end;
 
+
 end;
 
-function TVariableManager.CreateVariableDescribingXOR(
-  Literals: TLiteralCollection; Size: Integer): TLiteral;
+function TVariableManager.CreateVariableDescribingXOR (
+  Literals: TLiteralCollection; Size: Integer; Simplify: Boolean): TLiteral;
 var
   i, j: Integer;
 
 begin
+  if Simplify then
+  begin
 //  Literals.Sort (@CompareLiteral);
-
   j:= 0;
   for i:= 0 to Math.Min (Literals.Count, Size)- 1 do
     case SatSolver.GetLiteralValue (Literals.Item [i]) of
@@ -553,6 +595,9 @@ begin
       end;
 
     end;
+  end
+  else
+    j:= Math.Min (Literals.Count, Size)- 1;
 
   if j= 0 then
     Exit (FalseLiteral);
