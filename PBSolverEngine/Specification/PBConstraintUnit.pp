@@ -286,7 +286,7 @@ end;
 destructor TPBConstraint.Destroy;
 begin
   LHS.Free;
-  RHS.Free;
+  BigIntFactory.ReleaseMemeber (RHS);
 
   inherited Destroy;
 
@@ -375,7 +375,7 @@ begin
     for i:= 1 to LHS.Count- 1 do
     begin
       Temp:= GcdLeft.gcd (LHS.Item [i].Coef);
-      GcdLeft.Free;
+      BigIntFactory.ReleaseMemeber (GcdLeft);
       GcdLeft:= Temp;
 
     end;
@@ -383,7 +383,7 @@ begin
     if not RHS.IsZero then
     begin
       Temp:= GcdLeft.gcd (RHS);
-      GcdLeft.Free;
+      BigIntFactory.ReleaseMemeber (GcdLeft);
       GcdLeft:= Temp;
 
     end;
@@ -399,7 +399,7 @@ begin
       FRHS:= Temp;
 
     end;
-    GCDLeft.Free;
+    BigIntFactory.ReleaseMemeber (GCDLeft);
 
   end;
 
@@ -448,7 +448,7 @@ begin
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm (Items [i]).Copy);
 
-  Result.FConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (Result.FConstantTerm);
   Result.FConstantTerm:= Self.ConstantTerm.Copy;
 
 end;
@@ -598,7 +598,7 @@ begin
   end;
 
 //  AllTermsInBST.Free;
-  FConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (FConstantTerm);
   Clear;
 
   inherited Destroy;

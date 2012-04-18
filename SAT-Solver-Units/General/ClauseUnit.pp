@@ -38,6 +38,8 @@ type
     function IsExist (Lit: TLiteral): Boolean;
     procedure AddItem (Lit: TLiteral); override;
     procedure SetItem (Index: Integer; const Lit: TLiteral); override;
+
+    procedure Reset;
   end;
 
   TListOfLiteralCollection= specialize TGenericCollection<TLiteralCollection>;
@@ -151,6 +153,12 @@ begin
   FMaxVar:= Math.Max (GetVar (Lit), MaxVar);
 
   inherited SetItem (Index, Lit);
+
+end;
+
+procedure TLiteralCollection.Reset;
+begin
+  Count:= 0;
 
 end;
 
