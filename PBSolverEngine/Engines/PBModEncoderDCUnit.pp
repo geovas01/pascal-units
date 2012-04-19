@@ -75,16 +75,17 @@ begin
       Ignore:= False;
 
       VariableGenerator.SatSolver.BeginConstraint;
-      if ActiveAnswer.Item [b1]= VariableGenerator.FalseLiteral then
-      else if ActiveAnswer.Item [b1]= VariableGenerator.TrueLiteral then
-        begin
-          VariableGenerator.SatSolver.AbortConstraint;
-          Ignore:= True;
-          Break;
+      for b1:= 0 to Modulo- 1 do
+        if ActiveAnswer.Item [b1]= VariableGenerator.FalseLiteral then
+        else if ActiveAnswer.Item [b1]= VariableGenerator.TrueLiteral then
+          begin
+            VariableGenerator.SatSolver.AbortConstraint;
+            Ignore:= True;
+            Break;
 
-        end
-        else
-          VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
+          end
+          else
+            VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
 
       if not Ignore then
         VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]

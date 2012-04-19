@@ -313,8 +313,15 @@ begin
     PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
                                       Coefs, b, OrigSum, Permutation, Modulo)
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DC') then
-    PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
+  begin
+    if Modulo< 4* ln (Coefs.Count)/ ln (2.0) then
+      PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
                                       Coefs, b, OrigSum, Permutation, Modulo)
+    else
+      PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
+                                        Coefs, b, OrigSum, Permutation, Modulo);
+
+  end
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('Adder')))= UpperCase ('Adder') then
   begin
      PBModEncoder:= TPBModEncoderUsingAdders.Create (VariableGenerator,
