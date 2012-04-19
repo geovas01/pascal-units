@@ -54,7 +54,13 @@ begin
    else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.DP') then
       Result:= TDPBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
    else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.DC') then
-      Result:= TDCBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
+   begin
+     if Modulo< 4* ln (InputLiterals.Count)/ ln (2) then
+       Result:= TDCBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
+     else
+       Result:= TSortingNetworkSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+
+   end
    else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.Less.Variable') then
    begin
      VariableGenerator.SetSimulationMode;

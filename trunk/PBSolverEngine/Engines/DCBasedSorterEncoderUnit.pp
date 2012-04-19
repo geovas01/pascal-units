@@ -51,16 +51,19 @@ begin
       Ignore:= False;
       for b1:= 0 to Modulo- 1 do
         if GetVar (ActiveResult.Item [b1])<> 0 then
+        begin
           if ActiveResult.Item [b1]= VariableManager.FalseLiteral then
           else if ActiveResult.Item [b1]= VariableManager.TrueLiteral then
-            begin
+          begin
               VariableManager.SatSolver.AbortConstraint;
               Ignore:= True;
               Break;
 
-            end
-            else
-              VariableManager.SatSolver.AddLiteral (ActiveResult.Item [b1]);
+          end
+          else
+            VariableManager.SatSolver.AddLiteral (ActiveResult.Item [b1]);
+
+        end;
 
      if not Ignore then
        VariableManager.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
