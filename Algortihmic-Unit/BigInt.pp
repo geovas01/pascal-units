@@ -479,8 +479,9 @@ begin
   Temp1:= Self.Copy;
   Temp2:= n.Copy;
 
-  while (Temp1.Length>= 1) or (Temp1.FDigits^ [0]<> 0) do
+  while 1<= Temp1.Length do
   begin
+
     if Odd (Temp1.FDigits^ [0]) then
       Result.Add (Temp2);
 
@@ -716,8 +717,10 @@ begin
   Higher:= Lower;
   Lower:= Lower.Div2;
 
-  Mid:= nil;
-  Result:= nil;
+//  Mid:= nil;
+  Mid:= BigIntFactory.GetNewMemeber;
+//  Result:= nil;
+  Result:= BigIntFactory.GetNewMemeber;
 
   while 0<= Higher.CompareWith (Lower) do
   begin
