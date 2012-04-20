@@ -62,7 +62,7 @@ type
 
 implementation
 uses
-  Classes, SysUtils, ParameterManagerUnit, UtilityUnit;
+  Classes, SysUtils, ParameterManagerUnit;
 
 { TMyPBSolverEngineUsingPrimePowerModulos }
 

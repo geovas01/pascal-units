@@ -107,7 +107,7 @@ type
 implementation
 uses
   GenericCollectionUnit, BigInt, SatSolverInterfaceUnit,
-  LazyProblemDescriptionUnit, UtilityUnit;
+  LazyProblemDescriptionUnit;
 
 type
   EExpectationFailed= class (Exception);

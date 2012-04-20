@@ -63,8 +63,7 @@ function GetSolverEngine: TAbstractPBSolverEngine; inline;
 implementation
 uses
   Math, ParameterManagerUnit,
-  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit,
-  UtilityUnit;
+  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit;
 
 var
   PBSolver: TAbstractPBSolverEngine;
