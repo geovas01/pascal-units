@@ -395,7 +395,7 @@ begin
       LHS.Finalize;
 
       Temp:= RHS.Divide (GcdLeft);
-      RHS.Free;
+      BigIntFactory.ReleaseMemeber (RHS);
       FRHS:= Temp;
 
     end;
@@ -479,7 +479,7 @@ begin
 
   for i:= 0 to Count- 1 do
     Result.AddItem (TTerm.Create (Self.Item [i].Literal, Self.Item [i].Coef.Divide (n)));
-  Result.ConstantTerm.Free;
+  BigIntFactory.ReleaseMemeber (Result.ConstantTerm);
   Result.FConstantTerm:= ConstantTerm.Divide (n);
 
 end;
