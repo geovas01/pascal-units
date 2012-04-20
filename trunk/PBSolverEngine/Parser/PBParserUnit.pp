@@ -172,6 +172,7 @@ begin
     InputVariables.AddItem (v);//GetVariableManager.CreateNewVariable);
 
   end;
+  GetVariableManager.CreateTrueVariable;
 
   Result:= TLazyPBSpecification.Create (InputVariables, ClauseCount, ConsCount,
     Self);
@@ -736,6 +737,7 @@ begin
     InputVariables.AddItem (v);//GetVariableManager.CreateNewVariable);
 
   end;
+  GetVariableManager.CreateTrueVariable;
 
 //  VisitedConstraints:= 0; VisitedCardCons:= 0; VisitedClause:= 0;
 
@@ -894,7 +896,8 @@ begin
       InputVariables.AddItem (v);//GetVariableManager.CreateNewVariable);
   
     end;
-  
+    GetVariableManager.CreateTrueVariable;
+
     VisitedConstraints:= 0; VisitedSoftConstraints:= 0;
     NonLinearVariableDescriptions:= TList.Create;
     CorrespondingLinearVariables:= TLiteralCollection.Create;
@@ -1163,6 +1166,7 @@ begin
       InputVariables.AddItem (v);//GetVariableManager.CreateNewVariable);
 
     end;
+    GetVariableManager.CreateTrueVariable;
 
     VisitedConstraints:= 0; VisitedSoftConstraints:= 0;
     NonLinearVariableDescriptions:= TList.Create;

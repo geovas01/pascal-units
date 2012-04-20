@@ -49,6 +49,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    procedure CreateTrueVariable;
     function CreateNewVariable (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable; inline;
 //    function CreateNewVariable (VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
 
@@ -309,14 +310,6 @@ begin
 
   FLastUsedCNFIndex:= 0;
   FDecisionForNewVariable:= True;
-  FTrueVariable:= CreateNewVariable (vpTrue, True);
-
-  SatSolver.BeginConstraint;
-  SatSolver.AddLiteral (CreateLiteral (FTrueVariable, False));
-  SatSolver.SubmitClause;
-
-  FTrueLiteral:= CreateLiteral (FTrueVariable, False);
-  FFalseLiteral:= CreateLiteral (FTrueVariable, True);
 
   SimulationModeStack:= TIntegerCollection.Create;
   SimulationModeStateStack:= TIntegerCollection.Create;
@@ -337,6 +330,19 @@ begin
   SimulationModeStateStack.Free;
 
   inherited Destroy;
+
+end;
+
+procedure TVariableManager.CreateTrueVariable;
+begin
+  FTrueVariable:= CreateNewVariable (vpTrue, True);
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (CreateLiteral (FTrueVariable, False));
+  SatSolver.SubmitClause;
+
+  FTrueLiteral:= CreateLiteral (FTrueVariable, False);
+  FFalseLiteral:= CreateLiteral (FTrueVariable, True);
 
 end;
 
