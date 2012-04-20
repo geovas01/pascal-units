@@ -850,7 +850,6 @@ begin
   begin
     ActiveConstraint:= Problem.Constraint [i];
 
-    WriteLn (ActiveConstraint.ToString);
     Lit:= EncodeHardConstraint (ActiveConstraint);
 
     if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
