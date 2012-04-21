@@ -60,6 +60,7 @@ begin
   SetLength (Result, CurDigit- @(Result [1]));
 
 end;
+}
 
 function IntToStr (n: Integer): AnsiString; inline;
 const
@@ -68,37 +69,37 @@ const
 var
   CurDigit: PChar;
   l: Integer;
+  Sign: Boolean;
 
 begin
+  Result:= '               ';
+  CurDigit:= @(Result [MaxLength]);
+  Sign:= False;
+
   if n< 0 then
-    Exit ('-'+ IntToStr (-n));
+  begin
+    Sign:= True;
+    n:= -n;
+
+  end;
   if n= 0 then
     Exit ('0');
 
-  SetLength (Result, MaxLength);
-  CurDigit:= @(Result [MaxLength]);
 
-  l:= 0;
+  l:= MaxLength;
   while n<> 0 do
   begin
     CurDigit^:= Char (48+ n mod 10);
     Dec (CurDigit);
     n:= n div 10;
-    Inc (l);
+    Dec (l);
 
   end;
-
-  while l< MaxLength do
-  begin
-    Inc (l);
-  end;
-  SetLength (Result, CurDigit- @(Result [1]));
-
-  CurDigit:= @(Result [1]);
-  LastDigit:=  @(Result []);
+  if Sign then
+    Result [l]:= '-';
 
 end;
-}
+
 { TCNFStream }
 
 function TCNFStream.GetCNF: TClauseCollection;
