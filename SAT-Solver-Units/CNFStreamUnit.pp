@@ -96,7 +96,7 @@ begin
 
   end;
   if Sign then
-    Result [l]:= '-';
+    CurDigit^:= '-';
 
 end;
 
@@ -144,12 +144,12 @@ begin
 
     if IsNegated (Lit) then
     begin
-      OutputStream.WriteStr ('-');
-      OutputStream.WriteStr (IntToStr (GetVar (Lit)));//To avoid the overhead of fpc_ansichar_concat
+//      OutputStream.WriteStr ('-');
+      OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)));//To avoid the overhead of fpc_ansichar_concat
 
     end
     else
-      OutputStream.WriteStr (IntToStr (GetVar (Lit)));
+      OutputStream.WriteStr (SysUtils.IntToStr (GetVar (Lit)));
 
 
     for j:= 1 to TopConstraint.Count- 1 do
@@ -160,8 +160,8 @@ begin
 
       if IsNegated (Lit) then
       begin
-        OutputStream.WriteStr (' -');
-        OutputStream.WriteStr (IntToStr (GetVar (Lit)));
+        OutputStream.WriteStr (' ');
+        OutputStream.WriteStr (IntToStr (-GetVar (Lit)));
 
       end
       else
