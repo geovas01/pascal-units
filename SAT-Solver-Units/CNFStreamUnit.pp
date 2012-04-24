@@ -62,7 +62,7 @@ begin
 end;
 }
 
-function IntToStr (n: Integer): AnsiString; inline;
+function IntToStr (n: Int64): AnsiString; inline;
 const
   MaxLength= 15;
 
