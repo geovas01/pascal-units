@@ -835,6 +835,7 @@ var
   i: Integer;
   ActiveConstraint: TPBConstraint;
   Lit: TLiteral;
+  Coefficients: array of TBigInt;
 
 begin
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
@@ -846,38 +847,50 @@ begin
   Result:= True;
 
   Problem.DescribeNonLinearVariables;
-  for i:= 0 to Problem.ConstraintCount- 1 do
+
+  if UpperCase (GetRunTimeParameterManager.GetValueByName ('ProblemEncodingMode'))= UpperCase ('Indivisual') then
   begin
-    ActiveConstraint:= Problem.Constraint [i];
-
-    Lit:= EncodeHardConstraint (ActiveConstraint);
-
-    if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
-      if i mod 1000= 0 then
-        WriteLn ('c ', i, ' ', LiteralToString (Lit));
-
-    if Lit= VariableGenerator.FalseLiteral then
+    for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-      Result:= False;
-      Break;
+      ActiveConstraint:= Problem.Constraint [i];
 
-    end
-    else if Lit= VariableGenerator.TrueLiteral then
-     //Do nothing
-    else
-    begin
-      if not VariableGenerator.SimulationMode then
+      Lit:= EncodeHardConstraint (ActiveConstraint);
+
+      if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
+        if i mod 1000= 0 then
+          WriteLn ('c ', i, ' ', LiteralToString (Lit));
+
+      if Lit= VariableGenerator.FalseLiteral then
       begin
-        CNFGenerator.BeginConstraint;
-        CNFGenerator.AddLiteral (Lit);
-        CNFGenerator.SubmitClause;
+        Result:= False;
+        Break;
+
+      end
+      else if Lit= VariableGenerator.TrueLiteral then
+       //Do nothing
+      else
+      begin
+        if not VariableGenerator.SimulationMode then
+        begin
+          CNFGenerator.BeginConstraint;
+          CNFGenerator.AddLiteral (Lit);
+          CNFGenerator.SubmitClause;
+
+        end;
+
+        if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+          CNFGenerator.ReportForcedVariables;
 
       end;
-      
-      if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
-        CNFGenerator.ReportForcedVariables;
 
     end;
+  end
+  else
+  begin
+    SetLength (Coefficients, Problem.InputVariableCount+ 1);
+    for i:= 0 to High (Coefficients) do
+      Coefficients [i]:= TBigInt.Create.SetValue (0);
+
 
   end;
 
