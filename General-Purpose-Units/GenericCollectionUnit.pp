@@ -42,6 +42,9 @@ type
   { TGenericCollectionForBuiltInData }
 
   generic TGenericCollectionForBuiltInData<TData>= class (TObject)
+//  type
+//    TGenericCollectionForBuiltInData_TData= specialize TGenericCollectionForBuiltInData<TData>;
+
   private
     function GetItem (Index: Integer): TData; virtual;
     procedure SetCount (AValue: Integer); virtual;
