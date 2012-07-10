@@ -87,7 +87,7 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
     i: Integer;
     TermExistsInSimplifiedCons: array of Boolean;
     Done: Boolean;
-  
+
   begin
     if AConstraint.LHS.Count= 0 then
       Exit (AConstraint);
@@ -95,12 +95,12 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
     SetLength (TermExistsInSimplifiedCons, AConstraint.LHS.Count);
     for i:= 0 to AConstraint.LHS.Count- 1 do
       TermExistsInSimplifiedCons [i]:= True;
-  
+
     TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
     UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
     Changed:= False;
     Done:= False;
-  
+
     for i:= 0 to AConstraint.LHS.Count- 1 do
       if AConstraint.RHS.CompareWith (AConstraint.LHS.Item [i].Coef)< 0 then
       begin
@@ -112,20 +112,20 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
             CNFGenerator.SubmitClause;
             Changed:= True;
             TermExistsInSimplifiedCons [i]:= False;
-  
+
           end;
           gbFalse:
             TermExistsInSimplifiedCons [i]:= False;
-  
+
           gbTrue:
           begin
             Done:= True;
             Break;
-  
+
           end;
-  
+
         end;
-  
+
       end
       else
       begin
@@ -134,31 +134,31 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
           begin
             TermExistsInSimplifiedCons [i]:= True;
             UnknownIntegers.Add (AConstraint.LHS.Item [i].Coef);
-  
+
           end;
           gbTrue:
           begin
             TrueIntegers.Add (AConstraint.LHS.Item [i].Coef);
             TermExistsInSimplifiedCons [i]:= False;
             Changed:= True;
-  
+
           end;
           gbFalse:
           begin
             TermExistsInSimplifiedCons [i]:= False;
             Changed:= True;
-  
+
           end;
-  
+
         end;
-  
+
       end;
-  
+
     if (GetRunTimeParameterManager.Verbosity and Ord (vbFull))<> 0 then
     begin
       WriteLn ('TrueIntegers=', TrueIntegers.ToString);
       WriteLn ('UnknownInteger=', UnknownIntegers.ToString);
-  
+
       for i:= 0 to AConstraint.LHS.Count- 1 do
         if TermExistsInSimplifiedCons [i] then
           Write ('(', LiteralToString (AConstraint.LHS.Item [i].Literal), ':', 1, ')')
@@ -166,7 +166,7 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
           Write ('(', LiteralToString (AConstraint.LHS.Item [i].Literal), ':', 0, ')');
       WriteLn;
     end;
-  
+
     if TrueIntegers.CompareWith (AConstraint.RHS)> 0 then
       Done:= True;
     if UnknownIntegers.Add (TrueIntegers).CompareWith (AConstraint.RHS)< 0 then
@@ -180,9 +180,9 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
       TrueIntegers.Free;
 
       Exit (nil);
-  
+
     end;
-  
+
     if Changed then
     begin
       NewRHS:= AConstraint.RHS.Copy.Sub (TrueIntegers);
@@ -204,11 +204,11 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
       Exit (AConstraint);
 
     end;
-  
+
     SetLength (TermExistsInSimplifiedCons, 0);
     UnknownIntegers.Free;
     TrueIntegers.Free;
-  
+
   end;
 
 var
@@ -831,11 +831,103 @@ begin
 end;
 
 function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification; PrintResult: Boolean; BreakSymmetry: Boolean): Boolean;
+
+  function GenerateNewProbelm (Problem: TPBSpecification): TPBConstraint;
+  {generates a new problem equisatisfiable with Problem which has just a singme constraint.}
+  var
+    i, j: Integer;
+    MultiplicationFactor, Temp: TBigInt;
+    ActiveConstraintSum: TBigInt;
+    ActiveConstraint: TPBConstraint;
+    LiteralsCoef: array of TBigInt;
+    Sum: TPBSum;
+    RHS: TBigInt;
+    Done: Boolean;
+
+  begin
+    SetLength (LiteralsCoef, 2* (Problem.InputVariableCount+ 1));// Each variable can be either positive or negative
+    for i:= 1 to 2* (Problem.InputVariableCount+ 1) do
+      LiteralsCoef [i]:= TBigInt.Create.SetValue (0);
+
+    RHS:= TBigInt.Create.SetValue (0);
+    MultiplicationFactor:= TBigInt.Create.SetValue (1);
+
+    Done:= False;
+
+    for i:= 0 to Problem.ConstraintCount- 1 do
+    begin
+      ActiveConstraint:= Problem.Constraint [i];
+
+      for j:= 0 to ActiveConstraint.LHS.Count- 1 do
+      begin
+        Temp:= ActiveConstraint.LHS.Item [j].Coef.Mul (MultiplicationFactor);
+
+        LiteralsCoef [ActiveConstraint.LHS.Item [j].Literal].Add (Temp);
+
+        Temp.Free;
+
+      end;
+
+      Temp:= MultiplicationFactor.Mul (ActiveConstraint.RHS);
+      RHS.Add (Temp);
+      Temp.Free;
+
+      ActiveConstraintSum:= ActiveConstraint.LHS.SumOfCoefs;
+      ActiveConstraintSum.Incr;
+
+      Temp:= MultiplicationFactor.Mul (ActiveConstraintSum);
+      MultiplicationFactor.Free;
+      MultiplicationFactor:= Temp;
+
+    end;
+
+
+    Sum:= TPBSum.Create;
+
+    for i:= 1 to Problem.InputVariableCount do
+    begin
+      if LiteralsCoef [2* i].CompareWith (LiteralsCoef [2* i+ 1])< 0 then
+      begin
+        Sum.AddItem (TTerm.Create (2* i+ 1, LiteralsCoef [2* i+ 1].Sub (LiteralsCoef [2* i])));
+        if 0< RHS.CompareWith (LiteralsCoef [2* i]) then
+        begin
+          Done:= True;
+          Break;
+
+        end;
+
+        RHS.Sub (LiteralsCoef [2* i]);
+
+      end
+      else if LiteralsCoef [2* i+ 1].CompareWith (LiteralsCoef [2* i])< 0 then
+      begin
+        Sum.AddItem (TTerm.Create (2* i, LiteralsCoef [2* i].Sub (LiteralsCoef [2* i+ 1])));
+        if 0< RHS.CompareWith (LiteralsCoef [2* i+ 1]) then
+        begin
+          Done:= True;
+          Break;
+
+        end;
+
+        RHS.Sub (LiteralsCoef [2* i]);
+
+      end
+
+
+    end;
+
+    Result:= TPBConstraint.Create (Sum, ActiveConstraint.CompareOperator, True, RHS);
+
+    for i:= 0 to 2* (Problem.InputVariableCount+ 1) do
+      LiteralsCoef [i].Free;
+    SetLength (LiteralsCoef, 0);
+
+  end;
+
 var
   i: Integer;
   ActiveConstraint: TPBConstraint;
   Lit: TLiteral;
-  Coefficients: array of TBigInt;
 
 begin
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
@@ -844,11 +936,29 @@ begin
   if BreakSymmetry then
     BreakSymmetries (Problem);
 
+  Problem.DescribeNonLinearVariables;
   Result:= True;
 
-  Problem.DescribeNonLinearVariables;
+  if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
+  begin
+    ActiveConstraint:= GenerateNewProbelm (Problem);
+    Lit:= EncodeHardConstraint (ActiveConstraint);
+    ActiveConstraint.Free;
 
-  if UpperCase (GetRunTimeParameterManager.GetValueByName ('ProblemEncodingMode'))= UpperCase ('Indivisual') then
+    if Lit= VariableGenerator.FalseLiteral then
+      Exit (False)
+    else if Lit= VariableGenerator.TrueLiteral then
+      Exit (True)
+    else
+    begin
+      CNFGenerator.BeginConstraint;
+      CNFGenerator.AddLiteral (Lit);
+      CNFGenerator.SubmitClause;
+
+    end;
+
+  end
+  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Disabled') then
   begin
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
@@ -884,13 +994,12 @@ begin
       end;
 
     end;
-  end
-  else
-  begin
-    SetLength (Coefficients, Problem.InputVariableCount+ 1);
-    for i:= 0 to High (Coefficients) do
-      Coefficients [i]:= TBigInt.Create.SetValue (0);
 
+  end
+  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Automatic') then
+  begin
+    WriteLn ('--EncodeAsOneConstraint Automatic has not implemented, yet!');
+    Halt (1);
 
   end;
 
@@ -987,7 +1096,7 @@ begin
     end;
 
     CNFGenerator.SubmitClause;
- 
+
   end;
 
   case Problem.SpecMode of

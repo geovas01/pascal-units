@@ -832,7 +832,6 @@ end;
 
 function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification; PrintResult: Boolean; BreakSymmetry: Boolean): Boolean;
 
-
   function GenerateNewProbelm (Problem: TPBSpecification): TPBConstraint;
   {generates a new problem equisatisfiable with Problem which has just a singme constraint.}
   var
