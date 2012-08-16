@@ -910,20 +910,40 @@ function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstrai
   var
     Primes: TIntegerCollection;
     Current, Temp: TBigInt;
-    i, j: Integer;
+    i, j, k: Integer;
+    Literals: TLiteralCollection;
 
   begin
     Primes:= PrimeModuloGenerator.GenerateModulos (Diff);
     Current:= BigIntFactory.GetNewMemeber.SetValue (1);
 
+    Literals:= TLiteralCollection.Create (Primes.Item [Primes.Count- 1]);
+
     for i:= 0 to Primes.Count- 1 do
     begin
+      Literals.Clear;
+
       for j:= 1 to Primes.Item [i]- 1 do
       begin
-        LHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True), Current.Copy));
+        Literals.AddItem (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True));
+        LHS.AddNewTerm (TTerm.Create (Literals.Item [j- 1], Current.Copy));
         RHS.Add (Current);
 
       end;
+
+      for j:= 0 to Literals.Count- 1 do
+        for k:= j+ 1 to Literals.Count- 1 do
+        begin
+          CNFGenerator.BeginConstraint;
+
+          //L [k]=> L [j] <==> ~L [k] or L [j]
+          CNFGenerator.AddLiteral (NegateLiteral (Literals.Item [k]));
+          CNFGenerator.AddLiteral (Literals.Item [j]);
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
 
       Temp:= Current.Mul (BigIntFactory.GetNewMemeber.SetValue (Primes.Item [i]));
       BigIntFactory.ReleaseMemeber (Current);
@@ -931,7 +951,9 @@ function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstrai
 
     end;
 
+    Literals.Free;
     BigIntFactory.ReleaseMemeber (Current);
+
 
   end;
 
@@ -1025,9 +1047,9 @@ begin
 
   Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
 
-  DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
+//  DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
 
-//  DescribeUsingPrimes (Dif, NewLHS, NewRHS);
+  DescribeUsingPrimes (Dif, NewLHS, NewRHS);
 
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);

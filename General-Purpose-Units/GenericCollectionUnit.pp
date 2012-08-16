@@ -76,7 +76,10 @@ type
     }
     function Delete (Index: Integer): TData;
 
-
+    {
+      Set Count to 0.
+    }
+    procedure Clear;
   end;
 
 implementation
@@ -279,6 +282,12 @@ begin
   for i:= Index+ 1 to Count - 1 do
     Items [i- 1]:= Items [i];
   Dec (FCount);
+
+end;
+
+procedure TGenericCollectionForBuiltInData.Clear;
+begin
+  Self.Count:= 0;
 
 end;
 
