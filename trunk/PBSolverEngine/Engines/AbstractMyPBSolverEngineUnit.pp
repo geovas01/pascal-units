@@ -35,6 +35,7 @@ procedure DebugLn (s: AnsiString);
 
 implementation
 uses
+  MyPBSolverEngineUsingPrimesUnit,
   TSeitinVariableUnit, ParameterManagerUnit, SatSolverInterfaceUnit, Math,
     AbstractPBModEncoderUnit, PBModEncoderDPUnit, PBModEncoderDCUnit,
   PBModEncoderUsingCardUnit, PBModEncoderUsingAdderUnit,
@@ -881,9 +882,62 @@ begin
 
 end;
 
-function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstraint: TPBConstraint): TLiteral;
 var
-  Dif, TwoPower: TBigInt;
+  PrimeModuloGenerator: TMyPBSolverEngineUsingPrimeModulos;
+
+function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstraint: TPBConstraint): TLiteral;
+  procedure DescribeUsingPowerOfTwo (Diff: TBigInt; LHS: TPBSum; RHS: TBigInt);
+  var
+    Current: TBigInt;
+
+  begin
+    Current:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+    while Current.CompareWith (Diff)<= 0 do
+    begin
+      LHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True), Current.Copy));
+      RHS.Add (Current);
+
+      Current.Mul2;
+
+    end;
+
+    BigIntFactory.ReleaseMemeber (Current);
+
+  end;
+
+  procedure DescribeUsingPrimes (Diff: TBigInt; LHS: TPBSum; RHS: TBigInt);
+  var
+    Primes: TIntegerCollection;
+    Current, Temp: TBigInt;
+    i, j: Integer;
+
+  begin
+    Primes:= PrimeModuloGenerator.GenerateModulos (Diff);
+    Current:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+    for i:= 0 to Primes.Count- 1 do
+    begin
+      for j:= 1 to Primes.Item [i]- 1 do
+      begin
+        LHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True), Current.Copy));
+        RHS.Add (Current);
+
+      end;
+
+      Temp:= Current.Mul (BigIntFactory.GetNewMemeber.SetValue (Primes.Item [i]));
+      BigIntFactory.ReleaseMemeber (Current);
+      Current:= Temp;
+
+    end;
+
+    BigIntFactory.ReleaseMemeber (Current);
+
+  end;
+
+
+var
+  Dif: TBigInt;
   NewLHS: TPBSum;
   NewRHS: TBigInt;
   NewConstraint: TPBConstraint;
@@ -971,16 +1025,10 @@ begin
 
   Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
 
-  TwoPower:= BigIntFactory.GetNewMemeber.SetValue (1);
+  DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
 
-  while TwoPower.CompareWith (Dif)<= 0 do
-  begin
-    NewLHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True), TwoPower.Copy));
-    NewRHS.Add (TwoPower);
+//  DescribeUsingPrimes (Dif, NewLHS, NewRHS);
 
-    TwoPower.Mul2;
-
-  end;
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
 
@@ -1000,7 +1048,7 @@ begin
   BigIntFactory.ReleaseMemeber (UnknownIntegers);
   ForcedLiterals.Free;
   NewConstraint.Free;
-  BigIntFactory.ReleaseMemeber (TwoPower);
+
   BigIntFactory.ReleaseMemeber (Dif);
 
 end;
@@ -1173,5 +1221,10 @@ begin
 
 end;
 
+initialization
+  PrimeModuloGenerator:= TMyPBSolverEngineUsingPrimeModulos.Create;
+
+finalization
+  PrimeModuloGenerator.Free;
 
 end.
