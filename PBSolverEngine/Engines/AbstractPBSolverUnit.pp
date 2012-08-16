@@ -1085,6 +1085,7 @@ begin
 
   for i:= 0 to Problem.ClauseCount- 1 do
   begin
+    assert (False);
     ActiveClause:= Problem.Clause [i];
 
     CNFGenerator.BeginConstraint;
