@@ -30,8 +30,7 @@ type
 
     constructor Create(_VariableManager: TVariableManager;
       _Coefs: TInt64Collection; _b: int64;
-      _OrigSum: TPBSum; _Permutation: TIntegerCollection;
-      _Modulo: integer);
+      _OrigSum: TPBSum; _Modulo: integer);
     destructor Destroy; override;
 
     procedure AddExtraClauses; override;
@@ -79,7 +78,7 @@ end;
 
 constructor TPBModEncoderUsingAdders.Create(_VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: int64; _OrigSum: TPBSum;
-  _Permutation: TIntegerCollection; _Modulo: integer);
+  _Modulo: integer);
 begin
   inherited;
 

@@ -25,7 +25,7 @@ type
     destructor Destroy; override;
     constructor Create (_VariableManager: TVariableManager;
                           _Coefs: TInt64Collection; _b: Int64;
-                          _OrigSum: TPBSum; _Permutation: TIntegerCollection;
+                          _OrigSum: TPBSum;
                            _Modulo: Integer);
 
   end;
@@ -123,8 +123,8 @@ var
 
       if Coefs.Item [Index]<> 0 then
       begin
-        Result.Item [Coefs.Item [Index]]:= CopyLiteral (OrigSum.Item [Permutation.Item [Index]].Literal);
-        Result.Item [0]:= CopyLiteral (NegateLiteral (OrigSum.Item [Permutation.Item [Index]].Literal));
+        Result.Item [Coefs.Item [Index]]:= CopyLiteral (OrigSum.Item [Index].Literal);
+        Result.Item [0]:= CopyLiteral (NegateLiteral (OrigSum.Item [Index].Literal));
 
       end
       else
@@ -209,7 +209,7 @@ end;
 
 constructor TPBModEncoderDC.Create(_VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
-  _Permutation: TIntegerCollection; _Modulo: Integer);
+  _Modulo: Integer);
 var
   i: Integer;
 

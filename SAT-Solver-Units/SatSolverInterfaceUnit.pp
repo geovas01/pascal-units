@@ -5,7 +5,7 @@ unit SatSolverInterfaceUnit;
 interface
 
 uses
-  Classes, SysUtils, GenericCollectionUnit, GenericStackUnit, ClauseUnit, MyTypes;
+  Classes, SysUtils, GenericStackUnit, ClauseUnit, MyTypes;
 
 type
   TArrayofInteger=  array [0..2] of Integer;
@@ -531,8 +531,6 @@ end;
 
 procedure TSATSolverInterface.SubmitITEGate (p: TLiteral);
 var
-  pV: TGroundBool;
-  i: Integer;
   ActiveClause: TClause;
   s, t, f: TLiteral;
 
@@ -548,7 +546,6 @@ begin
   t, f, ~p
   }
 
-  pv:= GetValue (GetVar (p));
   ActiveClause:= FTopConstraint;
   Assert (ActiveClause.Count= 3);
 

@@ -77,9 +77,6 @@ begin
 end;
 
 destructor TGenericStack.Destroy;
-var
-  i: Integer;
-
 begin
   Stack.Free;
 

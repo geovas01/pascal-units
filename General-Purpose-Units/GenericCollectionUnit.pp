@@ -13,9 +13,9 @@ type
   generic TGenericCollection<TData>= class (TList)
   private
     function GetFirstItem: TData; virtual;
-    function GetItem (Index: Integer): TData; virtual;
-    function GetLastItem: TData; virtual;
-    procedure SetItem (Index: Integer; const AValue: TData); virtual;
+    function GetItem (Index: Integer): TData; inline;
+    function GetLastItem: TData; inline;
+    procedure SetItem (Index: Integer; const AValue: TData); inline;
 
   public
     property Item [Index: Integer]: TData read GetItem write SetItem;
@@ -26,7 +26,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddItem (NewItem: TData); virtual;
+    procedure AddItem (NewItem: TData);
     procedure AddAnotherCollection (AnotherCollection: TList);
 
     {
@@ -46,9 +46,9 @@ type
 //    TGenericCollectionForBuiltInData_TData= specialize TGenericCollectionForBuiltInData<TData>;
 
   private
-    function GetItem (Index: Integer): TData; virtual;
+    function GetItem (Index: Integer): TData; inline;
     procedure SetCount (AValue: Integer); virtual;
-    procedure SetItem (Index: Integer; const AValue: TData); virtual;
+    procedure SetItem (Index: Integer; const AValue: TData); inline;
 
   protected
     Items: array of TData;

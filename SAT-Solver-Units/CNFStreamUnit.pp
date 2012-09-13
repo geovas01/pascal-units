@@ -142,6 +142,9 @@ begin
     Inc (SubmittedClauseCount);
     Lit:= TopConstraint.Item [0];
 
+    if MaxVarIndex< GetVar (Lit) then
+      MaxVarIndex:= GetVar (Lit);
+
     if IsNegated (Lit) then
     begin
 //      OutputStream.WriteStr ('-');
@@ -198,9 +201,45 @@ begin
 end;
 
 procedure TCNFStream.SaveToFile;
+
+  function IntToStr (Lit: Integer): AnsiString;
+  var
+    Flag: Boolean;
+
+  begin
+    Flag:= False;
+
+    if Lit< 0 then
+    begin
+      Flag:= True;
+      Lit*= -1;
+
+    end;
+
+    Result:= '';
+    while Lit<> 0 do
+    begin
+      Result:= Char (48+ (Lit mod 10))+ Result;
+      Lit:= Lit div 10;
+
+    end;
+
+    if Flag then
+      Result:= '-'+ Result;
+
+  end;
+
+  procedure WriteStr (const S: AnsiString; var OutputStringPtr: PChar);
+  begin
+    Move (S [1], OutputStringPtr^, Length (S));
+    Inc (OutputStringPtr, Length (S));
+
+  end;
+
 var
   i: Integer;
   NewClause: TClause;
+  S, Temp: AnsiString;
 
 begin
   for i:= 0 to MaxVarIndex do
@@ -210,7 +249,7 @@ begin
        NewClause.Item [0]:= CreateLiteral (i, False);
        Inc (SubmittedClauseCount);
        OutputStream.WriteStr (IntToStr (i));
-       OutputStream.WriteStr (' 0 ');
+       OutputStream.WriteLine (' 0 ');
 
 
     end
@@ -220,7 +259,7 @@ begin
        NewClause.Item [0]:= CreateLiteral (i, True);
        Inc (SubmittedClauseCount);
        OutputStream.WriteStr (IntToStr (-i));
-       OutputStream.WriteStr (' 0 ');
+       OutputStream.WriteLine (' 0 ');
 
     end;
 
