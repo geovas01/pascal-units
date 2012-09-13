@@ -21,14 +21,10 @@ type
 
   TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   private
-    FLiteralCount: Integer;
-    FMaxVar: TVariable;
+    function GetMaxVar: TVariable;
 
   public
-    {
-    MaxVar is always greater or equal to maximum variable in the TLiteralCollection
-    }
-    property MaxVar: TVariable read FMaxVar;
+    property MaxVar: TVariable read GetMaxVar;
 
     function ToXML: AnsiString;
     function ToString: AnsiString; override;
@@ -36,8 +32,6 @@ type
     function Copy: TLiteralCollection;
 
     function IsExist (Lit: TLiteral): Boolean;
-    procedure AddItem (Lit: TLiteral); override;
-    procedure SetItem (Index: Integer; const Lit: TLiteral); override;
 
     procedure Reset;
   end;
@@ -51,24 +45,12 @@ type
 
   TClauseCollection= class (TGenericCollectionTClause)
   private
-    FMaxVar: TVariable;
-    FLiteralCount: Integer;
-
-    function GetCount: Integer;
-    function GetMaxVar: TVariable;
-    procedure SetItem (Index: Integer; const AClause: TClause); override;
-
   public
-    property MaxVar: TVariable read GetMaxVar;
-    property ClauseCount: Integer read GetCount;
-    property LiteralCount: Integer read FLiteralCount;
-
     constructor Create;
 
     function Copy: TClauseCollection;
     function ToString: AnsiString; override;
 
-    procedure AddItem (NewClause: TClause); override;
     procedure Load (Stream: TMyTextStream); override;
 
   end;
@@ -76,7 +58,7 @@ type
 
 
   function GetVar (Lit: TLiteral): TVariable; inline;
-  function IsNegated (Lit: TLiteral): Boolean;
+  function IsNegated (Lit: TLiteral): Boolean; inline;
   function GetValue (Lit: TLiteral): Integer; inline;
   function NegateLiteral   (Lit: TLiteral): TLiteral; inline;
   function CopyLiteral   (Lit: TLiteral): TLiteral; inline;
@@ -88,6 +70,19 @@ type
 implementation
 uses
   TSeitinVariableUnit, Math;
+
+function TLiteralCollection.GetMaxVar: TVariable;
+var
+  i: Integer;
+
+begin
+  Result:= GetVar (GetVariableManager.TrueLiteral);
+
+  for i:= 0 to Count- 1 do
+    if Result< GetVar (Item [i]) then
+      Result:= GetVar (Item [i]);
+
+end;
 
 function TLiteralCollection.ToXML: AnsiString;
 var
@@ -119,10 +114,10 @@ var
 
 begin
   Result:= TLiteralCollection.Create (Self.Count, 3);
+  Result.Count:= Self.Count;
 
   for i:= 0 to Self.Count- 1 do
     Result.Item [i]:= Self.Item [i];
-  Result.Count:= Self.Count;
 
 end;
 
@@ -138,21 +133,6 @@ begin
       Exit;
 
   Result:= False;
-
-end;
-
-procedure TLiteralCollection.AddItem (Lit: TLiteral);
-begin
-  FMaxVar:= Math.Max (GetVar (Lit), MaxVar);
-
-  inherited AddItem(Lit);
-end;
-
-procedure TLiteralCollection.SetItem (Index: Integer; const Lit: TLiteral);
-begin
-  FMaxVar:= Math.Max (GetVar (Lit), MaxVar);
-
-  inherited SetItem (Index, Lit);
 
 end;
 
@@ -233,49 +213,6 @@ end;
 
 { TClauseCollection }
 
-function TClauseCollection.GetMaxVar: TVariable;
-var
-  i, j: Integer;
-  ActiveClause: TClause;
-  MaxLit: TLiteral;
-
-begin
-  if FMaxVar<> -1 then
-    Exit (FMaxVar);
-
-  MaxLit:= 0;
-  for i:= 0 to Count- 1 do
-  begin
-    ActiveClause:= Item [i];
-
-    for j:= 0 to ActiveClause.Count- 1 do
-      if MaxLit< ActiveClause.Item [j] then
-        MaxLit:= ActiveClause.Item [j];
-
-  end;
-
-  FMaxVar:= GetVar (MaxLit);
-  Result:= FMaxVar;
-
-end;
-
-function TClauseCollection.GetCount: Integer;
-begin
-  Result:= Count;
-end;
-
-procedure TClauseCollection.SetItem (Index: Integer; const AClause: TClause);
-var
-  i: Integer;
-
-begin
-  FMaxVar:= Math.Max (FMaxVar, AClause.MaxVar);
-  FLiteralCount+= AClause.Count;
-
-  inherited SetItem (Index, AClause);
-
-end;
-
 constructor TClauseCollection.Create;
 begin
   inherited Create;
@@ -306,20 +243,6 @@ begin
 
   for i:= 0 to Self.Count- 1 do
     Result+= Self.Item [i].ToString+ #10;
-
-end;
-
-procedure TClauseCollection.AddItem (NewClause: TClause);
-var
-  i: Integer;
-
-begin
-  for i:= 0 to NewClause.Count- 1 do
-    if FMaxVar< GetVar (NewClause.Item [i]) then
-      FMaxVar:= GetVar (NewClause.Item [i]);
-  FLiteralCount+= NewClause.Count;
-
-  inherited AddItem (NewClause);
 
 end;
 

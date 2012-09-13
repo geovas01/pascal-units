@@ -28,8 +28,7 @@ type
 
     constructor Create (_VariableManager: TVariableManager;
                         _Coefs: TInt64Collection; _b: Int64;
-                        _OrigSum: TPBSum; _Permutation: TIntegerCollection;
-                        _Modulo: Integer);
+                        _OrigSum: TPBSum; _Modulo: Integer);
     destructor Destroy; override;
 
   end;
@@ -168,7 +167,7 @@ end;
 
 constructor TPBModEncoderUsingSingleSorter.Create(_VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
-  _Permutation: TIntegerCollection; _Modulo: Integer);
+  _Modulo: Integer);
 begin
   inherited;
 

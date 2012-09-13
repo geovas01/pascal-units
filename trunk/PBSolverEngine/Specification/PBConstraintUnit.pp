@@ -387,7 +387,9 @@ begin
       GcdLeft:= Temp;
 
     end;
-    if GcdLeft.ToString<> '1' then
+
+
+    if (GcdLeft.Length<> 1) or (GcdLeft.Digits [0]<> 1) then
     begin
       NewLHS:= LHS.Divide (GcdLeft);
       FLHS.Free;

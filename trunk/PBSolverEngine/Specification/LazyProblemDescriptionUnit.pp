@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, ProblemDescriptionUnit, PBParserUnit,
-  PBConstraintUnit, TSeitinVariableUnit, ClauseUnit;
+  PBConstraintUnit, ClauseUnit;
 
 type
   { TLazyPBSpecification }
@@ -71,6 +71,7 @@ implementation
 
 function TLazyPBSpecification.GetAllClauses: TClauseCollection;
 begin
+  Result:= nil;
   assert (False);
   raise Exception.Create ('Should not reach here!');
 

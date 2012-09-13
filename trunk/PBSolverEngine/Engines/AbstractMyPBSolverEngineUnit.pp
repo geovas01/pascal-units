@@ -312,36 +312,36 @@ begin
 
   if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DP') then
     PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
-                                      Coefs, b, OrigSum, Permutation, Modulo)
+                                      Coefs, b, OrigSum, Modulo)
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DC') then
   begin
     if Modulo< 4* ln (Coefs.Count)/ ln (2.0) then
       PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
-                                      Coefs, b, OrigSum, Permutation, Modulo)
+                                      Coefs, b, OrigSum, Modulo)
     else
       PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
-                                        Coefs, b, OrigSum, Permutation, Modulo);
+                                        Coefs, b, OrigSum, Modulo);
 
   end
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('Adder')))= UpperCase ('Adder') then
   begin
      PBModEncoder:= TPBModEncoderUsingAdders.Create (VariableGenerator,
-                                      Coefs, b, OrigSum, Permutation, Modulo);
+                                      Coefs, b, OrigSum, Modulo);
      Halt (1);
   end
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('SingleSorter')))= UpperCase ('SingleSorter') then
      PBModEncoder:= TPBModEncoderUsingSingleSorter.Create (VariableGenerator,
-                                      Coefs, b, OrigSum, Permutation, Modulo)
+                                      Coefs, b, OrigSum, Modulo)
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, 4))= UpperCase ('Card') then
      PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator,
-                                      Coefs, b, OrigSum, Permutation, Modulo)
+                                      Coefs, b, OrigSum, Modulo)
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('Less.Variable') then
   begin
     VariableGenerator.SetSimulationMode;
     DPCost:= VariableGenerator.LastUsedCNFIndex;
 
     PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator, Coefs, b, OrigSum,
-                        Permutation, Modulo);
+                        Modulo);
     PBModEncoder.EncodePBMod;
     PBModEncoder.Free;
 
@@ -352,7 +352,7 @@ begin
     DCCost:= VariableGenerator.LastUsedCNFIndex;
 
     PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator, Coefs, b, OrigSum,
-                        Permutation, Modulo);
+                        Modulo);
     PBModEncoder.EncodePBMod;
     PBModEncoder.Free;
 
@@ -362,7 +362,7 @@ begin
     VariableGenerator.SetSimulationMode;
     CardCost:= VariableGenerator.LastUsedCNFIndex;
     PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator, Coefs, b, OrigSum,
-                        Permutation, Modulo);
+                        Modulo);
     CardCost:= VariableGenerator.LastUsedCNFIndex- CardCost;
     VariableGenerator.ResetSimulationMode;
 
@@ -370,21 +370,21 @@ begin
     if Min (DPCost, Min (CardCost, DCCost))= DCCost then
     begin
       PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
-                                Coefs, b, OrigSum, Permutation, Modulo);
+                                Coefs, b, OrigSum, Modulo);
       Winner:= 'DC';
 
     end
     else if Min (DPCost, Min (CardCost, DCCost))= DPCost then
     begin
       PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
-                                Coefs, b, OrigSum, Permutation, Modulo);
+                                Coefs, b, OrigSum, Modulo);
       Winner:= 'DP';
 
     end
     else if Min (DPCost, Min (CardCost, DCCost))= CardCost then
     begin
       PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator,
-                                Coefs, b, OrigSum, Permutation, Modulo);
+                                Coefs, b, OrigSum, Modulo);
       Winner:= 'UsingCard';
 
     end;
@@ -792,7 +792,7 @@ var
   Modulos: TIntegerCollection;
 
 begin
-//Amir  ActiveConstraint:= SimplifyEqualityConstraint (AConstraint);
+// ActiveConstraint:= SimplifyEqualityConstraint (AConstraint);
   ActiveConstraint:= AConstraint.Copy;
 
 //  VariableGenerator.CreateNewVariable;
@@ -832,6 +832,7 @@ begin
   for i:= 0 to Modulos.Count- 1 do
   begin
     bp:= Modulos.Item [i];
+
     if GetRunTimeParameterManager.Verbosity<> 0 then
       WriteLn ('c ', bp);
 
@@ -957,7 +958,6 @@ function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstrai
 
   end;
 
-
 var
   Dif: TBigInt;
   NewLHS: TPBSum;
@@ -1050,7 +1050,6 @@ begin
 //  DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
 
   DescribeUsingPrimes (Dif, NewLHS, NewRHS);
-
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
 

@@ -24,6 +24,10 @@ type
     To create a new BigInt, one can call BigIntFactory.GetNewMember. Instead of freeing
     a BigInt, one has to call BigIntFactory.Release (Obj).
 
+  Aug, 28, 2012
+    The previous implementation of TBigInt class uses FDigits array to store the digits of
+    number, in decimal representation. I changed the implementation to store the binary
+    representation of number and to make the operations faster.
 }
   { TBigInt }
 
@@ -33,6 +37,7 @@ type
     PByteArray= ^TByteArray;
 
   private
+
     FDigits: PByteArray;
     FLength: Integer;
 
@@ -44,10 +49,12 @@ type
       Multiplies itself by n and returns a new TBigint
     }
     function MulByDigit (n: Integer): TBigInt;
-    
+
   public
-    property Length: Integer read FLength write SetLen;
     property Digits [Index: Integer]: Byte read GetDigit write SetDigit;
+    property Length: Integer read FLength write SetLen;
+
+  public
     property IsZero: Boolean read GetIsZero;
 
     {Adds m with itself and returns Self}
@@ -636,7 +643,7 @@ begin
 
   Assert (System.Length (S)<= MaxLen);
 //  SetLength (FDigits, MaxLen+ 1);
-  New (FDigits);
+//  New (FDigits);
 
   Length:= System.Length (S);
   for i:= 0 to System.Length (S)- 1 do
@@ -705,6 +712,7 @@ begin
 
   Lower:= BigIntFactory.GetNewMemeber.SetValue (1);
   Temp:= Lower.NewMul (n);
+
 
   while Self.CompareWith (Temp)> 0 do
   begin

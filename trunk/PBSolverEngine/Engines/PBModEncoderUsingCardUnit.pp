@@ -27,8 +27,7 @@ type
 
     constructor Create(_VariableManager: TVariableManager;
       _Coefs: TInt64Collection; _b: int64;
-      _OrigSum: TPBSum; _Permutation: TIntegerCollection;
-      _Modulo: integer);
+      _OrigSum: TPBSum; _Modulo: integer);
     destructor Destroy; override;
 
     procedure AddExtraClauses; override;
@@ -209,8 +208,8 @@ begin
   LiteralsBasedOnRemainder:= TListOfLiteralCollection.Create (Modulo);
 
   for i:= 0 to OrigSum.Count- 1 do
-    if Coefs.Item [Permutation.Item [i]] mod Modulo<> 0 then// We do not need a sorter for literals whose remainders are equal to 0.
-      LiteralsBasedOnRemainder.Item [Coefs.Item [Permutation.Item [i]] mod Modulo].AddItem (OrigSum.Item [Permutation.Item [i]].Literal);
+    if Coefs.Item [i] mod Modulo<> 0 then// We do not need a sorter for literals whose remainders are equal to 0.
+      LiteralsBasedOnRemainder.Item [Coefs.Item [i] mod Modulo].AddItem (OrigSum.Item [i].Literal);
 
   SetLength (Sorters, Modulo);
   for i:= 0 to Modulo- 1 do
@@ -272,7 +271,7 @@ end;
 
 constructor TPBModEncoderUsingCard.Create (_VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: int64; _OrigSum: TPBSum;
-  _Permutation: TIntegerCollection; _Modulo: integer);
+  _Modulo: integer);
 var
   i: Integer;
 

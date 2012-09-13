@@ -17,6 +17,7 @@ type
 
   TMyTextStream= class (TObject)
   private
+    CurrentLine: AnsiString;
     FTargerStream: TStream;
     FDeleteInputStream: Boolean;
     function GetEoStream: Boolean;

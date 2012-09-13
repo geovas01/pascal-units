@@ -842,7 +842,6 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
     LiteralsCoef: array of TBigInt;
     Sum: TPBSum;
     RHS: TBigInt;
-    Done: Boolean;
 
   begin
     SetLength (LiteralsCoef, 2* (Problem.InputVariableCount+ 1));// Each variable can be either positive or negative
@@ -851,8 +850,6 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
 
     RHS:= TBigInt.Create.SetValue (0);
     MultiplicationFactor:= TBigInt.Create.SetValue (1);
-
-    Done:= False;
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
@@ -888,10 +885,11 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
     begin
       if LiteralsCoef [2* i].CompareWith (LiteralsCoef [2* i+ 1])< 0 then
       begin
-        Sum.AddItem (TTerm.Create (2* i+ 1, LiteralsCoef [2* i+ 1].Sub (LiteralsCoef [2* i])));
+        Sum.AddNewTerm (TTerm.Create (2* i+ 1,
+                    LiteralsCoef [2* i+ 1].Sub (LiteralsCoef [2* i])));
+
         if 0< RHS.CompareWith (LiteralsCoef [2* i]) then
         begin
-          Done:= True;
           Break;
 
         end;
@@ -904,7 +902,6 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
         Sum.AddItem (TTerm.Create (2* i, LiteralsCoef [2* i].Sub (LiteralsCoef [2* i+ 1])));
         if 0< RHS.CompareWith (LiteralsCoef [2* i+ 1]) then
         begin
-          Done:= True;
           Break;
 
         end;
@@ -962,6 +959,7 @@ begin
   begin
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
+
       ActiveConstraint:= Problem.Constraint [i];
 
       Lit:= EncodeHardConstraint (ActiveConstraint);
@@ -1044,6 +1042,8 @@ begin
 
   end;
 
+  Result:= False;
+
 end;
 
 function TAbstractPBSolverEngine.VerifyDecisionProblem(
@@ -1051,7 +1051,6 @@ function TAbstractPBSolverEngine.VerifyDecisionProblem(
 var
   i: Integer;
   ActiveConstraint: TPBConstraint;
-  Lit: TLiteral;
 
 begin
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then

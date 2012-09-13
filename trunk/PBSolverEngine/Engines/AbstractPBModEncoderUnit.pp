@@ -20,7 +20,6 @@ type
     FCoefs: TInt64Collection;
     Fb: Int64;
     FOrigSum: TPBSum;
-    FPermutation: TIntegerCollection;
     FModulo: Integer;
 
     function GetCNFGenerator: TSATSolverInterface; inline;
@@ -33,7 +32,6 @@ type
     property Coefs: TInt64Collection read FCoefs;
     property b: Int64 read Fb;
     property OrigSum: TPBSum read FOrigSum;
-    property Permutation: TIntegerCollection read FPermutation;
     property Modulo: Integer read FModulo;
 
     procedure AddExtraClauses_Medium; virtual;
@@ -53,8 +51,7 @@ type
     }
     constructor Create (_VariableManager: TVariableManager;
                           _Coefs: TInt64Collection; _b: Int64;
-                          _OrigSum: TPBSum; _Permutation: TIntegerCollection;
-                           _Modulo: Integer);
+                          _OrigSum: TPBSum; _Modulo: Integer);
     destructor Destroy; override;
 
     function EncodePBMod: TLiteral; virtual; abstract;
@@ -133,7 +130,7 @@ end;
 
 constructor TAbstractPBModEncoder.Create(_VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
-  _Permutation: TIntegerCollection; _Modulo: Integer);
+   _Modulo: Integer);
 begin
   inherited Create;
 
@@ -141,7 +138,6 @@ begin
   FCoefs:= _Coefs;
   Fb:= _b;
   FOrigSum:= _OrigSum;
-  FPermutation:= _Permutation;
   FModulo:= _Modulo;
 
 end;
