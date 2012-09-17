@@ -45,6 +45,8 @@ var
   Ignore: Boolean;
 
 begin
+  {
+  These sets of clauses are already there!
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
       begin
@@ -67,6 +69,7 @@ begin
                 end;
 
       end;
+   }
 
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
@@ -106,7 +109,7 @@ function TPBModEncoderDC.EncodePBMod: TLiteral;
 var
   LiteralCollectionFactory: TLiteralCollectionFactory;
 
-  function Encode (Index: Integer; Len: Integer): TLiteralCollection;
+  function EncodeUsingTseitin (Index: Integer; Len: Integer): TLiteralCollection;
   {
     Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
   }
@@ -135,8 +138,8 @@ var
     end
     else
     begin
-      Left:= Encode (Index, Len div 2);
-      Right:= Encode (Index+ Len div 2, Len- Len div 2);
+      Left:= EncodeUsingTseitin (Index, Len div 2);
+      Right:= EncodeUsingTseitin (Index+ Len div 2, Len- Len div 2);
 
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
 
@@ -169,6 +172,78 @@ var
 
   end;
 
+  function EncodeDirectly (Index: Integer; Len: Integer): TLiteralCollection;
+  {
+    Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
+  }
+  var
+    Left, Right: TLiteralCollection;
+    i, k, k1, k2: Integer;
+
+  begin
+
+    if Len= 1 then
+    begin
+      Result:= TLiteralCollection.Create (Modulo, VariableGenerator.FalseLiteral);
+
+      if Coefs.Item [Index]<> 0 then
+      begin
+        Result.Item [Coefs.Item [Index]]:= CopyLiteral (OrigSum.Item [Index].Literal);
+        Result.Item [0]:= CopyLiteral (NegateLiteral (OrigSum.Item [Index].Literal));
+
+      end
+      else
+        Result.Item [0]:= VariableGenerator.TrueLiteral;
+
+      Memory [Len].AddItem (Result);
+
+    end
+    else
+    begin
+      Left:= EncodeDirectly (Index, Len div 2);
+      Right:= EncodeDirectly (Index+ Len div 2, Len- Len div 2);
+
+      Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+      for i:= 0 to Modulo- 1 do
+        Result.Item [i]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Left [i] \land Right [k] => Result [i+ k]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      for k1:= 0 to Modulo- 1 do
+        for k2:= k1+ 1 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [k1]=> ~Result [k2]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k1]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
+
+          CNFGenerator.SubmitClause;
+
+
+        end;
+
+
+{
+      Left.Free;
+      Right.Free;
+}
+      Memory [Len].AddItem (Result);
+
+    end;
+
+  end;
+
 var
   Temp: TLiteralCollection;
 
@@ -185,7 +260,8 @@ begin
   end
   else
   begin
-    Temp:= Encode (0, OrigSum.Count);
+    //    Temp:= EncodeUsingTseitin (0, OrigSum.Count);
+    Temp:= EncodeDirectly (0, OrigSum.Count);
     Result:= Temp.Item [b];
 
   end;

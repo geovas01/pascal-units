@@ -72,7 +72,7 @@ var
   Sign: Boolean;
 
 begin
-  Result:= '               ';
+  Result:= '***************';
   CurDigit:= @(Result [MaxLength]);
   Sign:= False;
 
@@ -146,11 +146,7 @@ begin
       MaxVarIndex:= GetVar (Lit);
 
     if IsNegated (Lit) then
-    begin
-//      OutputStream.WriteStr ('-');
-      OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)));//To avoid the overhead of fpc_ansichar_concat
-
-    end
+      OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)))
     else
       OutputStream.WriteStr (SysUtils.IntToStr (GetVar (Lit)));
 
@@ -158,19 +154,20 @@ begin
     for j:= 1 to TopConstraint.Count- 1 do
     begin
       Lit:= TopConstraint.Item [j];
+
       if MaxVarIndex< GetVar (Lit) then
         MaxVarIndex:= GetVar (Lit);
 
       if IsNegated (Lit) then
       begin
         OutputStream.WriteStr (' ');
-        OutputStream.WriteStr (IntToStr (-GetVar (Lit)));
+        OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)));
 
       end
       else
       begin
         OutputStream.WriteStr (' ');
-        OutputStream.WriteStr (IntToStr (GetVar (Lit)));
+        OutputStream.WriteStr (SysUtils.IntToStr (GetVar (Lit)));
 
       end;
 
