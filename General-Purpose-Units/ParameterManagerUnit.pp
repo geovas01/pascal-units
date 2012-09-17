@@ -125,14 +125,6 @@ const
 
   end;
 
-  procedure SetDefaultValues;
-  var
-    i: Integer;
-
-  begin
-    for i:= 0 to Count - 1 do ;
-  end;
-
 var
   i: Integer;
   Name, V: AnsiString;
@@ -161,8 +153,6 @@ begin
     Inc (i, 2);
 
   end;
-
-  SetDefaultValues;
 
   Finalize;
 

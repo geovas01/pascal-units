@@ -936,8 +936,12 @@ begin
   Problem.DescribeNonLinearVariables;
   Result:= True;
 
+  WriteLn (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint']));
   if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
   begin
+    WriteLn ('--EncodeAsOneConstraint cannot be enabled in this version');
+    Halt (1);
+
     ActiveConstraint:= GenerateNewProbelm (Problem);
     Lit:= EncodeHardConstraint (ActiveConstraint);
     ActiveConstraint.Free;
@@ -955,8 +959,10 @@ begin
     end;
 
   end
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Disabled') then
+  else if (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Disabled')) or
+          (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= '') then
   begin
+
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
 
