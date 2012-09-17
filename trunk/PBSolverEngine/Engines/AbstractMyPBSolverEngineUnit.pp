@@ -1144,93 +1144,35 @@ begin
     Exit (EncodeSpecialCase (AConstraint));
   end;
 
-  NewLHS:= TPBSum.Create;
-  ForcedLiterals:= TLiteralCollection.Create;
-
-  TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
-  UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
+  NewLHS:= AConstraint.LHS.Copy;
+  NewRHS:= BigIntFactory.GetNewMemeber;
+  NewRHS.SetValue (0);
 
   for i:= 0 to AConstraint.LHS.Count- 1 do
-    if AConstraint.RHS.CompareWith (AConstraint.LHS.Item [i].Coef)< 0 then
-    begin
-      case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
-        gbUnknown:
-          ForcedLiterals.AddItem (NegateLiteral (AConstraint.LHS.Item [i].Literal));
-
-        gbFalse:;
-        gbTrue:
-        begin
-          ForcedLiterals.Free;
-          NewLHS.Free;
-          BigIntFactory.ReleaseMemeber (TrueIntegers);
-          BigIntFactory.ReleaseMemeber (UnknownIntegers);
-          Exit (VariableGenerator.TrueLiteral);
-
-        end;
-
-      end;
-
-    end
-    else
-    begin
-      case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
-        gbUnknown:
-        begin
-          NewLHS.AddNewTerm (TTerm.Create (AConstraint.LHS.Item [i].Literal, AConstraint.LHS.Item [i].Coef.Copy));
-          UnknownIntegers.Add (AConstraint.LHS.Item [i].Coef);
-
-        end;
-        gbTrue:
-          TrueIntegers.Add (AConstraint.LHS.Item [i].Coef);
-
-      end;
-
-    end;
-
-  if AConstraint.RHS.CompareWith (TrueIntegers)< 0 then
   begin
-    NewLHS.Free;
-    ForcedLiterals.Free;
-
-    BigIntFactory.ReleaseMemeber (TrueIntegers);
-    BigIntFactory.ReleaseMemeber (UnknownIntegers);
-    Exit (VariableGenerator.FalseLiteral);
+    NewLHS.Item [i].First:= NegateLiteral (AConstraint.LHS.Item [i].Literal);
+    NewRHS.Add (AConstraint.LHS.Item [i].Coef);
 
   end;
 
-  NewRHS:= AConstraint.RHS.Copy.Sub (TrueIntegers);
-
-  Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
-
-  TwoPower:= BigIntFactory.GetNewMemeber.SetValue (1);
-
-  while TwoPower.CompareWith (NewRHS)<= 0 do
+  if AConstraint.RHSSign then
+    NewRHS.Sub (AConstraint.RHS)
+  else
   begin
-    NewLHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), False), TwoPower.Copy));
-    TwoPower.Mul2;
+    NewRHS.Add (AConstraint.RHS);
+
+    WriteLn ('Doulbe check this case!!');
+    WriteLn ('Initial Constraint:', AConstraint.ToString);
+    WriteLn ('NewRHS', NewRHS.ToString);
+    WriteLn ('NewLHS', NewLHS.ToString);
+    NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
+    WriteLn ('NewContraint', NewConstraint.ToString);
+
+    NewConstraint.Free;
 
   end;
 
-  NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
-
-  if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
-    WriteLn ('c '+ NewConstraint.ToString);
-
-  Result:= EncodeHardConstraint (NewConstraint);
-
-  if ForcedLiterals.Count<> 0 then
-  begin
-    ForcedLiterals.AddItem (Result);
-    Result:= VariableGenerator.CreateVariableDescribingAND (ForcedLiterals);
-
-  end;
-
-  BigIntFactory.ReleaseMemeber (TrueIntegers);
-  BigIntFactory.ReleaseMemeber (UnknownIntegers);
-  ForcedLiterals.Free;
-  NewConstraint.Free;
-  BigIntFactory.ReleaseMemeber (TwoPower);
-  BigIntFactory.ReleaseMemeber (Dif);
+  NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
 
 end;
 
