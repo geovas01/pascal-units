@@ -1173,6 +1173,14 @@ begin
   end;
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
+  WriteLn ('Doulbe check this case!!');
+  WriteLn ('Initial Constraint:', AConstraint.ToString);
+  WriteLn ('NewRHS', NewRHS.ToString);
+  WriteLn ('NewLHS', NewLHS.ToString);
+  WriteLn ('NewContraint', NewConstraint.ToString);
+
+  EncodeGreaterThanOrEqualConstraint (NewConstraint);
+  NewConstraint.Free;
 
 end;
 
