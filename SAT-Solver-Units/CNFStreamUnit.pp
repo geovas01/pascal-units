@@ -236,7 +236,7 @@ procedure TCNFStream.SaveToFile;
 var
   i: Integer;
   NewClause: TClause;
-  S, Temp: AnsiString;
+  S: AnsiString;
 
 begin
   for i:= 0 to MaxVarIndex do

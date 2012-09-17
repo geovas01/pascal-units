@@ -49,9 +49,9 @@ begin
 
   end;
 
-    {
+    (*
   D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}
-  }
+  *)
 
   for n1:= 1 to OrigSum.Count- 1 do
   begin
@@ -101,12 +101,12 @@ var
 }
 
 begin
-{    D^i_b \land D^{i-1}_b \land \lnot D^{i-1}_{b-ci}=> \lnot xi
+(*    D^i_b \land D^{i-1}_b \land \lnot D^{i-1}_{b-ci}=> \lnot xi
   D^i_b \land \lnot D^{i-1}_b \land D^{i-1}_{b-ci}=> xi
- }
+ *)
 
   //  DoNothing
-{
+(*
   SetLength (Values, Modulo);
   for n1:= 0 to OrigSum.Count- 1 do
     for n2:= n1+ 1 to OrigSum.Count- 1 do
@@ -133,7 +133,7 @@ begin
     end;
 
   SetLength (Values, 0);
-}
+*)
 
 end;
 
@@ -230,14 +230,14 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
       Result:= RecEncodeDirectly (Index- 1, b)
     else// LitValue= gbUnknown
     begin
-      {
+      (*
         Result= (D^{i-1}_b \land \lnot x_i) \lor (D^{i-1}_{b-ci} \land x_i)
         The following clauses describe result:
           1- D^{i-1}_b \land \lnot x_i => Result i.e.,  \lnot D^{i-1}_b \lor x_i \lor Result,
           2- D^{i-1}_{b-ci} \land x_i => Result i.e.,  \lnot D^{i-1}_{b-ci} \lor \lnot x_i \lor Result,
           3- Result \land xi =>D^{i-1}_{b-ci} i.e., \lnot Result \lor \lnot xi \lor D^{i-1}_{b-ci}
           4- Result \land \lnot xi =>D^{i-1}_{b} i.e., \lnot Result \lor xi \lor D^{i-1}_{b}
-      }
+      *)
       D__b_c_i:= RecEncodeDirectly (Index- 1, (b- Coefs.Item [Index]+ Modulo) mod Modulo);
       D__b:= RecEncodeDirectly (Index- 1, b mod Modulo);
 
@@ -267,7 +267,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
       CNFGenerator.AddLiteral (NegateLiteral (Result));
       CNFGenerator.SubmitClause;
 
-      {
+      (*
       This commented implementation introduce two new literals l1, l2. I changed the implementation
       to obtain smaller CNF.
 
@@ -290,7 +290,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
       Result:= VariableGenerator.CreateVariableDescribingOR (l1, l2);
 
 //      LiteralCollection.Free;
-       }
+       *)
     end;
 
     Dp.Item [Index].Item [b]:= Result;
