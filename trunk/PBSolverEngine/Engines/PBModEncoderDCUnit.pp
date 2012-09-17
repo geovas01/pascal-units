@@ -214,7 +214,7 @@ var
 
           CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
           CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
+          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
 
           CNFGenerator.SubmitClause;
 
@@ -229,7 +229,6 @@ var
           CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
 
           CNFGenerator.SubmitClause;
-
 
         end;
 
