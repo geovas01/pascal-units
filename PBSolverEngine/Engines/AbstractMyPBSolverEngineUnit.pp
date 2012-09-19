@@ -778,7 +778,76 @@ begin
 end;
 }
 
+function CompareBigInts (Item1, Item2: Pointer): Integer;
+begin
+  Result:= TTerm (Item1).Coef.CompareWith (TTerm (Item2).Coef);
+
+end;
+
 function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBConstraint): TLiteral;
+
+  procedure ForceLessThanForEquality (ActiveConstraint: TPBConstraint);
+  type
+    TBoolArray= array of Boolean;
+
+    var
+      GeneratedClausesCount: Integer;
+
+    function GenerateClauses (LHS: TPBSum; RHS: TBigInt; var IsSelected: TBoolArray;
+          CurrentSum: TBigInt; LastIndex: Integer= 0): Boolean;
+    var
+      i: Integer;
+
+    begin
+      if CurrentSum.CompareWith (RHS)> 0 then
+      begin
+        VariableGenerator.SatSolver.BeginConstraint;
+
+        for i:= 0 to LHS.Count- 1 do
+          if IsSelected [i] then
+            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
+
+        VariableGenerator.SatSolver.SubmitClause;
+
+        Inc (GeneratedClausesCount);
+        Result:= True;
+
+      end
+      else
+      begin
+//        CurrentSum;
+
+      end;
+
+    end;
+
+  var
+    LHS: TPBSum;
+    RHS: TBigInt;
+    CurrentSum: TBigInt;
+    Count: Integer;
+    IsSelected: TBoolArray;
+
+  begin
+    LHS:= ActiveConstraint.LHS;
+    RHS:= ActiveConstraint.RHS;
+
+    LHS.Sort (@CompareBigInts);
+//Naive Method
+
+    if (GetRunTimeParameterManager.Verbosity and Ord (vbMedium))<> 0 then
+      WriteLn ('c LHS.Sort =', LHS.ToString);
+
+    SetLength (IsSelected, LHS.Count);
+    FillChar (IsSelected [0], SizeOf (IsSelected), 0);
+
+    CurrentSum:= BigIntFactory.GetNewMemeber.SetValue (0);
+
+    GeneratedClausesCount:= 0;
+    GenerateClauses (LHS, RHS, IsSelected, CurrentSum);
+
+  end;
+
 var
   ActiveConstraint: TPBConstraint;
   i, j: Integer;
@@ -863,19 +932,15 @@ begin
   Result:= VariableGenerator.CreateVariableDescribingAND (Literals);
 
 {
-  Having an equation \sum a_ix_i= b, forcing \sum a_ix_i\le b does not help in case of
-  my encoding.
+  Having an equation \sum a_ix_i= b, forcing \sum a_ix_i\le b, using my encoding, does not help.
 
-  if GetRunTimeParameterManager.GetValueByName ('--ForceLessThanForEquality')= '1' then
-  begin
-    Literals.Clear;
-    Literals.AddItem (Result);
-
-    Literals.AddItem (ForceLessThanForEquality (ActiveConstraint, Modulos));
-    Result:= GetVariableManager.CreateVariableDescribingAND (Literals);
-
-  end;
+  The other option is to disallow certain combinations of xi (the combinations whose summation is greater than b.
+  I used a greedy approach to avoid these combinations...
+  There is a better way to do so, which I may develop later, depending on the performance of this implementation.
 }
+
+  if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ForceLessThanForEquality'))= UpperCase ('Enabled') then
+    ForceLessThanForEquality (ActiveConstraint);
 
   Literals.Free;
   Modulos.Free;
@@ -966,6 +1031,9 @@ var
   TrueIntegers, UnknownIntegers: TBigInt;
 
 begin
+  if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+    WriteLn ('c AConstraint=', AConstraint.ToString);
+
   NewLHS:= TPBSum.Create;
   ForcedLiterals:= TLiteralCollection.Create;
 
@@ -1195,6 +1263,9 @@ var
   i: Integer;
 
 begin
+  if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+    WriteLn ('c AConstraint=', AConstraint.ToString);
+
   if not AConstraint.RHSSign then
     Exit (VariableGenerator.TrueLiteral);
 
@@ -1243,8 +1314,11 @@ begin
     end;
 
     NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
+    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+      WriteLn ('c NewConstraint=', NewConstraint.ToString);
 
     Result:= EncodeGreaterThanOrEqualConstraint (NewConstraint);
+
     NewConstraint.Free;
 
   end
