@@ -945,7 +945,6 @@ function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstrai
 
         end;
 
-
       Temp:= Current.Mul (BigIntFactory.GetNewMemeber.SetValue (Primes.Item [i]));
       BigIntFactory.ReleaseMemeber (Current);
       Current:= Temp;
@@ -954,7 +953,6 @@ function TAbstractMyPBSolverEngine.EncodeGreaterThanOrEqualConstraint (AConstrai
 
     Literals.Free;
     BigIntFactory.ReleaseMemeber (Current);
-
 
   end;
 
@@ -1122,16 +1120,84 @@ function TAbstractMyPBSolverEngine.EncodeLessThanOrEqualConstraint (AConstraint:
 
   end;
 
+  procedure DescribeUsingPowerOfTwo (Diff: TBigInt; LHS: TPBSum; RHS: TBigInt);
+  var
+    Current: TBigInt;
+
+  begin
+    Current:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+    while Current.CompareWith (Diff)<= 0 do
+    begin
+      LHS.AddNewTerm (TTerm.Create (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True), Current.Copy));
+
+      Current.Mul2;
+
+    end;
+
+    BigIntFactory.ReleaseMemeber (Current);
+
+  end;
+
+  procedure DescribeUsingPrimes (Diff: TBigInt; LHS: TPBSum; RHS: TBigInt);
+  var
+    Primes: TIntegerCollection;
+    Current, Temp: TBigInt;
+    i, j, k: Integer;
+    Literals: TLiteralCollection;
+
+  begin
+    Primes:= PrimeModuloGenerator.GenerateModulos (Diff);
+    Current:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+    Literals:= TLiteralCollection.Create (Primes.Item [Primes.Count- 1]);
+
+    for i:= 0 to Primes.Count- 1 do
+    begin
+      Literals.Clear;
+
+      for j:= 1 to Primes.Item [i]- 1 do
+      begin
+        Literals.AddItem (CreateLiteral (VariableGenerator.CreateNewVariable (vpNone, True), True));
+        LHS.AddNewTerm (TTerm.Create (Literals.Item [j- 1], Current.Copy));
+
+      end;
+
+      for j:= 0 to Literals.Count- 1 do
+        for k:= j+ 1 to Literals.Count- 1 do
+        begin
+          CNFGenerator.BeginConstraint;
+
+          //L [k]=> L [j] <==> ~L [k] or L [j]
+          CNFGenerator.AddLiteral (NegateLiteral (Literals.Item [k]));
+          CNFGenerator.AddLiteral (Literals.Item [j]);
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      Temp:= Current.Mul (BigIntFactory.GetNewMemeber.SetValue (Primes.Item [i]));
+      BigIntFactory.ReleaseMemeber (Current);
+      Current:= Temp;
+
+    end;
+
+    Literals.Free;
+    BigIntFactory.ReleaseMemeber (Current);
+
+  end;
+
 var
-  Dif, TwoPower: TBigInt;
+  Temp: TBigInt;
   NewLHS: TPBSum;
   NewRHS: TBigInt;
   NewConstraint: TPBConstraint;
-  ForcedLiterals: TLiteralCollection;
   i: Integer;
-  TrueIntegers, UnknownIntegers: TBigInt;
 
 begin
+  if not AConstraint.RHSSign then
+    Exit (VariableGenerator.TrueLiteral);
+
   if IsSpecialCase (AConstraint) then
   begin
     if (GetRunTimeParameterManager.Verbosity and Ord (vbFull))<> 0 then
@@ -1142,46 +1208,67 @@ begin
     end;
 
     Exit (EncodeSpecialCase (AConstraint));
+
   end;
 
-  NewLHS:= AConstraint.LHS.Copy;
-  NewRHS:= BigIntFactory.GetNewMemeber;
-  NewRHS.SetValue (0);
+  {
+    Let S be the sum of ai's.
+    If S- b> b, it is beneficial to convert the PBconstraint to an equivalent constraint
+    with >= operator.
+  }
 
-  for i:= 0 to AConstraint.LHS.Count- 1 do
+  Temp:= AConstraint.LHS.SumOfCoefs.Sub (AConstraint.RHS);
+  if Temp.CompareWith (AConstraint.RHS)< 0 then
   begin
-    NewLHS.Item [i].First:= NegateLiteral (AConstraint.LHS.Item [i].Literal);
-    NewRHS.Add (AConstraint.LHS.Item [i].Coef);
+    NewLHS:= AConstraint.LHS.Copy;
+    NewRHS:= BigIntFactory.GetNewMemeber;
+    NewRHS.SetValue (0);
 
-  end;
+    for i:= 0 to AConstraint.LHS.Count- 1 do
+    begin
+      NewLHS.Item [i].First:= NegateLiteral (AConstraint.LHS.Item [i].Literal);
+      NewRHS.Add (AConstraint.LHS.Item [i].Coef);
 
-  if AConstraint.RHSSign then
-    NewRHS.Sub (AConstraint.RHS)
+    end;
+
+    if AConstraint.RHSSign then
+      NewRHS.Sub (AConstraint.RHS)
+    else
+    begin
+      NewRHS.Add (AConstraint.RHS);
+      NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
+
+      NewConstraint.Free;
+
+    end;
+
+    NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
+
+    Result:= EncodeGreaterThanOrEqualConstraint (NewConstraint);
+    NewConstraint.Free;
+
+  end
   else
   begin
-    NewRHS.Add (AConstraint.RHS);
+    {
+      Convert AConstraint to an equivalent constraint whose comparision operator is =.
+    }
 
-    WriteLn ('Doulbe check this case!!');
-    WriteLn ('Initial Constraint:', AConstraint.ToString);
-    WriteLn ('NewRHS', NewRHS.ToString);
-    WriteLn ('NewLHS', NewLHS.ToString);
-    NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
-    WriteLn ('NewContraint', NewConstraint.ToString);
+    NewLHS:= AConstraint.LHS.Copy;
+    NewRHS:= AConstraint.RHS.Copy;
+    DescribeUsingPrimes (AConstraint.RHS, NewLHS, NewRHS);
+    NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
+
+    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+      WriteLn ('c '+ NewConstraint.ToString);
+
+    Result:= EncodeHardConstraint (NewConstraint);
 
     NewConstraint.Free;
 
   end;
 
-  NewConstraint:= TPBConstraint.Create (NewLHS, '>=', True, NewRHS);
-  WriteLn ('Doulbe check this case!!');
-  WriteLn ('Initial Constraint:', AConstraint.ToString);
-  WriteLn ('NewRHS', NewRHS.ToString);
-  WriteLn ('NewLHS', NewLHS.ToString);
-  WriteLn ('NewContraint', NewConstraint.ToString);
-
-  EncodeGreaterThanOrEqualConstraint (NewConstraint);
-  NewConstraint.Free;
-
+  BigIntFactory.ReleaseMemeber (Temp);
 end;
 
 
