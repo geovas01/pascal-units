@@ -780,7 +780,7 @@ end;
 
 function CompareBigInts (Item1, Item2: Pointer): Integer;
 begin
-  Result:= TTerm (Item1).Coef.CompareWith (TTerm (Item2).Coef);
+  Result:= -TTerm (Item1).Coef.CompareWith (TTerm (Item2).Coef);
 
 end;
 
@@ -794,28 +794,48 @@ function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBCon
       GeneratedClausesCount: Integer;
 
     function GenerateClauses (LHS: TPBSum; RHS: TBigInt; var IsSelected: TBoolArray;
-          CurrentSum: TBigInt; LastIndex: Integer= 0): Boolean;
+          CurrentSum: TBigInt; CurrentIndex: Integer= 0; SelectedItemCount: Integer= 0): Boolean;
     var
       i: Integer;
 
     begin
+      if 2* LHS.Count< 3* SelectedItemCount then
+        Exit (False);
+
       if CurrentSum.CompareWith (RHS)> 0 then
       begin
         VariableGenerator.SatSolver.BeginConstraint;
 
-        for i:= 0 to LHS.Count- 1 do
+//        Write (GeneratedClausesCount, ':');
+        for i:= 0 to CurrentIndex- 1 do
           if IsSelected [i] then
+          begin
             VariableGenerator.SatSolver.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
+//            Write ('(', i, ',', lHS.Item [i].Coef.ToString, ')');
 
+          end;
+//        WriteLn (CurrentSum.ToString, ' ', RHS.ToString);
         VariableGenerator.SatSolver.SubmitClause;
 
         Inc (GeneratedClausesCount);
-        Result:= True;
+
+        Result:= GeneratedClausesCount= Sqr (LHS.Count);
 
       end
       else
       begin
-//        CurrentSum;
+
+        if CurrentIndex= LHS.Count then
+          Exit (False);
+
+        IsSelected [CurrentIndex]:= True;
+        CurrentSum.Add (LHS.Item [CurrentIndex].Coef);
+        GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount+ 1);
+
+        IsSelected [CurrentIndex]:= False;
+        CurrentSum.Sub (LHS.Item [CurrentIndex].Coef);
+        GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount);
+
 
       end;
 
