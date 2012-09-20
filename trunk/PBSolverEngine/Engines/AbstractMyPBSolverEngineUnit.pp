@@ -806,20 +806,20 @@ function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBCon
       begin
         VariableGenerator.SatSolver.BeginConstraint;
 
-//        Write (GeneratedClausesCount, ':');
+        Write (GeneratedClausesCount, ':');
         for i:= 0 to CurrentIndex- 1 do
           if IsSelected [i] then
           begin
             VariableGenerator.SatSolver.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
-//            Write ('(', i, ',', lHS.Item [i].Coef.ToString, ')');
+            Write ('(', i, ',', lHS.Item [i].Coef.ToString, ')');
 
           end;
-//        WriteLn (CurrentSum.ToString, ' ', RHS.ToString);
+        WriteLn (CurrentSum.ToString, ' ', RHS.ToString);
         VariableGenerator.SatSolver.SubmitClause;
 
         Inc (GeneratedClausesCount);
 
-        Result:= GeneratedClausesCount= Sqr (LHS.Count);
+        Result:= Sqr (LHS.Count)< GeneratedClausesCount;
 
       end
       else
@@ -830,13 +830,15 @@ function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBCon
 
         IsSelected [CurrentIndex]:= True;
         CurrentSum.Add (LHS.Item [CurrentIndex].Coef);
-        GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount+ 1);
+        if GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount+ 1) then
+          Exit (True);
 
         IsSelected [CurrentIndex]:= False;
         CurrentSum.Sub (LHS.Item [CurrentIndex].Coef);
-        GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount);
+        if GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount) then
+          Exit (True);
 
-
+        Result:= False;
       end;
 
     end;
