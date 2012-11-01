@@ -29,42 +29,32 @@ type
 
 implementation
 uses
-  TSeitinVariableUnit;
+  TSeitinVariableUnit, Math;
 
 { TDPBasedSorterEncoder }
 
 procedure TDPBasedSorterEncoder.AddExtraClauses_Medium;
 var
- n1, b1, b2: Integer;
+ n1, b1: Integer;
 
 begin
 
-  for n1:= 0 to InputLiterals.Count- 1 do
+  for n1:= 1 to InputLiterals.Count- 1 do
     for b1:= 0 to Modulo- 1 do
       if GetVar (Dp.Item [n1].Item [b1])<> 0 then
-        for b2:= b1+ 1 to Modulo- 1 do
-          if GetVar (Dp.Item [n1].Item [b2])<> 0 then
-          begin
-            VariableManager.SatSolver.BeginConstraint;
+      begin
+        VariableManager.SatSolver.BeginConstraint;
 
-            VariableManager.SatSolver.AddLiteral (NegateLiteral (Dp.Item [n1].Item [b1]));
-            VariableManager.SatSolver.AddLiteral (NegateLiteral (Dp.Item [n1].Item [b2]));
+       (*
+       (\lnot D{n-1}_c \land \lnot D^{n-1}_{c- 1}) => \lnot D^n_c
+       *)
+        VariableManager.SatSolver.AddLiteral (Dp.Item [n1- 1].Item [b1]);
+        VariableManager.SatSolver.AddLiteral (Dp.Item [n1- 1].Item [(b1+ Modulo- 1) mod Modulo]);
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (Dp.Item [n1].Item [b1]));
 
-            VariableManager.SatSolver.SubmitClause;// Dp[n1][b1]=> \lnot Dp[n1][b2]
+        VariableManager.SatSolver.SubmitClause;// Dp[n1][b1]=> \lnot Dp[n1][b2]
 
-          end;
-
- for n1:= 0 to InputLiterals.Count- 1 do
- begin
-   VariableManager.SatSolver.BeginConstraint;
-
-   for b1:= 0 to Modulo- 1 do
-     if GetVar (Dp.Item [n1].Item [b1])<> 0 then
-       VariableManager.SatSolver.AddLiteral (Dp.Item [n1].Item [b1]);
-
-   VariableManager.SatSolver.SubmitClause;// DP [n1][0] or  DP [n1][1] or ... or DP [n1][modulo- 1]
-
- end;
+      end;
 
 end;
 
@@ -135,23 +125,107 @@ function TDPBasedSorterEncoder.Encode: TLiteralCollection;
 
   end;
 
-var
-  i, j: Integer;
+  function EncodeUsingTseitin: TLiteralCollection;
+  {//Translation using Tseitin transformation}
+  var
+    i, j: Integer;
 
-begin
-  Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
-  Dp:= TListOfLiteralCollection.Create (InputLiterals.Count);
-
-  for i:= 0 to InputLiterals.Count- 1 do
   begin
-    Dp.Item [i].Count:= Modulo;
-    for j:= 0 to Modulo- 1 do
-      Dp.Item [i].Item [j]:= 0;
+    Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+    Dp:= TListOfLiteralCollection.Create (InputLiterals.Count);
+
+    for i:= 0 to InputLiterals.Count- 1 do
+    begin
+      Dp.Item [i].Count:= Modulo;
+      for j:= 0 to Modulo- 1 do
+        Dp.Item [i].Item [j]:= 0;
+
+    end;
+
+    for i:= 0 to Modulo- 1 do
+      Result.Item [i]:= _CreateDPSorterModModulo (InputLiterals.Count- 1, i);
+  end;
+
+  function EncodeDirectly: TLiteralCollection;
+  var
+    i, c: Integer;
+    xi, Di_1__c_1, Di_1__c, Di_c: TLiteral;
+
+  begin
+    Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
+    Dp:= TListOfLiteralCollection.Create (InputLiterals.Count);
+
+  {Direct translation}
+    for i:= 0 to InputLiterals.Count- 1 do
+    begin
+      Dp.Item [i].Count:= Modulo;
+      for c:= 0 to Modulo- 1 do
+        Dp.Item [i].Item [c]:= VariableManager.FalseLiteral;
+
+    end;
+
+    DP.Item [0].Item [0]:= NegateLiteral (InputLiterals.Item [0]);
+    DP.Item [0].Item [1]:= InputLiterals.Item [0];
+
+    for i:= 1 to InputLiterals.Count- 1 do
+      for c:= 0 to Min (i+ 1, Modulo- 1) do
+        DP.Item [i].Item [c]:= CreateLiteral (VariableManager.CreateNewVariable, False);
+
+    for i:= 1 to InputLiterals.Count- 1 do
+    begin
+      xi:= InputLiterals.Item [i];
+
+      for c:= 0 to Min (i+ 1, Modulo- 1) do
+      begin
+        Di_1__c_1:= DP.Item [i- 1].Item [(c+ Modulo- 1) mod Modulo];
+        Di_1__c:= DP.Item [i- 1].Item [c];
+        Di_c:= DP.Item [i].Item [c];
+
+        (*
+        D^n_c= (D^{n-1}_c \land \lnot x_n) \lor (D^{n-1}_{c-1} \land x_n)
+        *)
+
+        (*(D^{n-1}_c \land \lnot x_n) => D^n_c*)
+        VariableManager.SatSolver.BeginConstraint;
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (Di_1__c));
+        VariableManager.SatSolver.AddLiteral (xi);
+        VariableManager.SatSolver.AddLiteral (Di_c);
+        VariableManager.SatSolver.SubmitClause;
+
+        (*(D^{n-1}_{c-1} \land x_n) => D^n_c*)
+        VariableManager.SatSolver.BeginConstraint;
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (Di_1__c_1));
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (xi));
+        VariableManager.SatSolver.AddLiteral (Di_c);
+        VariableManager.SatSolver.SubmitClause;
+
+        (*(\lnot D^{n-1}_{c} \land \lnot x_n) => \lnot D^n_c*)
+        VariableManager.SatSolver.BeginConstraint;
+        VariableManager.SatSolver.AddLiteral (Di_1__c);
+        VariableManager.SatSolver.AddLiteral (xi);
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (Di_c));
+        VariableManager.SatSolver.SubmitClause;
+
+        (*(\lnot D^{n-1}_{c-1} \land x_n) => \lnot D^n_c*)
+        VariableManager.SatSolver.BeginConstraint;
+        VariableManager.SatSolver.AddLiteral (Di_1__c_1);
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (xi));
+        VariableManager.SatSolver.AddLiteral (NegateLiteral (Di_c));
+        VariableManager.SatSolver.SubmitClause;
+
+      end;
+
+    end;
+
+    i:= InputLiterals.Count- 1;
+    for c:= 0 to Modulo- 1 do
+      Result.Item [c]:= DP.Item [i].Item [c];
 
   end;
 
-  for i:= 0 to Modulo- 1 do
-    Result.Item [i]:= _CreateDPSorterModModulo (InputLiterals.Count- 1, i);
+begin
+//  Result:= EncodeUsingTseitin;
+  Result:= EncodeDirectly;
 
 end;
 

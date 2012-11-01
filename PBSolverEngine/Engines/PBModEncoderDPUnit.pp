@@ -363,10 +363,10 @@ begin
    Result:= RecEncodeDirectly (OrigSum.Count- 1, b);
 
   { Full DP table is needed for ExtraClauses ... }
-  if UpperCase (GetRunTimeParameterManager.ValueByName ['--ExtraClausesLevel'])<> UpperCase ('Off') then
+{  if UpperCase (GetRunTimeParameterManager.ValueByName ['--ExtraClausesLevel'])<> UpperCase ('Off') then
     for i:= 0 to Modulo- 1 do
       RecEncodeDirectly (OrigSum.Count- 1, i);
-
+}
 //  IterEncode (OrigSum.Count, Modulo);
 //  Result:= DP.Item [OrigSum.Count].Item [b]
 

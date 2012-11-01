@@ -786,59 +786,85 @@ end;
 
 function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBConstraint): TLiteral;
 
-  procedure ForceLessThanForEquality (ActiveConstraint: TPBConstraint);
+  procedure ForceLessThanForEqualityByClauses (ActiveConstraint: TPBConstraint);
   type
     TBoolArray= array of Boolean;
 
     var
       GeneratedClausesCount: Integer;
+      MaxClauseLimit: Integer;
+      TargetClauseLength: Integer;
 
-    function GenerateClauses (LHS: TPBSum; RHS: TBigInt; var IsSelected: TBoolArray;
-          CurrentSum: TBigInt; CurrentIndex: Integer= 0; SelectedItemCount: Integer= 0): Boolean;
+    function GenerateClauses (LHS: TPBSum; Target: TBigInt; var IsSelected: TBoolArray;
+          CurrentSum: TBigInt; CurrentIndex: Integer; SelectedItemCount: Integer= 0): Boolean;
     var
       i: Integer;
 
     begin
-      if 2* LHS.Count< 3* SelectedItemCount then
-        Exit (False);
+      Result:= False;
+      if TargetClauseLength< SelectedItemCount then
+        Exit;
 
-      if CurrentSum.CompareWith (RHS)> 0 then
+      if CurrentSum.CompareWith (Target)> 0 then
       begin
-        VariableGenerator.SatSolver.BeginConstraint;
 
-        Write (GeneratedClausesCount, ':');
-        for i:= 0 to CurrentIndex- 1 do
-          if IsSelected [i] then
-          begin
-            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
-            Write ('(', i, ',', lHS.Item [i].Coef.ToString, ')');
+        Result:= True;
+        if SelectedItemCount= TargetClauseLength then
+        begin
+          VariableGenerator.SatSolver.BeginConstraint;
 
-          end;
-        WriteLn (CurrentSum.ToString, ' ', RHS.ToString);
-        VariableGenerator.SatSolver.SubmitClause;
+//          Write ('c ', GeneratedClausesCount, ':', MaxClauseLimit, ': (');
+          for i:= CurrentIndex to LHS.Count- 1 do
+            if IsSelected [i] then
+            begin
+              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
+    //          Write (LiteralToString (NegateLiteral (LHS.Item [i].Literal)), ' ')
+//              Write ('(', LiteralToString (lHS.Item [i].Literal), ',', lHS.Item [i].Coef.ToString, ')');
 
-        Inc (GeneratedClausesCount);
+            end;
+//          WriteLn (')', CurrentSum.ToString, ' ', Target.ToString);
+          VariableGenerator.SatSolver.SubmitClause;
 
-        Result:= Sqr (LHS.Count)< GeneratedClausesCount;
+          Inc (GeneratedClausesCount);
+
+        end
+        else
+          Exit;
 
       end
       else
       begin
 
-        if CurrentIndex= LHS.Count then
+        if (CurrentIndex= -1) or (SelectedItemCount= TargetClauseLength) then
           Exit (False);
 
-        IsSelected [CurrentIndex]:= True;
-        CurrentSum.Add (LHS.Item [CurrentIndex].Coef);
-        if GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount+ 1) then
-          Exit (True);
+        for i:= CurrentIndex downto (TargetClauseLength- SelectedItemCount)- 1 do
+        begin
+          IsSelected [i]:= True;
+          CurrentSum.Add (LHS.Item [i].Coef);
 
-        IsSelected [CurrentIndex]:= False;
+          if GenerateClauses (LHS, Target, IsSelected, CurrentSum, i- 1, SelectedItemCount+ 1) then
+          begin
+            Result:= True;
+            CurrentSum.Sub (LHS.Item [i].Coef);
+            IsSelected [i]:= False;
+
+          end
+          else
+          begin
+            CurrentSum.Sub (LHS.Item [i].Coef);
+            IsSelected [i]:= False;
+            break;
+
+          end;
+          CurrentSum.Sub (LHS.Item [i].Coef);
+          IsSelected [i]:= False;
+
+        end;
+{        IsSelected [CurrentIndex]:= False;
         CurrentSum.Sub (LHS.Item [CurrentIndex].Coef);
-        if GenerateClauses (LHS, RHS, IsSelected, CurrentSum, CurrentIndex+ 1, SelectedItemCount) then
-          Exit (True);
-
-        Result:= False;
+        GenerateClauses (LHS, Target, IsSelected, CurrentSum, CurrentIndex- 1, SelectedItemCount);
+}
       end;
 
     end;
@@ -847,12 +873,113 @@ function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBCon
     LHS: TPBSum;
     RHS: TBigInt;
     CurrentSum: TBigInt;
-    Count: Integer;
     IsSelected: TBoolArray;
 
   begin
     LHS:= ActiveConstraint.LHS;
     RHS:= ActiveConstraint.RHS;
+
+    LHS.Sort (@CompareBigInts);
+//Naive Method
+
+    if (GetRunTimeParameterManager.Verbosity and Ord (vbMedium))<> 0 then
+    begin
+      WriteLn ('c LHS.Sort =', LHS.ToString);
+      WriteLn ('c RHS=', RHS.ToString);
+
+    end;
+
+    SetLength (IsSelected, LHS.Count);
+    FillChar (IsSelected [0], SizeOf (IsSelected), 0);
+
+    CurrentSum:= BigIntFactory.GetNewMemeber.SetValue (0);
+
+    GeneratedClausesCount:= 0;
+    MaxClauseLimit:= Sqr (LHS.Count)* LHS.Count;
+    for TargetClauseLength:= 2 to 10 do
+    begin
+      GenerateClauses (LHS, RHS, IsSelected, CurrentSum, LHS.Count- 1);
+      if MaxClauseLimit< GeneratedClausesCount then
+        break;
+
+    end;
+
+  end;
+
+  procedure ForceGreaterThanForEqualityByClauses (ActiveConstraint: TPBConstraint);
+  type
+    TBoolArray= array of Boolean;
+
+    var
+      GeneratedClausesCount: Integer;
+      MaxClauseLimit: Integer;
+      TargetClauseLength: Integer;
+
+    function GenerateClauses (LHS: TPBSum; Target: TBigInt; var IsSelected: TBoolArray;
+          CurrentSum: TBigInt; CurrentIndex: Integer; SelectedItemCount: Integer= 0): Boolean;
+    var
+      i: Integer;
+
+    begin
+      if TargetClauseLength< SelectedItemCount then
+        Exit (False);
+
+      if CurrentSum.CompareWith (Target)> 0 then
+      begin
+
+        Result:= True;
+
+        if SelectedItemCount= TargetClauseLength then
+        begin
+          VariableGenerator.SatSolver.BeginConstraint;
+
+//          Write ('c ', GeneratedClausesCount, ':', MaxClauseLimit, ': (');
+          for i:= CurrentIndex to LHS.Count- 1 do
+            if IsSelected [i] then
+            begin
+              VariableGenerator.SatSolver.AddLiteral (LHS.Item [i].Literal);
+    //          Write (LiteralToString (LHS.Item [i].Literal), ' ')
+//              Write ('(', LiteralToString (lHS.Item [i].Literal), ',', lHS.Item [i].Coef.ToString, ')');
+
+            end;
+//          WriteLn (')', CurrentSum.ToString, ' ', Target.ToString);
+          VariableGenerator.SatSolver.SubmitClause;
+
+          Inc (GeneratedClausesCount);
+
+        end;
+
+      end
+      else
+      begin
+
+        if (CurrentIndex= -1) or (SelectedItemCount= TargetClauseLength) then
+          Exit (False);
+
+        IsSelected [CurrentIndex]:= True;
+        CurrentSum.Add (LHS.Item [CurrentIndex].Coef);
+        if not GenerateClauses (LHS, Target, IsSelected, CurrentSum, CurrentIndex- 1, SelectedItemCount+ 1) then
+          Exit (False);
+
+        IsSelected [CurrentIndex]:= False;
+        CurrentSum.Sub (LHS.Item [CurrentIndex].Coef);
+        if not GenerateClauses (LHS, Target, IsSelected, CurrentSum, CurrentIndex- 1, SelectedItemCount) then
+          Exit (False);
+        Result:= True;
+
+      end;
+
+    end;
+
+  var
+    LHS: TPBSum;
+    Target: TBigInt;
+    CurrentSum: TBigInt;
+    IsSelected: TBoolArray;
+
+  begin
+    LHS:= ActiveConstraint.LHS;
+    Target:= LHS.SumOfCoefs.Sub (ActiveConstraint.RHS);
 
     LHS.Sort (@CompareBigInts);
 //Naive Method
@@ -866,7 +993,28 @@ function TAbstractMyPBSolverEngine.EncodeEqualityConstraint (AConstraint: TPBCon
     CurrentSum:= BigIntFactory.GetNewMemeber.SetValue (0);
 
     GeneratedClausesCount:= 0;
-    GenerateClauses (LHS, RHS, IsSelected, CurrentSum);
+    MaxClauseLimit:= Sqr (LHS.Count)* LHS.Count;
+    for TargetClauseLength:= 2 to 10 do
+    begin
+      GenerateClauses (LHS, Target, IsSelected, CurrentSum, LHS.Count- 1);
+      if MaxClauseLimit< GeneratedClausesCount then
+        break;
+
+    end;
+
+    Target.Free;
+
+  end;
+
+  procedure ForceLessThanForEqualityByCardinalityConstraints (ActiveConstraint: TPBConstraint);
+  begin
+    Assert (False);
+
+  end;
+
+  procedure ForceGreaterThanForEqualityByCardinalityConstraints (ActiveConstraint: TPBConstraint);
+  begin
+    Assert (False);
 
   end;
 
@@ -883,8 +1031,24 @@ var
   Modulos: TIntegerCollection;
 
 begin
-// ActiveConstraint:= SimplifyEqualityConstraint (AConstraint);
+//  ActiveConstraint:= SimplifyEqualityConstraint (AConstraint);
   ActiveConstraint:= AConstraint.Copy;
+
+  SumOfCoefs:= AConstraint.LHS.SumOfCoefs;
+  if SumOfCoefs.CompareWith (AConstraint.RHS)= 0 then
+  begin
+
+    Result:= CreateLiteral (VariableGenerator.CreateNewVariable (vpFalse, True), False);
+
+    CNFGenerator.BeginConstraint;
+    for i:= 0 to ActiveConstraint.LHS.Count- 1 do
+      CNFGenerator.AddLiteral (ActiveConstraint.LHS.Literal [i]);
+    CNFGenerator.SubmitAndGate (Result);
+
+    BigIntFactory.ReleaseMemeber (SumOfCoefs);
+    Exit;
+
+  end;
 
 //  VariableGenerator.CreateNewVariable;
 
@@ -899,7 +1063,7 @@ begin
   if (GetRunTimeParameterManager.Verbosity and Ord (vbMedium))<> 0 then
     WriteLn ('c', ActiveConstraint.ToString);
 
-  SumOfCoefs:= ActiveConstraint.LHS.SumOfCoefs;
+//  SumOfCoefs:= ActiveConstraint.LHS.SumOfCoefs;
 
   Modulos:= GenerateModulos (SumOfCoefs);
   BigIntFactory.ReleaseMemeber (SumOfCoefs);
@@ -953,7 +1117,7 @@ begin
 
   Result:= VariableGenerator.CreateVariableDescribingAND (Literals);
 
-{
+  {
   Having an equation \sum a_ix_i= b, forcing \sum a_ix_i\le b, using my encoding, does not help.
 
   The other option is to disallow certain combinations of xi (the combinations whose summation is greater than b.
@@ -961,11 +1125,23 @@ begin
   There is a better way to do so, which I may develop later, depending on the performance of this implementation.
 }
 
-  if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ForceLessThanForEquality'))= UpperCase ('Enabled') then
-    ForceLessThanForEquality (ActiveConstraint);
+  if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ForceLessThanForEquality'))= UpperCase ('UsingClauses') then
+  begin
+    ForceLessThanForEqualityByClauses (ActiveConstraint);
+//    ForceGreaterThanForEqualityByClauses (ActiveConstraint);
+
+  end
+  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ForceLessThanForEquality'))= UpperCase ('UsingCardinality') then
+  begin
+    Assert (False);
+{    ForceLessThanForEqualityByCardinalityConstraints (ActiveConstraint);
+    ForceGreaterThanForEqualityByCardinalityConstraints (ActiveConstraint);
+ }
+  end;
 
   Literals.Free;
   Modulos.Free;
+
   ActiveConstraint.Free;
 
 end;
@@ -1067,7 +1243,10 @@ begin
     begin
       case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
         gbUnknown:
+        begin
           ForcedLiterals.AddItem (AConstraint.LHS.Item [i].Literal);
+
+        end;
 
         gbFalse:;
         gbTrue:
@@ -1116,7 +1295,7 @@ begin
 
   if UnknownIntegers.CompareWith (NewRHS)< 0 then
   begin
-    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+//    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
       WriteLn ('UnknownIntegers< NewRHS', ' ', UnknownIntegers.ToString, ' ', NewRHS.ToString);
 
     if 0< ForcedLiterals.Count then
@@ -1135,14 +1314,17 @@ begin
 
   Dif:= NewLHS.SumOfCoefs.Sub (NewRHS);
 
-//  DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
+  if not Dif.IsZero then
+  begin
+//    DescribeUsingPowerOfTwo (Dif, NewLHS, NewRHS);
+    DescribeUsingPrimes (Dif, NewLHS, NewRHS);
 
-  DescribeUsingPrimes (Dif, NewLHS, NewRHS);
+  end;
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
 
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
-    WriteLn ('c '+ NewConstraint.ToString);
+    WriteLn ('c NewConstraint='+ NewConstraint.ToString);
 
   Result:= EncodeHardConstraint (NewConstraint);
 
