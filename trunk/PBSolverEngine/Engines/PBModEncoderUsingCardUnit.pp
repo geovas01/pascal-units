@@ -214,6 +214,7 @@ begin
   SetLength (Sorters, Modulo);
   for i:= 0 to Modulo- 1 do
     Sorters [i]:= CreateSorterModModulo (LiteralsBasedOnRemainder.Item [i]);
+
   LiteralsBasedOnRemainder.Free;
 
   TrueLiteralCountModModuloPerSorter:= TListOfLiteralCollection.Create;

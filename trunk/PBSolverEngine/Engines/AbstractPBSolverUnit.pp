@@ -296,8 +296,46 @@ begin
   end;
 end;
 
-function TAbstractPBSolverEngine.BreakSymmetries (Problem: TPBSpecification): Boolean;
+function CompareBigInts (Item1, Item2: Pointer): Integer;
 begin
+  Result:= -TTerm (Item1).Coef.CompareWith (TTerm (Item2).Coef);
+
+end;
+
+function TAbstractPBSolverEngine.BreakSymmetries (Problem: TPBSpecification): Boolean;
+
+  procedure BreakObviousSymmetry (AConstraint: TPBConstraint);
+  var
+    LHS: TPBSum;
+    i: Integer;
+
+  begin
+    LHS:= AConstraint.LHS;
+
+    LHS.Sort (@CompareBigInts);
+//    WriteLn (LHS.ToString, ' ', AConstraint.RHS.ToString);
+    for i:= 0 to LHS.Count- 2 do
+      if LHS.Item [i].Coef.CompareWith (LHS.Item [i+ 1].Coef)= 0 then
+      begin
+        WriteLn (LiteralToString (NegateLiteral (LHS.Item [i].Literal)));
+        WriteLn (LiteralToString (NegateLiteral (LHS.Item [i+ 1].Literal)));
+
+        CNFGenerator.BeginConstraint;
+
+        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
+        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item [i+ 1].Literal));
+
+        CNFGenerator.SubmitClause;
+
+      end;
+
+  end;
+
+begin
+
+  if (Problem.ClauseCount= 0) and (Problem.ConstraintCount= 1) then
+    BreakObviousSymmetry (Problem.Constraint [0]);
+
   Result:= False;
 
 end;
@@ -930,13 +968,13 @@ begin
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
     GetCNFGenerator.ReportForcedVariables;
 
-  if BreakSymmetry then
+  if (UpperCase (GetRunTimeParameterManager.ValueByName ['--BreakSymmetry'])<> UpperCase ('Disabled')) and
+     (UpperCase (GetRunTimeParameterManager.ValueByName ['--BreakSymmetry'])<> '') then
     BreakSymmetries (Problem);
 
   Problem.DescribeNonLinearVariables;
   Result:= True;
 
-  WriteLn (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint']));
   if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
   begin
     WriteLn ('--EncodeAsOneConstraint cannot be enabled in this version');
@@ -965,10 +1003,11 @@ begin
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-
+      WriteLn (i);
       ActiveConstraint:= Problem.Constraint [i];
 
       Lit:= EncodeHardConstraint (ActiveConstraint);
+      WriteLn ('ActiveConstraint= ', ActiveConstraint.ToString, ' Lit=', LiteralToString (Lit));
 
       if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
         if i mod 1000= 0 then
@@ -991,6 +1030,11 @@ begin
           CNFGenerator.SubmitClause;
 
         end;
+
+        if i= 159 then
+          CNFGenerator.ReportForcedVariables;
+        if i= 160 then
+          CNFGenerator.ReportForcedVariables;
 
         if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
           CNFGenerator.ReportForcedVariables;
