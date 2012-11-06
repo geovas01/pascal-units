@@ -131,43 +131,112 @@ begin
 end;
 
 procedure TCNFStream.SubmitClause;
+
+  procedure WriteInt (Lit: Integer; var OutputStringPtr: PChar);
+  const
+    Pow10: array [0..9] of Integer=
+     (1, 10, 100, 1000, 10000, 100000, 1000000,
+      10000000, 100000000, 1000000000);
+
+    function GetLength (n: Integer): Integer;
+    var
+      Top, Bot, Mid: Integer;
+
+    begin
+      Bot:= 0; Top:= 9;
+
+      if Pow10 [Top]<= n then
+        Exit (Top+ 1);
+      if n<= Pow10 [Bot] then
+        Exit (Bot+ 1);
+
+      while Bot<= Top do
+      begin
+        Mid:= (Top+ Bot) shr 1;
+
+        if n< Pow10 [Mid] then
+          Top:= Mid- 1
+        else if Pow10 [Mid]<= n then
+          Bot:= Mid+ 1
+        else
+          Exit (Mid+ 1);
+
+      end;
+
+      Result:= Bot;
+    end;
+
+  var
+    RightPtr: PChar;
+
+  begin
+    RightPtr:= OutputStringPtr+ GetLength (Lit)- 1;
+    OutputStringPtr:= RightPtr+ 1;
+
+    while Lit<> 0 do
+    begin
+      RightPtr^:= char (48+ (Lit mod 10));
+      Lit:= Lit div 10;
+      Dec (RightPtr);
+
+    end;
+
+  end;
+
+  procedure WriteStr (const S: AnsiString; var OutputStringPtr: PChar);
+  begin
+    Move (S [1], OutputStringPtr^, Length (S));
+    Inc (OutputStringPtr, Length (S));
+
+  end;
+
 var
-  j: Integer;
+  i, j: Integer;
   Lit: TLiteral;
+  ActiveClause: TClause;
+  OutputString: AnsiString;
+  OutputStringPChar: PChar;
 
 begin
+  ActiveClause:= TopConstraint;
 
-  if 0< TopConstraint.Count then
+  SetLength (OutputString, ActiveClause.Count* 10);
+  FillChar (OutputString [1], ActiveClause.Count* 10, ' ');
+  OutputStringPChar:= @(OutputString [1]);
+
+  if 0< ActiveClause.Count then
   begin
-    Inc (SubmittedClauseCount);
-    Lit:= TopConstraint.Item [0];
-
-    if MaxVarIndex< GetVar (Lit) then
-      MaxVarIndex:= GetVar (Lit);
+    Lit:= ActiveClause.Item [0];
 
     if IsNegated (Lit) then
-      OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)))
-    else
-      OutputStream.WriteStr (SysUtils.IntToStr (GetVar (Lit)));
-
-
-    for j:= 1 to TopConstraint.Count- 1 do
     begin
-      Lit:= TopConstraint.Item [j];
+      OutputStringPChar^:= '-'; Inc (OutputStringPChar);// WriteStr ('-', OutputString);
+      WriteInt (GetVar (Lit), OutputStringPChar);
+      Inc (OutputStringPChar)//WriteStr (' ', OutputString);
 
-      if MaxVarIndex< GetVar (Lit) then
-        MaxVarIndex:= GetVar (Lit);
+    end
+    else
+    begin
+      WriteInt (GetVar (Lit), OutputStringPChar);
+      Inc (OutputStringPChar)//WriteStr (' ', OutputString);
+
+    end;
+
+    for j:= 1 to ActiveClause.Count- 1 do
+    begin
+      Lit:= ActiveClause.Item [j];
 
       if IsNegated (Lit) then
       begin
-        OutputStream.WriteStr (' ');
-        OutputStream.WriteStr (SysUtils.IntToStr (-GetVar (Lit)));
+        OutputStringPChar^:= '-'; Inc (OutputStringPChar);// WriteStr ('-', OutputString);
+        WriteInt (GetVar (Lit), OutputStringPChar);
+        Inc (OutputStringPChar)//WriteStr (' ', OutputString);
 
       end
       else
       begin
-        OutputStream.WriteStr (' ');
-        OutputStream.WriteStr (SysUtils.IntToStr (GetVar (Lit)));
+        WriteInt (GetVar (Lit), OutputStringPChar);
+        Inc (OutputStringPChar)//WriteStr (' ', OutputString);
 
       end;
 
@@ -175,6 +244,7 @@ begin
 
   end;
 
+  OutputStream.WriteStr (OutputString);
   OutputStream.WriteLine (' 0');
 
   inherited;

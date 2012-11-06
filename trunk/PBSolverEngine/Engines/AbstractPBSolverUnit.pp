@@ -1003,11 +1003,12 @@ begin
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-      WriteLn (i);
+//      if i mod 1000= 0 then
+//        WriteLn (i, ' ', Problem.ConstraintCount);
       ActiveConstraint:= Problem.Constraint [i];
 
       Lit:= EncodeHardConstraint (ActiveConstraint);
-      WriteLn ('ActiveConstraint= ', ActiveConstraint.ToString, ' Lit=', LiteralToString (Lit));
+//      WriteLn ('ActiveConstraint= ', ActiveConstraint.ToString, ' Lit=', LiteralToString (Lit));
 
       if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
         if i mod 1000= 0 then
@@ -1030,11 +1031,6 @@ begin
           CNFGenerator.SubmitClause;
 
         end;
-
-        if i= 159 then
-          CNFGenerator.ReportForcedVariables;
-        if i= 160 then
-          CNFGenerator.ReportForcedVariables;
 
         if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
           CNFGenerator.ReportForcedVariables;

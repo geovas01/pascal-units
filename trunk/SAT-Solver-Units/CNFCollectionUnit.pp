@@ -4,7 +4,7 @@ unit CNFCollectionUnit;
 interface
 
 uses
-  Classes, SysUtils, ClauseUnit, AbstractSolverUnit, MiniSatSolverInterfaceUnit,
+  Classes, SysUtils, ClauseUnit, MiniSatSolverInterfaceUnit,
     StreamUnit;
 
 type
