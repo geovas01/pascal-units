@@ -1295,7 +1295,7 @@ begin
 
   if UnknownIntegers.CompareWith (NewRHS)< 0 then
   begin
-//    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
+    if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
       WriteLn ('UnknownIntegers< NewRHS', ' ', UnknownIntegers.ToString, ' ', NewRHS.ToString);
 
     if 0< ForcedLiterals.Count then
