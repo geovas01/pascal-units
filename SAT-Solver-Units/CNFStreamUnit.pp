@@ -269,40 +269,6 @@ end;
 
 procedure TCNFStream.SaveToFile;
 
-  function IntToStr (Lit: Integer): AnsiString;
-  var
-    Flag: Boolean;
-
-  begin
-    Flag:= False;
-
-    if Lit< 0 then
-    begin
-      Flag:= True;
-      Lit*= -1;
-
-    end;
-
-    Result:= '';
-    while Lit<> 0 do
-    begin
-      Result:= Char (48+ (Lit mod 10))+ Result;
-      Lit:= Lit div 10;
-
-    end;
-
-    if Flag then
-      Result:= '-'+ Result;
-
-  end;
-
-  procedure WriteStr (const S: AnsiString; var OutputStringPtr: PChar);
-  begin
-    Move (S [1], OutputStringPtr^, Length (S));
-    Inc (OutputStringPtr, Length (S));
-
-  end;
-
 var
   i: Integer;
   NewClause: TClause;
