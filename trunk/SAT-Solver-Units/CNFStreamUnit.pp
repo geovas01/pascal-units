@@ -60,7 +60,7 @@ begin
   SetLength (Result, CurDigit- @(Result [1]));
 
 end;
-}
+
 
 function IntToStr (n: Int64): AnsiString; inline;
 const
@@ -99,6 +99,7 @@ begin
     CurDigit^:= '-';
 
 end;
+}
 
 { TCNFStream }
 
@@ -206,6 +207,7 @@ begin
 
   if 0< ActiveClause.Count then
   begin
+    Inc (SubmittedClauseCount);
     Lit:= ActiveClause.Item [0];
 
     if IsNegated (Lit) then
