@@ -114,7 +114,7 @@ type
     constructor Load (Stream: TStream);//Stream will be freed by destructor
     destructor Destroy; override;
 
-    function ToString: AnsiString;
+    function ToString: AnsiString; override;
 
   end;
 

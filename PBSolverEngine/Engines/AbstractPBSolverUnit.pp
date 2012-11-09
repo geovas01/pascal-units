@@ -1003,8 +1003,6 @@ begin
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-//      if i mod 1000= 0 then
-//        WriteLn (i, ' ', Problem.ConstraintCount);
       ActiveConstraint:= Problem.Constraint [i];
 
       Lit:= EncodeHardConstraint (ActiveConstraint);
