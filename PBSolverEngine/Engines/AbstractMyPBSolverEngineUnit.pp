@@ -16,7 +16,7 @@ type
 
   protected
 //    function ForceLessThanForEquality (AConstraint: TPBConstraint): TLiteral;
-    function EncodeModularityConstraint (OrigSum: TPBSum; Modulo: Integer; b: Integer): TLiteral; overload;
+    function EncodeModularityConstraint (AConstraint: TPBConstraint; OrigSum: TPBSum; Modulo: Integer; b: Integer): TLiteral; overload;
     function EncodeHardConstraint (AConstraint: TPBConstraint): TLiteral; override;
     function EncodeEqualityConstraint (AConstraint: TPBConstraint): TLiteral; override;
 
@@ -209,7 +209,7 @@ end;
 }
 *)
 
-function TAbstractMyPBSolverEngine.EncodeModularityConstraint (OrigSum: TPBSum; Modulo: Integer; b: Integer): TLiteral;
+function TAbstractMyPBSolverEngine.EncodeModularityConstraint (AConstraint: TPBConstraint; OrigSum: TPBSum; Modulo: Integer; b: Integer): TLiteral;
 var
   Coefs: TInt64Collection;
   Permutation: TIntegerCollection;
@@ -311,36 +311,36 @@ begin
   else}
 
   if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DP') then
-    PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
+    PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DC') then
   begin
-    if Modulo< 4* ln (Coefs.Count)/ ln (2.0) then
-      PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
+//    if Modulo< 4* ln (Coefs.Count)/ ln (2.0) then
+      PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
-    else
-      PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
+{    else
+      PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator,
                                         Coefs, b, OrigSum, Modulo);
-
+}
   end
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('Adder')))= UpperCase ('Adder') then
   begin
-     PBModEncoder:= TPBModEncoderUsingAdders.Create (VariableGenerator,
+     PBModEncoder:= TPBModEncoderUsingAdders.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo);
      Halt (1);
   end
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('SingleSorter')))= UpperCase ('SingleSorter') then
-     PBModEncoder:= TPBModEncoderUsingSingleSorter.Create (VariableGenerator,
+     PBModEncoder:= TPBModEncoderUsingSingleSorter.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, 4))= UpperCase ('Card') then
-     PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator,
+     PBModEncoder:= TPBModEncoderUsingCard.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('Less.Variable') then
   begin
     VariableGenerator.SetSimulationMode;
     DPCost:= VariableGenerator.LastUsedCNFIndex;
 
-    PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator, Coefs, b, OrigSum,
+    PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator, Coefs, b, OrigSum,
                         Modulo);
     PBModEncoder.EncodePBMod;
     PBModEncoder.Free;
@@ -351,7 +351,7 @@ begin
     VariableGenerator.SetSimulationMode;
     DCCost:= VariableGenerator.LastUsedCNFIndex;
 
-    PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator, Coefs, b, OrigSum,
+    PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator, Coefs, b, OrigSum,
                         Modulo);
     PBModEncoder.EncodePBMod;
     PBModEncoder.Free;
@@ -361,7 +361,7 @@ begin
 
     VariableGenerator.SetSimulationMode;
     CardCost:= VariableGenerator.LastUsedCNFIndex;
-    PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator, Coefs, b, OrigSum,
+    PBModEncoder:= TPBModEncoderUsingCard.Create (AConstraint, VariableGenerator, Coefs, b, OrigSum,
                         Modulo);
     CardCost:= VariableGenerator.LastUsedCNFIndex- CardCost;
     VariableGenerator.ResetSimulationMode;
@@ -369,21 +369,21 @@ begin
     Winner:= '';
     if Min (DPCost, Min (CardCost, DCCost))= DCCost then
     begin
-      PBModEncoder:= TPBModEncoderDC.Create (VariableGenerator,
+      PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator,
                                 Coefs, b, OrigSum, Modulo);
       Winner:= 'DC';
 
     end
     else if Min (DPCost, Min (CardCost, DCCost))= DPCost then
     begin
-      PBModEncoder:= TPBModEncoderDP.Create (VariableGenerator,
+      PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator,
                                 Coefs, b, OrigSum, Modulo);
       Winner:= 'DP';
 
     end
     else if Min (DPCost, Min (CardCost, DCCost))= CardCost then
     begin
-      PBModEncoder:= TPBModEncoderUsingCard.Create (VariableGenerator,
+      PBModEncoder:= TPBModEncoderUsingCard.Create (AConstraint, VariableGenerator,
                                 Coefs, b, OrigSum, Modulo);
       Winner:= 'UsingCard';
 
@@ -1102,7 +1102,7 @@ begin
     if 0< i then
       VariableGenerator.DecisionForNewVariable:= GetRunTimeParameterManager.GetValueByName ('--DecisionVarMinization')= '1';
 
-    EncodingResult:= EncodeModularityConstraint (ActiveConstraint.LHS, Modulos.Item [i], Residue);
+    EncodingResult:= EncodeModularityConstraint (AConstraint, ActiveConstraint.LHS, Modulos.Item [i], Residue);
 
     Literals.AddItem (EncodingResult);
 
@@ -1267,6 +1267,7 @@ begin
       case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
         gbUnknown:
         begin
+
           NewLHS.AddNewTerm (TTerm.Create (AConstraint.LHS.Item [i].Literal, AConstraint.LHS.Item [i].Coef.Copy));
           UnknownIntegers.Add (AConstraint.LHS.Item [i].Coef);
 
@@ -1322,6 +1323,7 @@ begin
   end;
 
   NewConstraint:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
+  NewConstraint.SimplificationOf:= AConstraint;
 
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
     WriteLn ('c NewConstraint='+ NewConstraint.ToString);

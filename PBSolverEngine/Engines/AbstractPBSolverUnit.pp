@@ -1005,12 +1005,12 @@ begin
     begin
       ActiveConstraint:= Problem.Constraint [i];
 
+      if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
+        WriteLn ('c TAbstractPBSolverEngine.SolveDecision c ', i, ': ', ActiveConstraint.ToString);
       Lit:= EncodeHardConstraint (ActiveConstraint);
-//      WriteLn ('ActiveConstraint= ', ActiveConstraint.ToString, ' Lit=', LiteralToString (Lit));
 
       if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
-        if i mod 1000= 0 then
-          WriteLn ('c ', i, ' ', LiteralToString (Lit));
+        WriteLn ('c TAbstractPBSolverEngine.SolveDecision c ', i, ': ', LiteralToString (Lit));
 
       if Lit= VariableGenerator.FalseLiteral then
       begin

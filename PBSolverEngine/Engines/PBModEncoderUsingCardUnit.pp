@@ -25,7 +25,7 @@ type
   public
     function EncodePBMod: TLiteral; override;
 
-    constructor Create(_VariableManager: TVariableManager;
+    constructor Create(_OrigConsrraint: TPBConstraint; _VariableManager:  TVariableManager;
       _Coefs: TInt64Collection; _b: int64;
       _OrigSum: TPBSum; _Modulo: integer);
     destructor Destroy; override;
@@ -270,7 +270,7 @@ begin
 
 end;
 
-constructor TPBModEncoderUsingCard.Create (_VariableManager: TVariableManager;
+constructor TPBModEncoderUsingCard.Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: int64; _OrigSum: TPBSum;
   _Modulo: integer);
 var

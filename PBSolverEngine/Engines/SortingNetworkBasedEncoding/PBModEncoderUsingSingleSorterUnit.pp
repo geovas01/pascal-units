@@ -26,7 +26,7 @@ type
     function EncodePBMod: TLiteral; override;
     procedure AddExtraClauses; override;
 
-    constructor Create (_VariableManager: TVariableManager;
+    constructor Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
                         _Coefs: TInt64Collection; _b: Int64;
                         _OrigSum: TPBSum; _Modulo: Integer);
     destructor Destroy; override;
@@ -165,7 +165,7 @@ begin
 
 end;
 
-constructor TPBModEncoderUsingSingleSorter.Create(_VariableManager: TVariableManager;
+constructor TPBModEncoderUsingSingleSorter.Create(_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
   _Modulo: Integer);
 begin

@@ -16,6 +16,7 @@ type
 
   TAbstractPBModEncoder= class (TObject)
   private
+    FConstraint: TPBConstraint;
     FVariableGenerator: TVariableManager;
     FCoefs: TInt64Collection;
     Fb: Int64;
@@ -27,6 +28,7 @@ type
 
 
   protected
+    property OriginalConstraint: TPBConstraint read FConstraint;
     property CNFGenerator: TSATSolverInterface read GetCNFGenerator;
     property VariableGenerator: TVariableManager read FVariableGenerator;
     property Coefs: TInt64Collection read FCoefs;
@@ -49,9 +51,10 @@ type
       None of the input parameters will be deep copied, do not free them
       before freeing the encoder.
     }
-    constructor Create (_VariableManager: TVariableManager;
-                          _Coefs: TInt64Collection; _b: Int64;
-                          _OrigSum: TPBSum; _Modulo: Integer);
+    constructor Create (_OrigConstraint: TPBConstraint;
+                        _VariableManager: TVariableManager;
+                        _Coefs: TInt64Collection; _b: Int64;
+                        _OrigSum: TPBSum; _Modulo: Integer);
     destructor Destroy; override;
 
     function EncodePBMod: TLiteral; virtual; abstract;
@@ -128,12 +131,13 @@ begin
 
 end;
 
-constructor TAbstractPBModEncoder.Create(_VariableManager: TVariableManager;
-  _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
-   _Modulo: Integer);
+constructor TAbstractPBModEncoder.Create (_OrigConstraint: TPBConstraint;
+  _VariableManager: TVariableManager; _Coefs: TInt64Collection; _b: Int64;
+  _OrigSum: TPBSum; _Modulo: Integer);
 begin
   inherited Create;
 
+  FConstraint:= _OrigConstraint;
   FVariableGenerator:= _VariableManager;
   FCoefs:= _Coefs;
   Fb:= _b;

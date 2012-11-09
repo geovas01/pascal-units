@@ -23,7 +23,7 @@ type
     function EncodePBMod: TLiteral; override;
 
     destructor Destroy; override;
-    constructor Create (_VariableManager: TVariableManager;
+    constructor Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
                           _Coefs: TInt64Collection; _b: Int64;
                           _OrigSum: TPBSum;
                            _Modulo: Integer);
@@ -282,7 +282,7 @@ begin
 
 end;
 
-constructor TPBModEncoderDC.Create(_VariableManager: TVariableManager;
+constructor TPBModEncoderDC.Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
   _Coefs: TInt64Collection; _b: Int64; _OrigSum: TPBSum;
   _Modulo: Integer);
 var
