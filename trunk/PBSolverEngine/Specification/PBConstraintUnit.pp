@@ -132,6 +132,8 @@ type
     FRHS: TBigInt;
     FRHSSign: Boolean;
     Finalized: Boolean;
+    FSimplificationOf: TPBConstraint;
+    procedure SetSimplificationOf(AValue: TPBConstraint);
 
   public
     property CompareOperator: TComparisionOperator read FCompareOperator;
@@ -139,6 +141,7 @@ type
     property RHS: TBigInt read FRHS;
     {RHSSign is true iff RHS is positive}
     property RHSSign: Boolean read FRHSSign;
+    property SimplificationOf: TPBConstraint read FSimplificationOf write SetSimplificationOf;
 
     function ToXML: AnsiString; virtual;
     function ToString: AnsiString; override;
@@ -208,6 +211,15 @@ const
   CompareOperatorString: array [coEquality..coLessThanOrEqual] of AnsiString=
      ('=', '>=', '<=');
 
+procedure TPBConstraint.SetSimplificationOf(AValue: TPBConstraint);
+begin
+  if AValue.SimplificationOf<> nil then
+    SimplificationOf:= AValue.SimplificationOf
+  else
+    FSimplificationOf:= AValue;
+
+end;
+
 function TPBConstraint.ToXML: AnsiString;
 
 begin
@@ -217,6 +229,9 @@ begin
     '" Finalized= "'+ BoolToStr (Finalized, True)+ '" RHSSign= "'+ BoolToStr (RHSSign, True)+ '" >';
   Result+= LHS.ToXML;
   Result+= '<RHS v= "'+ RHS.ToString+ '"/>';
+  if SimplificationOf<> nil then
+    Result+= '<SimplificationOf>'+ SimplificationOf.ToXML+ '</SimplificationOf>';
+
   Result+= '</PBConstraint>';
 
 end;
@@ -263,6 +278,7 @@ begin
   FRHS:= RHSValue;
   FRHSSign:= _RHSSign;
   Finalized:= False;
+  FSimplificationOf:= nil;
 
   if ComparisionOperator= '>=' then
     FCompareOperator:= coGreaterThanOrEqual
@@ -287,6 +303,7 @@ destructor TPBConstraint.Destroy;
 begin
   LHS.Free;
   BigIntFactory.ReleaseMemeber (RHS);
+  FSimplificationOf:= nil;
 
   inherited Destroy;
 

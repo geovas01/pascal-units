@@ -52,7 +52,7 @@ begin
     (*
   D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}
   *)
-
+{
   for n1:= 1 to OrigSum.Count- 1 do
   begin
     VariableGenerator.SatSolver.BeginConstraint;
@@ -87,7 +87,7 @@ begin
             VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b2]}
 
           end;
-
+ }
 end;
 
 procedure TPBModEncoderDP.AddExtraClauses_High;
@@ -208,7 +208,6 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
         Exit (VariableGenerator.FalseLiteral);
 
     xi:= OrigSum.Item [Index].Literal;
-//    WriteLn ('Index= ', Index, ' b= ', b, ' xi=', LiteralToString (xi));
 
     if GetVar (Dp.Item [Index].Item [b])<> 0 then
       Exit (CopyLiteral (Dp.Item [Index].Item [b]));
@@ -362,11 +361,11 @@ begin
 
    Result:= RecEncodeDirectly (OrigSum.Count- 1, b);
 
-  { Full DP table is needed for ExtraClauses ... }
-{  if UpperCase (GetRunTimeParameterManager.ValueByName ['--ExtraClausesLevel'])<> UpperCase ('Off') then
+  { Full DP table is needed for this constraint is simplication of another constraint}
+  if OriginalConstraint.SimplificationOf<> nil then
     for i:= 0 to Modulo- 1 do
       RecEncodeDirectly (OrigSum.Count- 1, i);
-}
+
 //  IterEncode (OrigSum.Count, Modulo);
 //  Result:= DP.Item [OrigSum.Count].Item [b]
 
