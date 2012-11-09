@@ -50,6 +50,42 @@ type
 
   end;
 
+  {
+  I am goint to implement it later
+  TMyTextFileStream= class (TMyTextStream)
+  private
+    FTargerStream: TextFile;
+    function GetEoStream: Boolean;
+    function GetPosition: Integer;
+    function GetSize: Integer;
+    procedure SetPosition (Pos: Integer);
+
+  public
+    property Size: Integer read GetSize;
+    property Position: Integer read GetPosition write SetPosition;
+    property EoStream: Boolean read GetEoStream;
+
+    function ReadCh: Char;
+    function ReadLine: AnsiString;
+    function ReadInteger: Integer;
+
+    function ReadWideChar: WideChar;
+    function ReadLnWideString: WideString;
+    function ReadWideString: WideString;
+
+    procedure WriteLine (const S: AnsiString);
+    procedure WriteChar (Ch: Char);
+    procedure WriteStr (const S: AnsiString);
+
+    {
+      Does not reset the position of AnStream
+    }
+    constructor Create (AnStream: TStream; DeleteInputStream: Boolean= False);
+    destructor Destroy; override;
+
+  end;
+}
+
   { TMyBinStream }
 
   TMyBinStream= class (TObject)
