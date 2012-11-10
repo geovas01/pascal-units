@@ -52,7 +52,7 @@ begin
     (*
   D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}
   *)
-{
+
   for n1:= 1 to OrigSum.Count- 1 do
   begin
     VariableGenerator.SatSolver.BeginConstraint;
@@ -87,7 +87,7 @@ begin
             VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b2]}
 
           end;
- }
+
 end;
 
 procedure TPBModEncoderDP.AddExtraClauses_High;
