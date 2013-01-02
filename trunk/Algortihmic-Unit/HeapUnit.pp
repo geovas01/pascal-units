@@ -15,30 +15,38 @@ type
 
   generic THeap<T>= class (TObject)
   private
+    function Get (Index: Integer): T;
+
+  private
+    property Member [Index: Integer]: T read Get;
+    function GetCapacity: Integer;
     function GetCount: Integer;
     function GetMin: T;
-    function GetSize: Integer; inline;
 
-  type private
+    procedure Heapify (Index: Integer);
+    function GetLeftChild (Index: Integer): Integer; inline;
+    function GetRightChild (Index: Integer): Integer; inline;
+    function GetParent (Index: Integer): Integer; inline;
+
+  type
     TIsGreaterThanFunction= function (const a: T; const b: T): Boolean;
-    TArrayOfT= array of T;
 
-  var private
-    FMembers: TArrayOfT;
-    FCount: Integer;
+  var
+    FMembers: TList;
     FIsGreaterThan: TIsGreaterThanFunction;
 
   public
     property Count: Integer read GetCount;
-    property Size: Integer read GetSize;
+    property Capacity: Integer read GetCapacity;
     property Min: T read GetMin;
 
-    constructor Create (HeapSize: Integer;
-        GreaterThanFunction: TIsGreaterThanFunction);
+    constructor Create (GreaterThanFunction: TIsGreaterThanFunction;
+        InitCapacity: Integer);
     {
-    Destroy does not Free the object passed to it.
+    Destroy calls free of all the objects in the Heap objecty
     }
     destructor Destroy; override;
+    procedure Clear;
 
     procedure Insert (Data: T);
     procedure DeleteMin;
@@ -52,73 +60,31 @@ implementation
 
 { THeap }
 
+function THeap.Get (Index: Integer): T;
+begin
+  Result:= T (FMembers.Items [Index]);
+
+end;
+
+function THeap.GetCapacity: Integer;
+begin
+  Result:= FMembers.Capacity;
+
+end;
+
 function THeap.GetCount: Integer;
 begin
-  Result:= FCount;
+  Result:= FMembers.Count;
 
 end;
 
 function THeap.GetMin: T;
 begin
-  Result:= FMembers [1];
+  Result:= Member [0];
 
 end;
 
-function THeap.GetSize: Integer;
-begin
-  Result:= High (FMembers)+ 1;
-
-end;
-
-constructor THeap.Create(HeapSize: Integer;
-  GreaterThanFunction: TIsGreaterThanFunction);
-begin
-  inherited Create;
-
-  SetLength (FMembers, HeapSize+ 1);
-  FillChar (FMembers [0], SizeOf (FMembers), 0);
-  FCount:= 1;
-  FIsGreaterThan:= GreaterThanFunction;
-
-end;
-
-destructor THeap.Destroy;
-begin
-  SetLength (FMembers, 0);
-
-  inherited Destroy;
-
-end;
-
-procedure THeap.Insert (Data: T);
-var
-  ActiveIndex: Integer;
-  Temp: T;
-
-begin
-  FMembers [FCount]:= Data;
-  Inc (FCount);
-  if FCount= 2 then
-    Exit;
-
-  ActiveIndex:= FCount- 1;
-
-  while FIsGreaterThan (FMembers [ActiveIndex div 2],
-                        FMembers [ActiveIndex]) do
-  begin
-    Temp:= FMembers [ActiveIndex];
-    FMembers [ActiveIndex]:= FMembers [ActiveIndex div 2];
-    FMembers [ActiveIndex div 2]:= Temp;
-
-    ActiveIndex:= ActiveIndex div 2;
-    if ActiveIndex= 1 then
-      Break;
-
-  end;
-
-end;
-
-procedure THeap.DeleteMin;
+procedure THeap.Heapify (Index: Integer);
 var
   ActiveIndex: Integer;
   MinOfChildrenIndex: Integer;
@@ -126,27 +92,25 @@ var
   Temp: T;
 
 begin
-  FMembers [1]:= FMembers [FCount- 1];
-  ActiveIndex:= 1;
-  Dec (FCount);
+  ActiveIndex:= Index;
 
-  while 2* ActiveIndex< FCount do
+  while 2* ActiveIndex+ 1< Count do
   begin
-    MinOfChildrenIndex:= 2* ActiveIndex;
-    MinOfChildren:= FMembers [MinOfChildrenIndex];
+    MinOfChildrenIndex:= 2* ActiveIndex+ 1;
+    MinOfChildren:= Member [MinOfChildrenIndex];
 
-    if MinOfChildrenIndex< FCount- 1 then
-      if FIsGreaterThan (FMembers [2* ActiveIndex],
-                         FMembers [2* ActiveIndex+ 1]) then
+    if 2* ActiveIndex+ 2< Count then
+      if FIsGreaterThan (Member [2* ActiveIndex+ 1],
+                         Member [2* ActiveIndex+ 2]) then
       begin
         Inc (MinOfChildrenIndex);
-        MinOfChildren:= FMembers [MinOfChildrenIndex];
+        MinOfChildren:= Member [MinOfChildrenIndex];
 
       end;
 
-    if FIsGreaterThan (FMembers [ActiveIndex], MinOfChildren) then
+    if FIsGreaterThan (Member [ActiveIndex], MinOfChildren) then
     begin
-      Temp:= FMembers [ActiveIndex];
+      Temp:= Member [ActiveIndex];
       FMembers [ActiveIndex]:= MinOfChildren;
       FMembers [MinOfChildrenIndex]:= Temp;
 
@@ -160,24 +124,106 @@ begin
 
 end;
 
-procedure THeap.Print;
-{var
-  i, j: Integer;
-}
+function THeap.GetLeftChild (Index: Integer): Integer;
 begin
-  {
-  Write ('(');
+  Result:= Index shl 1+ 1;
 
-  for i:= 1 to FCount- 1 do
+end;
+
+function THeap.GetRightChild (Index: Integer): Integer;
+begin
+  Result:= Index shl 1+ 2;
+
+end;
+
+function THeap.GetParent (Index: Integer): Integer;
+begin
+  Result:= (Index- 1) shr 1;
+
+end;
+
+constructor THeap.Create (GreaterThanFunction: TIsGreaterThanFunction;
+        InitCapacity: Integer);
+begin
+  inherited Create;
+
+  FMembers:= TList.Create;
+  FMembers.Capacity:= InitCapacity;
+
+  FIsGreaterThan:= GreaterThanFunction;
+
+end;
+
+destructor THeap.Destroy;
+var
+  i: Integer;
+
+begin
+  for i:= 0 to Count - 1 do
+    Member [i].Free;
+
+  FMembers.Free;
+
+  inherited Destroy;
+
+end;
+
+procedure THeap.Clear;
+begin
+  FMembers.Clear;
+
+end;
+
+procedure THeap.Insert (Data: T);
+var
+  ActiveIndex: Integer;
+  Temp: T;
+
+begin
+  FMembers.Add (Data);
+
+  ActiveIndex:= Count- 1;
+  if 1< Count then
+    while FIsGreaterThan (Member [GetParent (ActiveIndex)],
+                          Member [ActiveIndex]) do
+    begin
+      Temp:= Member [ActiveIndex];
+      FMembers [ActiveIndex]:= FMembers [GetParent (ActiveIndex)];
+      FMembers [GetParent (ActiveIndex)]:= Temp;
+
+      ActiveIndex:= GetParent (ActiveIndex);
+      if ActiveIndex= 0 then
+        Break;
+
+    end;
+
+end;
+
+procedure THeap.DeleteMin;
+begin
+  FMembers.Items [0]:= FMembers.Items [Count- 1];
+
+  Heapify (0);
+  FMembers.Count:= Count- 1;
+
+end;
+
+procedure THeap.Print;
+var
+  i: Integer;
+  Obj: T;
+
+begin
+  Write ('{');
+
+  for i:= 0 to Count- 1 do
   begin
-    j:= FMembers [i];
-    Write (j, ' ');
+    Obj:= Member [i];
+//    Write ('(', T (Obj).Value, ',', T (Obj).Pos, ')');
 
   end;
 
-  WriteLn (')');
- }
-  Halt (1);
+  WriteLn ('}');
 
 end;
 
