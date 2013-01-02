@@ -49,21 +49,25 @@ type
   TAdjList= class (TObject)
   private
     FAdjNodes: array of TAdjNode;
+    LastNodes: array of TAdjNode;
     FCount: Integer;
     FEdgeCount: Integer;
+    FIsSorted: Boolean;
     FMaxNode: Integer;
     function GetAdjList (v: Integer): TAdjNode;
     function GetDeg(v: Integer): Integer;
     function GetNeighbor(v: Integer; Index: Integer): TAdjNode;
 
   public
+    property IsSorted: Boolean read FIsSorted;
+
     property AdjList [v: Integer]: TAdjNode read GetAdjList;
     property Neighbor [v: Integer; Index: Integer]: TAdjNode read GetNeighbor;
     property Deg [v: Integer]: Integer read GetDeg;
     property Count: Integer read FCount;
     property EdgeCount: Integer read FEdgeCount;
 
-    constructor Create (n: Integer);
+    constructor Create (n: Integer; Sorted: Boolean);
     destructor Destroy; override;
 
     function Copy: TAdjList;
@@ -78,21 +82,31 @@ type
   end;
 
   {
-    TGraph is a class for storing directed graphs. This class stores both the adjacency matrix and
+    TGraph is a class for storing directed graphs. This class stores
     the adjacency list for the graph.
   }
-  TGraph= class (TObject)
+  TAdjListGraph= class (TObject)
   private
-    FMat: array of array of Boolean;
     FAdjList: TAdjList;
 
+    function GetNeighbors(v: Integer): TAdjNode;
+    function GetVertexCount: Integer; inline;
+
   public
+    property VertexCount: Integer read GetVertexCount;
+    property Neighbors [v: Integer]: TAdjNode read GetNeighbors;
+
     constructor Create (VNo: Integer);
     destructor Destroy; override;
 
-    procedure AddEdge (v1, v2: Integer);
+    procedure AddEdge (v1, v2: Integer; Cost: Integer= 1);
 
   end;
+
+  TSortedAdjListGraph= class (TAdjListGraph)
+
+  end;
+
 
 implementation
 
@@ -139,7 +153,7 @@ begin
   Result:= ActiveNode;
 end;
 
-constructor TAdjList.Create (n: Integer);
+constructor TAdjList.Create(n: Integer; Sorted: Boolean);
 var
   i: Integer;
 
@@ -152,6 +166,15 @@ begin
   FMaxNode:= -1;
   for i:= 0 to High (FAdjNodes) do
     FAdjNodes [i]:= TAdjNode.Create (-1, 0);
+  FIsSorted:= Sorted;
+
+  if not Sorted then
+  begin
+    SetLength (LastNodes, Count);
+    for i:= 0 to Count- 1 do
+      LastNodes [i]:= FAdjNodes [i];
+
+  end;
 
 end;
 
@@ -171,7 +194,7 @@ var
   ActiveNode: TAdjNode;
 
 begin
-  Result:= TAdjList.Create (Length (FAdjNodes));
+  Result:= TAdjList.Create (Length (FAdjNodes), FIsSorted);
 
   for i:= 0 to High (FAdjNodes) do
   begin
@@ -510,68 +533,74 @@ var
   NewNode: TAdjNode;
 
 begin
-  ActiveNode:= AdjList [v1];
-
-  while True do
+  if IsSorted then
   begin
-    if ActiveNode.Next= nil then
-    begin
-      ActiveNode.FNext:= TAdjNode.Create (v2, c);
-      Exit;
+    ActiveNode:= AdjList [v1];
 
-    end
-    else if ActiveNode.Next.Vertex<= v2 then
-      ActiveNode:= ActiveNode.Next
-    else if v2< ActiveNode.Next.Vertex then
+    while True do
     begin
-      Inc (FEdgeCount);
-      NewNode:= TAdjNode.Create (v2, c);
-      NewNode.FNext:= ActiveNode.Next;
-      ActiveNode.FNext:= NewNode;
-      Exit;
+      if ActiveNode.Next= nil then
+      begin
+        ActiveNode.FNext:= TAdjNode.Create (v2, c);
+        Exit;
+
+      end
+      else if ActiveNode.Next.Vertex<= v2 then
+        ActiveNode:= ActiveNode.Next
+      else if v2< ActiveNode.Next.Vertex then
+      begin
+        Inc (FEdgeCount);
+        NewNode:= TAdjNode.Create (v2, c);
+        NewNode.FNext:= ActiveNode.Next;
+        ActiveNode.FNext:= NewNode;
+        Exit;
+
+      end;
 
     end;
+
+  end
+  else
+  begin
+    LastNodes [v1]:= LastNodes [v1].Add (v2, C);
 
   end;
 
 end;
 
-{ TGraph }
-constructor TGraph.Create (VNo: Integer);
+{ TAdjListGraph }
+function TAdjListGraph.GetVertexCount: Integer;
+begin
+  Result:= FAdjList.Count;
+
+end;
+
+function TAdjListGraph.GetNeighbors (v: Integer): TAdjNode;
+begin
+  Result:= FAdjList.AdjList [v];
+
+end;
+
+constructor TAdjListGraph.Create (VNo: Integer);
 var
   v: Integer;
 
 begin
   inherited Create;
 
-  SetLength (FMat, VNo);
-  for v:= 0 to VNo- 1 do
-  begin
-    SetLength (FMat [v], VNo);
-    FillChar (FMat [v], SizeOf (FMat [v]), 0);
-
-  end;
-  FAdjList:= TAdjList.Create (VNo);
+  FAdjList:= TAdjList.Create (VNo, False);
 
 end;
 
-destructor TGraph.Destroy;
-var
-  v: Integer;
-
+destructor TAdjListGraph.Destroy;
 begin
-  for v:= 0 to High (FMat) do
-    SetLength (FMat [v], 0);
-  SetLength (FMat, 0);
-
   inherited Destroy;
 
 end;
 
-procedure TGraph.AddEdge(v1, v2: Integer);
+procedure TAdjListGraph.AddEdge (v1, v2: Integer; Cost: Integer);
 begin
-  FMat [v1, v2]:= True;
-  FAdjList.AddEdge (v1, v2, 1);
+  FAdjList.AddEdge (v1, v2, Cost);
 
 end;
 

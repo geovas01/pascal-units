@@ -1097,9 +1097,6 @@ var
   ActiveConstraint: TPBConstraint;
 
 begin
-  if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
-    GetCNFGenerator.ReportForcedVariables;
-
   Result:= False;
 
   if Problem.NonLinearVariableDescriptions.Count<> 0 then
@@ -1109,7 +1106,11 @@ begin
   begin
     ActiveConstraint:= Problem.Constraint [i];
     if not VerifyHardConstraint (ActiveConstraint, Assignment) then
+    begin
+      WriteLn (ActiveConstraint.ToString);
+      WriteLn (Assignment.ToString);
       Exit;
+    end;
 
   end;
 
