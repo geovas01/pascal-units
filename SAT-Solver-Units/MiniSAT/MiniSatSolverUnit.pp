@@ -44,7 +44,7 @@ uses
 
 //{$link Interface.o}
 
-{$L libMiniSatManager.so}
+{$linklib libMiniSatManager.so}
 {$linklib c}
 {$linklib stdc++}
 
