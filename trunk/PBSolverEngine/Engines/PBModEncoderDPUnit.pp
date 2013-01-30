@@ -49,9 +49,6 @@ begin
 
   end;
 
-    (*
-  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}
-  *)
 
   for n1:= 1 to OrigSum.Count- 1 do
   begin
@@ -64,12 +61,12 @@ begin
       begin
          VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
          VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [b1]);
-         VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo]);
+         VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo]); (*  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}  *)
 
 
       end;
 
-    VariableGenerator.SatSolver.SubmitClause; {DP [i][0] or DP [i][0] or ... DP [i][Modulo- 1]}
+    VariableGenerator.SatSolver.SubmitClause;
 
   end;
 

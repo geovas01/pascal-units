@@ -71,6 +71,8 @@ begin
       end;
    }
 
+{
+  These sets of clauses are already there!
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
     begin
@@ -94,7 +96,7 @@ begin
         VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
 
     end;
-
+ }
 end;
 
 procedure TPBModEncoderDC.AddExtraClauses_High;
@@ -215,6 +217,32 @@ var
           CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
           CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
           CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Right [k] => \lnot Left [i]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
+          CNFGenerator.AddLiteral (Right.Item [k]);
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Left [k] => \lnot Right [i]}
+
+          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+          CNFGenerator.AddLiteral (Left.Item [i]);
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
 
           CNFGenerator.SubmitClause;
 
