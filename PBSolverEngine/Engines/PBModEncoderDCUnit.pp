@@ -39,16 +39,13 @@ uses
 { TPBModEncoderDC }
 
 procedure TPBModEncoderDC.AddExtraClauses_Medium;
-{
 var
   l, i: Integer;
   ActiveAnswer: TLiteralCollection;
   b1, b2: Integer;
   Ignore: Boolean;
-}
+
 begin
-  {
-  These sets of clauses are already there!
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
       begin
@@ -71,10 +68,7 @@ begin
                 end;
 
       end;
-   }
 
-{
-  These sets of clauses are already there!
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
     begin
@@ -98,7 +92,7 @@ begin
         VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
 
     end;
- }
+
 end;
 
 procedure TPBModEncoderDC.AddExtraClauses_High;
