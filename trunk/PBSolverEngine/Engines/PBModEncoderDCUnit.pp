@@ -112,13 +112,12 @@ var
     Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
   }
   var
-//    Temp: TLiteralCollection;
+    Temp: TLiteralCollection;
     T: TClauseCollection;
     Left, Right: TLiteralCollection;
     i, j: Integer;
 
   begin
-
     if Len= 1 then
     begin
       Result:= TLiteralCollection.Create (Modulo, VariableGenerator.FalseLiteral);
@@ -137,7 +136,7 @@ var
     end
     else
     begin
-     Left:= EncodeUsingTseitin (Index, Len div 2);
+      Left:= EncodeUsingTseitin (Index, Len div 2);
       Right:= EncodeUsingTseitin (Index+ Len div 2, Len- Len div 2);
 
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
@@ -152,8 +151,6 @@ var
 
       end;
 
-
-
       for i:= 0 to Modulo- 1 do
         for j:= 0 to Modulo- 1 do
           T.Item [i].Item [j]:= VariableGenerator.CreateVariableDescribingAND
@@ -161,15 +158,17 @@ var
                                Left.Item [i],
                                Right.Item [j]
                                );
+
       for i:= 0 to Modulo- 1 do
       begin
-        CNFGenerator.BeginConstraint;
+        Temp:= LiteralCollectionFactory.GetNewMemeber;
+        Temp.Count:= Modulo;
 
         for j:= 0 to Modulo- 1 do
-          CNFGenerator.AddLiteral (T.Item [i].Item [(j- i+ Modulo) mod Modulo]);
+          Temp.Item [j]:= T.Item [j].Item [(i- j+ Modulo) mod Modulo];
 
-        Result.Item [i]:= VariableGenerator.CreateNewVariable;
-        CNFGenerator.SubmitOrGate (Result.Item [i]);
+        Result.Item [i]:= VariableGenerator.CreateVariableDescribingOR (Temp);
+        LiteralCollectionFactory.ReleaseMemeber (Temp);
 
       end;
 
@@ -200,6 +199,8 @@ var
 
       for i:= 0 to Modulo- 1 do
         LiteralCollectionFactory.ReleaseMemeber (T.Item [i]);
+      T.Clear;
+      T.Free;
 
 {
       Left.Free;
