@@ -15,6 +15,7 @@ type
   private
   protected
     Memory: array of TListOfLiteralCollection;
+    TMemory: array of TListOfClauseCollection;
 
     procedure AddExtraClauses_Medium; override;
     procedure AddExtraClauses_High; override;
@@ -38,12 +39,13 @@ uses
 { TPBModEncoderDC }
 
 procedure TPBModEncoderDC.AddExtraClauses_Medium;
+{
 var
   l, i: Integer;
   ActiveAnswer: TLiteralCollection;
   b1, b2: Integer;
   Ignore: Boolean;
-
+}
 begin
   {
   These sets of clauses are already there!
@@ -116,7 +118,8 @@ var
     Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
   }
   var
-    Temp: TLiteralCollection;
+//    Temp: TLiteralCollection;
+    T: TClauseCollection;
     Left, Right: TLiteralCollection;
     i, j: Integer;
 
@@ -140,29 +143,69 @@ var
     end
     else
     begin
-      Left:= EncodeUsingTseitin (Index, Len div 2);
+     Left:= EncodeUsingTseitin (Index, Len div 2);
       Right:= EncodeUsingTseitin (Index+ Len div 2, Len- Len div 2);
 
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
 
 //      Temp:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
-      Temp:= LiteralCollectionFactory.GetNewMemeber;
-      Temp.Count:= Modulo;
-
+      T:= TClauseCollection.Create;
+      T.Count:= Modulo;
       for i:= 0 to Modulo- 1 do
       begin
-
-        for j:= 0 to Modulo- 1 do
-          Temp.Item [j]:= VariableGenerator.CreateVariableDescribingAND
-                               (
-                               Left.Item [j],
-                               Right.Item [(i- j+ Modulo) mod Modulo]
-                               );
-        Result.Item [i]:= VariableGenerator.CreateVariableDescribingOR (Temp);
+        T.Item [i]:= LiteralCollectionFactory.GetNewMemeber;
+        T.Item [i].Count:= Modulo;
 
       end;
 
-      LiteralCollectionFactory.ReleaseMemeber (Temp);
+
+
+      for i:= 0 to Modulo- 1 do
+        for j:= 0 to Modulo- 1 do
+          T.Item [i].Item [j]:= VariableGenerator.CreateVariableDescribingAND
+                               (
+                               Left.Item [i],
+                               Right.Item [j]
+                               );
+      for i:= 0 to Modulo- 1 do
+      begin
+        CNFGenerator.BeginConstraint;
+
+        for j:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [(j- i+ Modulo) mod Modulo]);
+
+        Result.Item [i]:= VariableGenerator.CreateNewVariable;
+        CNFGenerator.SubmitOrGate (Result.Item [i]);
+
+      end;
+
+      {
+      ~T^i_0 & ~T^i_1 &...T^i_{M-1}\Rightarrow ~Left [i];
+      ~T^0_j & ~T^1_j &...T^{M-1}_j\Rightarrow ~Right [j];
+      }
+      for i:= 0 to Modulo- 1 do{Medium mode}
+      begin
+        CNFGenerator.BeginConstraint;
+
+        for j:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [j]);
+        CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
+        CNFGenerator.SubmitClause;
+
+      end;
+      for j:= 0 to Modulo- 1 do
+      begin
+        CNFGenerator.BeginConstraint;
+
+        for i:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [j]);
+        CNFGenerator.AddLiteral (NegateLiteral (Right.Item [j]));
+        CNFGenerator.SubmitClause;
+
+      end;
+
+      for i:= 0 to Modulo- 1 do
+        LiteralCollectionFactory.ReleaseMemeber (T.Item [i]);
 
 {
       Left.Free;
@@ -180,7 +223,8 @@ var
   }
   var
     Left, Right: TLiteralCollection;
-    i, k, k1, k2: Integer;
+    T: TClauseCollection;//a Collection of LiteralCollection
+    i, j, k, k1{, k2}: Integer;
 
   begin
 
@@ -205,67 +249,88 @@ var
       Left:= EncodeDirectly (Index, Len div 2);
       Right:= EncodeDirectly (Index+ Len div 2, Len- Len div 2);
 
+      {
+      Intrduce T^i_j<=>L [i] & R [j].
+
+      Result [c]= \bigvee_{i=0}^M T^i_{c-i}
+      }
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
       for i:= 0 to Modulo- 1 do
         Result.Item [i]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
 
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
+      T:= TClauseCollection.Create;
+      T.Count:= Modulo;
+
+      for i:= 0 to Modulo- 1 do
+      begin
+        T.Item [i]:= LiteralCollectionFactory.GetNewMemeber;
+        T.Item [i].Count:= Modulo;
+
+        for j:= 0 to Modulo- 1 do
         begin
           CNFGenerator.BeginConstraint;{Left [i] \land Right [k] => Result [i+ k]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
-          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Right [k] => \lnot Left [i]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (Right.Item [k]);
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Left [k] => \lnot Right [i]}
-
-          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+          T.Item [i].Item [j]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
           CNFGenerator.AddLiteral (Left.Item [i]);
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
+          CNFGenerator.AddLiteral (Left.Item [j]);
+          CNFGenerator.SubmitAndGate (T.Item [i].Item [j]);
 
-          CNFGenerator.SubmitClause;
+        end
 
-        end;
+      end;
 
-      for k1:= 0 to Modulo- 1 do
-        for k2:= k1+ 1 to Modulo- 1 do
+      {
+      ~T^i_0 & ~T^i_1 &...T^i_{M-1}\Rightarrow ~Left [i];
+      ~T^0_j & ~T^1_j &...T^{M-1}_j\Rightarrow ~Right [j];
+      }
+      for i:= 0 to Modulo- 1 do{Medium mode}
+      begin
+        CNFGenerator.BeginConstraint;
+
+        for j:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [j]);
+        CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
+        CNFGenerator.SubmitClause;
+
+      end;
+      for j:= 0 to Modulo- 1 do
+      begin
+        CNFGenerator.BeginConstraint;
+
+        for i:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [j]);
+        CNFGenerator.AddLiteral (NegateLiteral (Right.Item [j]));
+        CNFGenerator.SubmitClause;
+
+      end;
+
+      for k:= 0 to Modulo- 1 do
+      begin
+        CNFGenerator.BeginConstraint;{Left [i] \land Right [k] => Result [i+ k]}
+
+        for i:= 0 to Modulo- 1 do
+          CNFGenerator.AddLiteral (T.Item [i].Item [(k+ Modulo- i) mod Modulo]);
+        CNFGenerator.SubmitOrGate (Result.Item [k]);
+
+      end;
+
+      for i:= 0 to Modulo- 1 do
+        for j:= i+ 1 to Modulo- 1 do
         begin
-          CNFGenerator.BeginConstraint;{Result [k1]=> ~Result [k2]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k1]));
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
-
+          {Result [i]\Rightarrow \lnot Result [j]}
+          CNFGenerator.BeginConstraint;
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [i]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [j]));
           CNFGenerator.SubmitClause;
 
         end;
-
 
 {
       Left.Free;
       Right.Free;
+      T.Free;
 }
       Memory [Len].AddItem (Result);
+      TMemory [Len].AddItem (T);
 
     end;
 
@@ -287,8 +352,8 @@ begin
   end
   else
   begin
-    //    Temp:= EncodeUsingTseitin (0, OrigSum.Count);
-    Temp:= EncodeDirectly (0, OrigSum.Count);
+      Temp:= EncodeUsingTseitin (0, OrigSum.Count);
+//    Temp:= EncodeDirectly (0, OrigSum.Count);
     Result:= Temp.Item [b];
 
   end;
