@@ -55,6 +55,7 @@ type
 
   end;
 
+  TListOfClauseCollection= specialize TGenericCollection<TClauseCollection>;
 
 
   function GetVar (Lit: TLiteral): TVariable; inline;

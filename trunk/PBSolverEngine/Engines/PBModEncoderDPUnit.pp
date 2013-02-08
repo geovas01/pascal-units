@@ -33,7 +33,7 @@ uses
 
 procedure TPBModEncoderDP.AddExtraClauses_Medium;
 var
-  n1, b1, b2: Integer;
+  n1, b1: Integer;
 
 begin
 
@@ -70,20 +70,35 @@ begin
 
   end;
 
-  for n1:= 0 to OrigSum.Count- 1 do
-    for b1:= 0 to Modulo- 1 do
-      if GetVar (DP.Item [n1].Item [b1])<> 0 then
-        for b2:= b1+ 1 to Modulo- 1 do
-          if GetVar (DP.Item [n1].Item [b2])<> 0 then
-          begin
-            VariableGenerator.SatSolver.BeginConstraint;
+    for n1:= 0 to OrigSum.Count- 1 do
+      for b1:= 0 to Modulo- 2 do
+        if GetVar (DP.Item [n1].Item [b1])<> 0 then
+  //        for b2:= b1+ 1 to Modulo- 1 do
+            if GetVar (DP.Item [n1].Item [b1+ 1])<> 0 then
+            begin
+              VariableGenerator.SatSolver.BeginConstraint;
 
-            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b2]));
+              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
+              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1+ 1]));
 
-            VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b2]}
+              VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b1+ 1]}
 
-          end;
+            end;
+
+      for n1:= 0 to OrigSum.Count- 1 do
+        for b1:= 1 to Modulo- 1 do
+          if GetVar (DP.Item [n1].Item [b1])<> 0 then
+    //        for b2:= b1+ 1 to Modulo- 1 do
+              if GetVar (DP.Item [n1].Item [b1- 1])<> 0 then
+              begin
+                VariableGenerator.SatSolver.BeginConstraint;
+
+                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
+                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1- 1]));
+
+                VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b1- 1]}
+
+              end;
 
 end;
 
