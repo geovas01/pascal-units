@@ -1032,10 +1032,17 @@ var
 
 begin
 //  ActiveConstraint:= SimplifyEqualityConstraint (AConstraint);
-  ActiveConstraint:= AConstraint.Copy;
 
   SumOfCoefs:= AConstraint.LHS.SumOfCoefs;
-  if SumOfCoefs.CompareWith (AConstraint.RHS)= 0 then
+
+  if SumOfCoefs.CompareWith (AConstraint.RHS)< 0 then
+  begin
+    Result:= VariableGenerator.FalseLiteral;
+    BigIntFactory.ReleaseMemeber (SumOfCoefs);
+    Exit;
+
+  end
+  else if SumOfCoefs.CompareWith (AConstraint.RHS)= 0 then
   begin
 
     Result:= CreateLiteral (VariableGenerator.CreateNewVariable (vpFalse, True), False);
@@ -1050,7 +1057,7 @@ begin
 
   end;
 
-//  VariableGenerator.CreateNewVariable;
+  ActiveConstraint:= AConstraint.Copy;
 
   if ActiveConstraint= nil then
   begin
