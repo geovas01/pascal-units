@@ -1014,6 +1014,9 @@ begin
 
       if Lit= VariableGenerator.FalseLiteral then
       begin
+        CNFGenerator.BeginConstraint;
+        CNFGenerator.AddLiteral (VariableGenerator.FalseLiteral);
+        CNFGenerator.SubmitClause;
         Result:= False;
         Break;
 
@@ -1045,17 +1048,13 @@ begin
 
   end;
 
-  if Result then
-  begin
-  //To handle empty problems
-    CNFGenerator.BeginConstraint;
-    CNFGenerator.AddLiteral (VariableGenerator.TrueLiteral);
-    CNFGenerator.AbortConstraint;
+//To handle empty problems
+  CNFGenerator.BeginConstraint;
+  CNFGenerator.AddLiteral (VariableGenerator.TrueLiteral);
+  CNFGenerator.AbortConstraint;
 
-    ReportLn ('c Calling SatSolver');
-    Result:= CNFGenerator.Solve;
-
-  end;
+  ReportLn ('c Calling SatSolver');
+  Result:= CNFGenerator.Solve;
 
   if PrintResult then
   begin
