@@ -45,28 +45,34 @@ begin
       if GetVar (DP.Item [n1].Item [b1])<> 0 then
         VariableGenerator.SatSolver.AddLiteral (DP.Item [n1].Item [b1]);
 
+    Write ('( ');
+    for b1:= 0 to Modulo- 1 do
+      if GetVar (DP.Item [n1].Item [b1])<> 0 then
+        Write (LiteralToString (DP.Item [n1].Item [b1]), ' ');
+    WriteLn (')');
+
     VariableGenerator.SatSolver.SubmitClause; {DP [i][0] or DP [i][0] or ... DP [i][Modulo- 1]}
 
   end;
 
-
   for n1:= 1 to OrigSum.Count- 1 do
   begin
-    VariableGenerator.SatSolver.BeginConstraint;
 
     for b1:= 0 to Modulo- 1 do
       if (GetVar (DP.Item [n1].Item [b1])<> 0) and
          (GetVar (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo])<> 0) and
          (GetVar (DP.Item [n1- 1].Item [b1])<> 0) then
       begin
-         VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-         VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [b1]);
-         VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo]); (*  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}  *)
+        VariableGenerator.SatSolver.BeginConstraint;
 
+        VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [b1]);
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo]); (*  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}  *)
+
+        VariableGenerator.SatSolver.SubmitClause;
 
       end;
 
-    VariableGenerator.SatSolver.SubmitClause;
 
   end;
 
@@ -380,6 +386,17 @@ begin
 
 //  IterEncode (OrigSum.Count, Modulo);
 //  Result:= DP.Item [OrigSum.Count].Item [b]
+
+  WriteLn ('PBModEncoderDPUnit');
+  WriteLn ('OrigSum= ', OrigSum.ToString, ' = ', b, ' (', Modulo, ')');
+  for i:= 0 to OrigSum.Count- 1 do
+  begin
+    for j:= 0 to Dp.Item [i].Count- 1 do
+      Write (LiteralToString (Dp.Item [i].Item [j]), ' ');
+    WriteLn;
+
+  end;
+  WriteLn;
 
 end;
 
