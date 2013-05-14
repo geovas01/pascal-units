@@ -972,7 +972,8 @@ begin
      (UpperCase (GetRunTimeParameterManager.ValueByName ['--BreakSymmetry'])<> '') then
     BreakSymmetries (Problem);
 
-  Problem.DescribeNonLinearVariables;
+  if not (UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser')) then
+    Problem.DescribeNonLinearVariables;
   Result:= True;
 
   if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
@@ -1052,6 +1053,9 @@ begin
   CNFGenerator.BeginConstraint;
   CNFGenerator.AddLiteral (VariableGenerator.TrueLiteral);
   CNFGenerator.AbortConstraint;
+
+  if UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser') then
+    Problem.DescribeNonLinearVariables;
 
   ReportLn ('c Calling SatSolver');
   Result:= CNFGenerator.Solve;

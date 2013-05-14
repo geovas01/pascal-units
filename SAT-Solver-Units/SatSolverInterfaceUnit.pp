@@ -51,7 +51,7 @@ type
     property NoOfLiteralInTopConstraint [gbValue: TGroundBool]: Integer read GetNoOfLiteralInTopConstraint;
     property CNF: TClauseCollection read GetCNF;
 
-    procedure AddComment (var Comment: AnsiString); virtual;
+    procedure AddComment (Comment: AnsiString); virtual;
 
 //    function GenerateNewVariable (VariablePolrity: TVariablePolarity= vpNone; Decide: Boolean= True): Integer; virtual; abstract;
     function GenerateNewVariable (VariablePolrity: TVariablePolarity; Decide: Boolean): Integer; virtual; abstract;
@@ -243,7 +243,7 @@ begin
 
 end;
 
-procedure TSATSolverInterface.AddComment (var Comment: AnsiString);
+procedure TSATSolverInterface.AddComment (Comment: AnsiString);
 begin
 
 end;

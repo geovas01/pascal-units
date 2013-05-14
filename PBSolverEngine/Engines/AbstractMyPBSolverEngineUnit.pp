@@ -1048,8 +1048,8 @@ begin
     Result:= CreateLiteral (VariableGenerator.CreateNewVariable (vpFalse, True), False);
 
     CNFGenerator.BeginConstraint;
-    for i:= 0 to ActiveConstraint.LHS.Count- 1 do
-      CNFGenerator.AddLiteral (ActiveConstraint.LHS.Literal [i]);
+    for i:= 0 to AConstraint.LHS.Count- 1 do
+      CNFGenerator.AddLiteral (AConstraint.LHS.Literal [i]);
     CNFGenerator.SubmitAndGate (Result);
 
     BigIntFactory.ReleaseMemeber (SumOfCoefs);
@@ -1111,6 +1111,7 @@ begin
 
     EncodingResult:= EncodeModularityConstraint (AConstraint, ActiveConstraint.LHS, Modulos.Item [i], Residue);
 
+    SatSolverInterfaceUnit.GetSatSolver.AddComment ('Literal for '+ IntToStr (bp)+ ':'+ LiteralToString (EncodingResult));
     Literals.AddItem (EncodingResult);
 
     if EncodingResult= GetVariableManager.FalseLiteral then
@@ -1123,6 +1124,7 @@ begin
   end;
 
   Result:= VariableGenerator.CreateVariableDescribingAND (Literals);
+  SatSolverInterfaceUnit.GetSatSolver.AddComment ('Literal for constraint:'+ LiteralToString (Result));
 
   {
   Having an equation \sum a_ix_i= b, forcing \sum a_ix_i\le b, using my encoding, does not help.

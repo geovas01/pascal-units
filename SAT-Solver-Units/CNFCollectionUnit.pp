@@ -5,7 +5,7 @@ interface
 
 uses
   Classes, SysUtils, ClauseUnit, MiniSatSolverInterfaceUnit,
-    StreamUnit;
+    StreamUnit, MyTypes;
 
 type
 
@@ -14,6 +14,8 @@ type
   TCNFCollection= class (TMiniSatSolverInterface)
   private
     AllClauses: TClauseCollection;
+    AllComments: TStringList;
+    CommentLineIndices: TIntegerCollection;
 
   protected
     function GetCNF: TClauseCollection; override;
@@ -29,6 +31,8 @@ type
     procedure SaveToFile (AnStream: TMyTextStream);
     procedure LoadFromFile (AnStream: TMyTextStream);
 
+    procedure AddComment (Comment: AnsiString); override;
+
   end;
 
 implementation
@@ -42,12 +46,16 @@ begin
   inherited Create;
 
   AllClauses:= TClauseCollection.Create;
+  AllComments:= TStringList.Create;
+  CommentLineIndices:= TIntegerCollection.Create;
 
 end;
 
 destructor TCNFCollection.Destroy;
 begin
   AllClauses.Free;
+  AllComments.Free;
+  CommentLineIndices.Free;
 
   inherited Destroy;
 
@@ -155,6 +163,7 @@ procedure TCNFCollection.SaveToFile (AnStream: TMyTextStream);
 
 var
   i, j: Integer;
+  CommentIndex: Integer;
   Lit: TLiteral;
   ActiveClause: TClause;
   MaxVarIndex: Integer;
@@ -163,10 +172,22 @@ var
 
 begin
   MaxVarIndex:= -1;
+  CommentIndex:= 0;
 
   for i:= 0 to AllClauses.Count- 1 do
   begin
-    ActiveClause:= AllClauses.Item [i];
+{
+    while CommentIndex< AllComments.Count do
+      if CommentLineIndices.Item [CommentIndex]= i then
+      begin
+        AnStream.WriteLine (AllComments [CommentIndex]);
+        Inc (CommentIndex);
+
+      end
+      else
+        break;
+ }
+      ActiveClause:= AllClauses.Item [i];
 
     for j:= 0 to ActiveClause.Count- 1 do
       if MaxVarIndex< GetVar (ActiveClause.Item [j]) then
@@ -249,6 +270,13 @@ end;
 
 procedure TCNFCollection.LoadFromFile(AnStream: TMyTextStream);
 begin
+
+end;
+
+procedure TCNFCollection.AddComment (Comment: AnsiString);
+begin
+  AllComments.Add (Comment);
+  CommentLineIndices.AddItem (AllClauses.Count);
 
 end;
 
