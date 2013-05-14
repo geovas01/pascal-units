@@ -377,9 +377,6 @@ begin
 
   for i:= 0 to NonLinearVariableDescriptions.Count- 1 do
   begin
-    WriteLn ('No support for nonlinear Variables!');
-    Halt (1);
-
     ActiveLiteralCollection:= TLiteralCollection (NonLinearVariableDescriptions.Items [i]);
     ActiveLit:= CorrespondingLinearVariables.Item [i];
 

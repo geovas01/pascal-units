@@ -40,12 +40,39 @@ uses
 procedure TPBModEncoderDC.AddExtraClauses_Medium;
 var
   l, i: Integer;
-  ActiveAnswer: TLiteralCollection;
   b1, b2: Integer;
   Ignore: Boolean;
 
 begin
+  {Direct Construction}
   {
+  for l:= 1 to High (Memory) do
+    for i:= 0 to Memory [l].Count- 1 do
+      begin
+        T:= Memory [l].Item [i];
+        L:= Memory [l- 1].Item [2* i];
+        R:= Memory [l- 1].Item [2* i+ 1];
+
+{        for b1:= 0 to Modulo- 1 do
+          if GetVar (ActiveAnswer.Item [b1])<> 0 then
+            for b2:= b1+ 1 to Modulo- 1 do
+              if GetVar (ActiveAnswer.Item [b2])<> 0 then
+                if (ActiveAnswer.Item [b1]<> VariableGenerator.FalseLiteral) and
+                   (ActiveAnswer.Item [b2]<> VariableGenerator.FalseLiteral) then
+                begin
+                  VariableGenerator.SatSolver.BeginConstraint;
+
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b1]));
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b2]));
+
+                  VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
+
+                end;
+}
+      end;
+}
+
+  { Recursive Construction
   These sets of clauses are already there!
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
@@ -69,10 +96,8 @@ begin
                 end;
 
       end;
-   }
 
-{
-  These sets of clauses are already there!
+{  These sets of clauses are already there!}
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
     begin
@@ -97,6 +122,7 @@ begin
 
     end;
  }
+
 end;
 
 procedure TPBModEncoderDC.AddExtraClauses_High;
@@ -222,6 +248,23 @@ var
 
         end;
 
+      for k1:= 0 to Modulo- 1 do
+        for k2:= k1+ 1 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [k1]=> ~Result [k2]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k1]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      CNFGenerator.BeginConstraint;{Result [0], Result [1], ..., Result [Modulo- 1]}
+      for i:= 0 to Modulo- 1 do
+        CNFGenerator.AddLiteral (Result.Item [i]);
+      CNFGenerator.SubmitClause;
+
       for k:= 0 to Modulo- 1 do
         for i:= 0 to Modulo- 1 do
         begin
@@ -241,25 +284,64 @@ var
           CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Left [k] => \lnot Right [i]}
 
           CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (Left.Item [i]);
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
+          CNFGenerator.AddLiteral (Left.Item [k]);
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [i]));
 
           CNFGenerator.SubmitClause;
 
         end;
 
-      for k1:= 0 to Modulo- 1 do
-        for k2:= k1+ 1 to Modulo- 1 do
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
         begin
-          CNFGenerator.BeginConstraint;{Result [k1]=> ~Result [k2]}
+          CNFGenerator.BeginConstraint;{\lnot Result [i+ k] \land Right [k] =>  \lnot Left [i]}
 
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k1]));
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
+          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
 
           CNFGenerator.SubmitClause;
 
         end;
 
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{\lnot Result [i+ k] \land Left [k] =>  \lnot Right [i]}
+
+          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [i]));
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [i+ k] \land Left [k] => Right [i]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
+          CNFGenerator.AddLiteral (Right.Item [i]);
+
+          CNFGenerator.SubmitClause;
+
+        end;
+
+      for k:= 0 to Modulo- 1 do
+        for i:= 0 to Modulo- 1 do
+        begin
+          CNFGenerator.BeginConstraint;{Result [i+ k] \land Left [k] => Right [i]}
+
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
+          CNFGenerator.AddLiteral (Right.Item [i]);
+
+          CNFGenerator.SubmitClause;
+
+        end;
 
 {
       Left.Free;
