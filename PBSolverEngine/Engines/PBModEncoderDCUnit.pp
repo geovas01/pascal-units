@@ -42,10 +42,12 @@ var
   l, i: Integer;
   b1, b2: Integer;
   Ignore: Boolean;
+  ActiveAnswer: TLiteralCollection;
 
 begin
+
   {Direct Construction}
-  {
+{
   for l:= 1 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
       begin
@@ -53,7 +55,7 @@ begin
         L:= Memory [l- 1].Item [2* i];
         R:= Memory [l- 1].Item [2* i+ 1];
 
-{        for b1:= 0 to Modulo- 1 do
+        for b1:= 0 to Modulo- 1 do
           if GetVar (ActiveAnswer.Item [b1])<> 0 then
             for b2:= b1+ 1 to Modulo- 1 do
               if GetVar (ActiveAnswer.Item [b2])<> 0 then
@@ -68,12 +70,13 @@ begin
                   VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
 
                 end;
-}
+
       end;
 }
 
-  { Recursive Construction
-  These sets of clauses are already there!
+
+  { Recursive Construction}
+
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
       begin
@@ -97,7 +100,6 @@ begin
 
       end;
 
-{  These sets of clauses are already there!}
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
     begin
@@ -121,7 +123,7 @@ begin
         VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
 
     end;
- }
+
 
 end;
 
@@ -265,84 +267,6 @@ var
         CNFGenerator.AddLiteral (Result.Item [i]);
       CNFGenerator.SubmitClause;
 
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Right [k] => \lnot Left [i]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (Right.Item [k]);
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land \lnot Left [k] => \lnot Right [i]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (Left.Item [k]);
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [i]));
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{\lnot Result [i+ k] \land Right [k] =>  \lnot Left [i]}
-
-          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{\lnot Result [i+ k] \land Left [k] =>  \lnot Right [i]}
-
-          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [i]));
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land Left [k] => Right [i]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
-          CNFGenerator.AddLiteral (Right.Item [i]);
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
-      for k:= 0 to Modulo- 1 do
-        for i:= 0 to Modulo- 1 do
-        begin
-          CNFGenerator.BeginConstraint;{Result [i+ k] \land Left [k] => Right [i]}
-
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [(i+ k) mod Modulo]));
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [k]));
-          CNFGenerator.AddLiteral (Right.Item [i]);
-
-          CNFGenerator.SubmitClause;
-
-        end;
-
 {
       Left.Free;
       Right.Free;
@@ -369,8 +293,8 @@ begin
   end
   else
   begin
-//      Temp:= EncodeUsingTseitin (0, OrigSum.Count);
-    Temp:= EncodeDirectly (0, OrigSum.Count);
+      Temp:= EncodeUsingTseitin (0, OrigSum.Count);
+//    Temp:= EncodeDirectly (0, OrigSum.Count);
 
     Result:= Temp.Item [b];
 
