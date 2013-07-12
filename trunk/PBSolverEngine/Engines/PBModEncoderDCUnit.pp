@@ -100,6 +100,12 @@ begin
 
       end;
 
+
+end;
+
+procedure TPBModEncoderDC.AddExtraClauses_High;
+begin
+
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
     begin
@@ -124,12 +130,6 @@ begin
 
     end;
 
-
-end;
-
-procedure TPBModEncoderDC.AddExtraClauses_High;
-begin
-// Do Nothing ..
 end;
 
 type
