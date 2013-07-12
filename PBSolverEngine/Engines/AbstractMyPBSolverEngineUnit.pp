@@ -313,16 +313,12 @@ begin
   if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DP') then
     PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
-  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DC') then
-  begin
-//    if Modulo< 4* ln (Coefs.Count)/ ln (2.0) then
-      PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator,
+  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DCDirect') then
+      PBModEncoder:= TPBModEncoderDCUsingDirect.Create (AConstraint, VariableGenerator,
                                       Coefs, b, OrigSum, Modulo)
-{    else
-      PBModEncoder:= TPBModEncoderDP.Create (AConstraint, VariableGenerator,
-                                        Coefs, b, OrigSum, Modulo);
-}
-  end
+  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('DCTseitin') then
+      PBModEncoder:= TPBModEncoderDCUsingTseitin.Create (AConstraint, VariableGenerator,
+                                      Coefs, b, OrigSum, Modulo)
   else if UpperCase (Copy (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'), 1, Length ('Adder')))= UpperCase ('Adder') then
   begin
      PBModEncoder:= TPBModEncoderUsingAdders.Create (AConstraint, VariableGenerator,
@@ -351,7 +347,7 @@ begin
     VariableGenerator.SetSimulationMode;
     DCCost:= VariableGenerator.LastUsedCNFIndex;
 
-    PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator, Coefs, b, OrigSum,
+    PBModEncoder:= TPBModEncoderDCUsingDirect.Create (AConstraint, VariableGenerator, Coefs, b, OrigSum,
                         Modulo);
     PBModEncoder.EncodePBMod;
     PBModEncoder.Free;
@@ -369,7 +365,7 @@ begin
     Winner:= '';
     if Min (DPCost, Min (CardCost, DCCost))= DCCost then
     begin
-      PBModEncoder:= TPBModEncoderDC.Create (AConstraint, VariableGenerator,
+      PBModEncoder:= TPBModEncoderDCUsingDirect.Create (AConstraint, VariableGenerator,
                                 Coefs, b, OrigSum, Modulo);
       Winner:= 'DC';
 
@@ -396,7 +392,7 @@ begin
   else
   begin
     WriteLn ('c Invalid --ModularEncoder: "', GetRunTimeParameterManager.ValueByName ['--ModularEncoder'], '"');
-    WriteLn ('c ModularEncoder can be "DP", "DC", "SN", "Card.DP", "Card.DC", "Card.SN"');
+    WriteLn ('c ModularEncoder can be "DP", "DCDirect", "DCTseitin", "SN", "Card.DP", "Card.DC", "Card.SN"');
     Halt (1);
 
   end;
