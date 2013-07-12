@@ -16,11 +16,7 @@ type
   protected
     Memory: array of TListOfLiteralCollection;
 
-    procedure AddExtraClauses_Medium; override;
-    procedure AddExtraClauses_High; override;
-
-  public
-    function EncodePBMod: TLiteral; override;
+   public
 
     destructor Destroy; override;
     constructor Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
@@ -30,50 +26,45 @@ type
 
   end;
 
+  { TPBModEncoderDCUsingDirect }
+
+  TPBModEncoderDCUsingDirect= class (TPBModEncoderDC)
+  protected
+    procedure AddExtraClauses_Medium; override;
+    procedure AddExtraClauses_High; override;
+
+  public
+    function EncodePBMod: TLiteral; override;
+
+  end;
+
+  { TPBModEncoderDCUsingTseitin }
+
+  TPBModEncoderDCUsingTseitin= class (TPBModEncoderDC)
+  protected
+    procedure AddExtraClauses_Medium; override;
+    procedure AddExtraClauses_High; override;
+
+  public
+    function EncodePBMod: TLiteral; override;
+
+  end;
+
+
 
 implementation
 uses
   ParameterManagerUnit, GenericFactoryUnit;
 
-{ TPBModEncoderDC }
+{ TPBModEncoderDCUsingTseitin }
 
-procedure TPBModEncoderDC.AddExtraClauses_Medium;
+procedure TPBModEncoderDCUsingTseitin.AddExtraClauses_Medium;
 var
   l, i: Integer;
   b1, b2: Integer;
-  Ignore: Boolean;
   ActiveAnswer: TLiteralCollection;
 
 begin
-
-  {Direct Construction}
-{
-  for l:= 1 to High (Memory) do
-    for i:= 0 to Memory [l].Count- 1 do
-      begin
-        T:= Memory [l].Item [i];
-        L:= Memory [l- 1].Item [2* i];
-        R:= Memory [l- 1].Item [2* i+ 1];
-
-        for b1:= 0 to Modulo- 1 do
-          if GetVar (ActiveAnswer.Item [b1])<> 0 then
-            for b2:= b1+ 1 to Modulo- 1 do
-              if GetVar (ActiveAnswer.Item [b2])<> 0 then
-                if (ActiveAnswer.Item [b1]<> VariableGenerator.FalseLiteral) and
-                   (ActiveAnswer.Item [b2]<> VariableGenerator.FalseLiteral) then
-                begin
-                  VariableGenerator.SatSolver.BeginConstraint;
-
-                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b1]));
-                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b2]));
-
-                  VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
-
-                end;
-
-      end;
-}
-
 
   { Recursive Construction}
 
@@ -100,42 +91,40 @@ begin
 
       end;
 
-
 end;
 
-procedure TPBModEncoderDC.AddExtraClauses_High;
+procedure TPBModEncoderDCUsingTseitin.AddExtraClauses_High;
+var
+  l, i: Integer;
+  b1: Integer;
+  Ignore: Boolean;
+  ActiveAnswer: TLiteralCollection;
+
 begin
 
   for l:= 0 to High (Memory) do
     for i:= 0 to Memory [l].Count- 1 do
-    begin
-      ActiveAnswer:= Memory [l].Item [i];
-      Ignore:= False;
+      begin
+        ActiveAnswer:= Memory [l].Item [i];
 
-      VariableGenerator.SatSolver.BeginConstraint;
-      for b1:= 0 to Modulo- 1 do
-        if ActiveAnswer.Item [b1]= VariableGenerator.FalseLiteral then
-        else if ActiveAnswer.Item [b1]= VariableGenerator.TrueLiteral then
-          begin
-            VariableGenerator.SatSolver.AbortConstraint;
-            Ignore:= True;
-            Break;
+        VariableGenerator.SatSolver.BeginConstraint;
 
-          end
-          else
+        for b1:= 0 to Modulo- 1 do
+          if GetVar (ActiveAnswer.Item [b1])<> 0 then
             VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
 
-      if not Ignore then
-        VariableGenerator.SatSolver.SubmitClause;// Result [0] or  Result [1] or ... or Result [Modulo- 1]
+        VariableGenerator.SatSolver.SubmitClause;// Result[0] \lor Result [1] \lor Result [M-1]
 
-    end;
+      end;
+
 
 end;
 
 type
   TLiteralCollectionFactory= specialize TGenericFactoy<TLiteralCollection>;
 
-function TPBModEncoderDC.EncodePBMod: TLiteral;
+
+function TPBModEncoderDCUsingTseitin.EncodePBMod: TLiteral;
 var
   LiteralCollectionFactory: TLiteralCollectionFactory;
 
@@ -201,6 +190,45 @@ var
     end;
 
   end;
+
+var
+  Temp: TLiteralCollection;
+
+begin
+  LiteralCollectionFactory:= TLiteralCollectionFactory.Create;
+
+  if OrigSum.Count= 0 then
+  begin
+    if b= 0 then
+      Result:=  VariableGenerator.TrueLiteral
+    else
+      Result:=  VariableGenerator.FalseLiteral;
+
+  end
+  else
+  begin
+      Temp:= EncodeUsingTseitin (0, OrigSum.Count);
+
+    Result:= Temp.Item [b];
+
+  end;
+  LiteralCollectionFactory.Free;
+
+end;
+
+{ TPBModEncoderDCUsingDirect }
+
+procedure TPBModEncoderDCUsingDirect.AddExtraClauses_Medium;
+begin
+end;
+
+procedure TPBModEncoderDCUsingDirect.AddExtraClauses_High;
+begin
+end;
+
+function TPBModEncoderDCUsingDirect.EncodePBMod: TLiteral;
+var
+  LiteralCollectionFactory: TLiteralCollectionFactory;
 
   function EncodeDirectly (Index: Integer; Len: Integer): TLiteralCollection;
   {
@@ -293,8 +321,7 @@ begin
   end
   else
   begin
-      Temp:= EncodeUsingTseitin (0, OrigSum.Count);
-//    Temp:= EncodeDirectly (0, OrigSum.Count);
+    Temp:= EncodeDirectly (0, OrigSum.Count);
 
     Result:= Temp.Item [b];
 
@@ -302,6 +329,8 @@ begin
   LiteralCollectionFactory.Free;
 
 end;
+
+{ TPBModEncoderDC }
 
 destructor TPBModEncoderDC.Destroy;
 var
