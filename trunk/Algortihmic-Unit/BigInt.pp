@@ -92,11 +92,11 @@ type
     {Returns a new TBigInt which is equal to Self^n}
     function Pow (n: Integer): TBigInt;
 
-    private
+  private
     constructor Create; overload;
     constructor Create (S: PChar); overload;
-    public
     destructor Destroy; override;
+  public
 
     {
       Sets Self to the integer represented by S, and return Self
@@ -1019,5 +1019,10 @@ begin
   BigIntFactory.Free;
 
 end;
+
+initialization
+  Initialize;
+finalization
+  Finalize;
 
 end.
