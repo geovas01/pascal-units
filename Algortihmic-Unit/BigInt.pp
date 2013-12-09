@@ -50,7 +50,13 @@ type
     }
     function MulByDigit (n: Integer): TBigInt;
 
+    { Returns True if the BitIndex-th bit of Self is one.
+    BitIndex = 1 refers to the least significat bit of Self.
+    }
+    function CheckBit (BitIndex: Integer): Boolean;
   public
+   {Returns the Index-th digit in the decimal representation of Self.
+    Index = 0 means the least significant digit.}
     property Digits [Index: Integer]: Byte read GetDigit write SetDigit;
     property Length: Integer read FLength write SetLen;
 
@@ -76,6 +82,11 @@ type
     {Returns a new BigInt which is equal to Self mod m}
     function Modulo (m: TBigInt): TBigInt;
 
+    {Returns a new BigInt which is equal to ``Self and n''}
+    function ArithmaticAnd (n: TBigInt): TBigInt;
+    {Returns a new BigInt which is equal to ``Self or n''}
+    function ArithmaticOr (n: TBigInt): TBigInt;
+
     {Returns a new BigInt which is equal to log of Self in base 2}
     function Log: TBigInt;
 
@@ -84,7 +95,7 @@ type
     function Copy: TBigInt;
     function ToString: AnsiString;
 
-    {Divides itself by two and returns a new TBigInt}
+    {Divides self by two and returns a new TBigInt}
     function Div2: TBigInt;
     {Multiplies itself by two and returns Self}
     function Mul2: TBigInt;
@@ -234,6 +245,55 @@ begin
       Result.Sub (m);
 
   end;
+
+end;
+
+function TBigInt.ArithmaticAnd (n: TBigInt): TBigInt;
+var
+  i: Integer;
+  P2: TBigInt;
+
+begin
+  i:= 1;
+  P2:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+  Result:= BigIntFactory.GetNewMemeber.SetValue (0);
+
+  while (0<= Self.CompareWith (P2)) and (0<= n.CompareWith (P2)) do
+  begin
+    if Self.CheckBit (i) and n.CheckBit (i) then
+      Result.Add (P2);
+
+    P2.Add (P2);
+    Inc (i);
+
+  end;
+
+  BigIntFactory.ReleaseMemeber (P2);
+
+end;
+
+function TBigInt.ArithmaticOr (n: TBigInt): TBigInt;
+var
+  i: Integer;
+  P2: TBigInt;
+
+begin
+  i:= 1;
+  P2:= BigIntFactory.GetNewMemeber.SetValue (1);
+
+  Result:= BigIntFactory.GetNewMemeber.SetValue (0);
+
+  while (0<= Self.CompareWith (P2)) and (0<= n.CompareWith (P2)) do
+  begin
+    if Self.CheckBit (i) and n.CheckBit (i) then
+      Result.Add (P2);
+
+    P2.Add (P2);
+
+  end;
+
+  BigIntFactory.ReleaseMemeber (P2);
 
 end;
 
@@ -882,6 +942,29 @@ begin
     Carry:= Carry div 10;
 
   end;
+
+end;
+
+function TBigInt.CheckBit (BitIndex: Integer): Boolean;
+var
+  i: Integer;
+  Temp1, Temp2: TBigInt;
+
+begin
+  Temp1:= Self.Copy;
+
+  for i:= 1 to BitIndex- 1 do
+  begin
+    Temp2:= Temp1.Div2;
+    BigIntFactory.ReleaseMemeber (Temp1);
+
+    Temp1:= Temp2;
+
+  end;
+
+  Result:= Odd (Temp1.Digits [0]);
+
+  BigIntFactory.ReleaseMemeber (Temp1);
 
 end;
 

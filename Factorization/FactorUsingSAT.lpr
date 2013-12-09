@@ -9,11 +9,32 @@ uses
   Classes, SatSolverInterfaceUnit, ParameterManagerUnit, MiniSatSolverUnit,
   SysUtils, BigInt, FactoringUsingSATUnit, AbstractSolverUnit,
   CNFCollectionUnit, TSeitinVariableUnit, BinaryEncodingForFactoringUnit,
-  BitVector, BaseCircuitUnit;
+  BitVectorUnit, BaseCircuitUnit, BinaryArithmeticCircuitUnit,
+  BaseArithmeticCircuitUnit;
+
+procedure Initialize;
+begin
+  ParameterManagerUnit.Initialize;
+
+  SatSolverInterfaceUnit.Initialize;
+  TSeitinVariableUnit.Initialize;
+  FactoringUsingSATUnit.Initialize ('BinaryRep');
+
+end;
+
+procedure Finalize;
+begin
+  FactoringUsingSATUnit.Finalize;
+
+  SatSolverInterfaceUnit.Finalize;
+  TSeitinVariableUnit.Finalize;
+  ParameterManagerUnit.Finalize;
+
+end;
 
 var
-  n: Integer;
-  CNFCollection: TCNFCollection;
+  n: TBigInt;
+  InputNumber: AnsiString;
 
 begin
   if Paramcount= 0 then
@@ -23,15 +44,14 @@ begin
     Halt (1);
 
   end;
+  Initialize;
 
-  WriteLn (Paramcount);
-  ParameterManagerUnit.Initialize;
-  FactoringUsingSATUnit.Initialize ('BinaryRep');
-  n:= StrToInt (GetRunTimeParameterManager.ValueByName ['--InputNumber']);
 
-  CNFCollection:= TCNFCollection.Create;
-  FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF (
-                BigIntFactory.GetNewMemeber.SetValue (n), CNFCollection);
+  InputNumber:= GetRunTimeParameterManager.ValueByName ['--InputNumber'];
+  n:= BigIntFactory.GetNewMemeber.LoadFromString (@InputNumber[1]);
 
+  FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF (n);//, CNFCollection);
+
+  Finalize;
 end.
 

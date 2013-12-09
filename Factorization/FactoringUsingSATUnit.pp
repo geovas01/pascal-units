@@ -5,8 +5,7 @@ unit FactoringUsingSATUnit;
 interface
 
 uses
-  Classes, SysUtils, BigInt, GenericCollectionUnit,
-    SatSolverInterfaceUnit;
+  Classes, SysUtils, BigInt, GenericCollectionUnit;
 
 type
   TBigIntCollection= specialize TGenericCollection<TBigInt>;
@@ -31,13 +30,15 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure GenerateCNF (n: TBigInt; SatSolver: TSATSolverInterface); virtual; abstract;
+    procedure GenerateCNF (n: TBigInt); virtual; abstract;
 
   end;
 
   function GetActiveFactorizer: TBaseFactorizerUsingSAT;
 
   procedure Initialize (FactorizerMode: AnsiString);
+  procedure Finalize;
+
 implementation
 uses
   BinaryEncodingForFactoringUnit;
@@ -144,11 +145,18 @@ begin
 
 end;
 
+procedure Finalize;
+begin
+  ActiveFactorizer.Free;
+  ActiveFactorizer:= nil;
+
+end;
+
 initialization
   ActiveFactorizer:= nil;
 
 finalization
-  ActiveFactorizer.Free;
+  Finalize;
 
 end.
 

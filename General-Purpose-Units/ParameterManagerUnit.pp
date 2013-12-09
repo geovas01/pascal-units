@@ -92,11 +92,14 @@ const
 
   begin
     Flag:= False;
-    for i:= Low (ValidArguments) to High (ValidArguments)- 3 do
+    for i:= Low (ValidArguments) to High (ValidArguments) do
     begin
 
       if UpperCase (Name)= UpperCase (ValidArguments [i]) then
       begin
+        if UpperCase (ValidArgumentsValues [i][0])= 'NONE' then
+          Exit;
+
         for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i]) do
           if UpperCase (Value)= UpperCase (ValidArgumentsValues [i][j]) then
             Exit;
