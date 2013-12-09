@@ -315,6 +315,7 @@ begin
   SimulationModeStateStack:= TIntegerCollection.Create;
   FSimulationMode:= False;
 
+  CreateTrueVariable;
 {  AndDicTree:= TClauseDicTree.Create;
   OrDicTree:= TClauseDicTree.Create;
 }

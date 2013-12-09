@@ -27,6 +27,7 @@ type
     destructor Destroy; override;
 
     function GetNewVar (VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): Integer; override;
+    procedure SetDecisionVar (Variable: TVariable; SetFlag: Boolean); override;
     function AddClause (AClause: TClause): Boolean; override;
     function Solve: Boolean; override;
     function Solve (Literal: TLiteral): Boolean; override;
@@ -103,6 +104,12 @@ begin
     Result:= MiniSatSolverUnit.cGetNewVar (FSolverID, Ord (VariablePolarity), 1)
   else
     Result:= MiniSatSolverUnit.cGetNewVar (FSolverID, Ord (VariablePolarity), 0);
+
+end;
+
+procedure TMiniSatSolver.SetDecisionVar(Variable: TVariable; SetFlag: Boolean);
+begin
+  WriteLn ('TMiniSatSolver.SetDecisionVar is not implemented!');
 
 end;
 

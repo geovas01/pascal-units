@@ -52,7 +52,20 @@ begin
 end;
 
 destructor TCNFCollection.Destroy;
+var
+  CNFStream: TMyTextStream;
+
 begin
+  if GetRunTimeParameterManager.ValueByName ['--OutputFileName']<> '' then
+  begin
+    CNFStream:= TMyTextStream.Create (
+      TFileStream.Create (GetRunTimeParameterManager.ValueByName ['--OutputFileName'],
+      fmCreate), True);
+    Self.SaveToFile (CNFStream);
+    CNFStream.Free;
+
+  end;
+
   AllClauses.Free;
   AllComments.Free;
   CommentLineIndices.Free;
