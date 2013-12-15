@@ -10,7 +10,7 @@ uses
   SysUtils, BigInt, FactoringUsingSATUnit, AbstractSolverUnit,
   CNFCollectionUnit, TSeitinVariableUnit, BinaryEncodingForFactoringUnit,
   BitVectorUnit, BaseCircuitUnit, BinaryArithmeticCircuitUnit,
-  BaseArithmeticCircuitUnit;
+  BaseArithmeticCircuitUnit, FactoringUsingModulos, GenericCollectionUnit;
 
 procedure Initialize;
 begin
@@ -18,7 +18,7 @@ begin
 
   SatSolverInterfaceUnit.Initialize;
   TSeitinVariableUnit.Initialize;
-  FactoringUsingSATUnit.Initialize ('BinaryRep');
+  FactoringUsingSATUnit.Initialize;// ('BinaryRep');
 
 end;
 

@@ -1,15 +1,14 @@
-  ValidArguments: array [1..9] of AnsiString=
+  ValidArguments: array [1..8] of AnsiString=
     ('--ModularEncoder',
      '--SATSolverType',
-     '--Verbosity',
+     '--FactorizerMode',
      '--ExtraClausesLevel',
-     '--UseRandomPermutation',
+     '--Verbosity',
      '--ModuloMode',
-     '--ForceLessThanConstraints',
      '--InputNumber',
      '--OutputFilename'
     );
-  ValidArgumentsValues: array [1..9] of array [1..9] of AnsiString=
+  ValidArgumentsValues: array [1..8] of array [1..9] of AnsiString=
     (
 //--ModularEncoder:
      ('DP', 'DC', 'CARD.DP', 'CARD.DC', 'CARD.SN', 'Less.Variables', 'SingleSorter.DP',
@@ -17,20 +16,18 @@
 //     '--SATSolverType',
      ('CNFCollection', 'InternalMiniSAT', 'CNFStream', 'NONE', 'NONE', 'NONE',
         'NONE', 'NONE', 'NONE'),
-//     '--ExtraClausesLevel',
-     ('Off', 'Medium', 'High', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE'),
+//     '--FactorizerMode',
+     ('BinaryRep', 'Modulo.Prime.Unary', 'None', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE'),
 //     '--UseRandomPermutation',
-     ('0', '1', 'None', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE'),
-//     '--ModuloMode',
      ('Prime', 'MinimalPrime', 'PrimePower', 'NONE', 'NONE', 'NONE',
                  'NONE', 'NONE', 'NONE'),
-//     '--ForceLessThanConstraints',
+//     '--ModuloMode',
      ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
                    'NONE', 'NONE', 'NONE'),
 //     '--Verbosity',
      ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
          'NONE', 'NONE', 'NONE'),
-//     '--InputFilename',
+//     '--InputNumber',
      ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
        'NONE', 'NONE', 'NONE'),
 //     '--OutputFilename'
