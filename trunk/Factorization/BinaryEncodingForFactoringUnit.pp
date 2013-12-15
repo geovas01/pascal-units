@@ -48,7 +48,6 @@ end;
 procedure TBinaryRepBasedFactorizer.GenerateCNF (n: TBigInt);
 var
   BitCount: Integer;
-  P2: TBigInt;
   a, b, One: TBitVector;
   c, cPrime: TBitVector;
   isEqualLit,
@@ -58,41 +57,13 @@ var
   aG1, bG1: TLiteral;
 
 begin
-  P2:= BigIntFactory.GetNewMemeber.SetValue (2);
-  BitCount:= 1;
-
-  while P2.CompareWith (n)<= 0 do
-  begin
-    Inc (BitCount);
-    P2.Add (P2);
-    WriteLn (BitCount, ' ', n.ToString, ' ', P2.ToString);
-
-  end;
-
-  c:= TBitVector.Create (BitCount, GetVariableManager.FalseLiteral);
-  P2.SetValue (1);
-  for i:= 0 to BitCount- 1 do
-  begin
-    AndResult:= n.ArithmaticAnd (P2);
-//    WriteLn (P2.ToString, ' ', AndResult.ToString);
-
-    if AndResult.IsZero then
-      c [i]:= GetVariableManager.FalseLiteral
-    else
-      c [i]:= GetVariableManager.TrueLiteral;
-
-    BigIntFactory.ReleaseMemeber (AndResult);
-
-    P2.Add (P2);
-
-  end;
-
-  BigIntFactory.ReleaseMemeber (P2);
+  c:= BinaryArithmeticCircuit.BinaryRep (n);
+  BitCount:= C.Count;
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
     WriteLn ('[GenerateCNF] Encoding ', n.ToString, ' needs ', BitCount, ' bits');
-    WriteLn ('[GenerateCNF] n = a * b, where a is a ', (BitCount + 1) div 2, '-bit integer and b has a ', BitCount,'-bit integer.');
+    WriteLn ('[GenerateCNF] n = a * b, where a is a ', BitCount, '-bit integer and b has a ', BitCount,'-bit integer.');
 
   end;
 
