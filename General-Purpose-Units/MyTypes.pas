@@ -31,6 +31,7 @@ type
 
     constructor Create (F: Type1; S: Type2);
 
+
   end;
 
   TIntegerCollection= specialize TGenericCollectionForBuiltInData<Integer>;

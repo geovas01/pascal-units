@@ -5,13 +5,23 @@ unit GenericStackUnit;
 interface
 
 uses
-  Classes, SysUtils, Contnrs;
+  Classes, SysUtils, Contnrs, GenericCollectionUnit;
 
 type
 
+  { EStackIsEmpty }
+
+  EStackIsEmpty= class (Exception)
+    constructor Create;
+
+  end;
+  { TGenericAbstactStack }
+
+  generic TGenericAbstactStack<TData>= class (TObject)
+  end;
   { TGenericStack }
 
-  generic TGenericStack<TData>= class (TObject)
+  generic TGenericStack<TData>= class (specialize TGenericAbstactStack<TData>)
   private
     Stack: TStack;
 
@@ -31,10 +41,118 @@ type
     TGenericStack does not free the members stored in it.
     }
     destructor Destroy; override;
+    procedure Clear;
+
+  end;
+
+    { TGenericStack }
+
+  { TGenericStackForBuildInData }
+
+  generic TGenericStackForBuildInData<TData>= class (specialize TGenericAbstactStack<TData>)
+  private type
+    TDataCollection= specialize TGenericCollectionForBuiltInData<TData>;
+
+  private
+    Elements: TDataCollection;
+
+    function GetCount: Integer;
+    function GetIsEmpty: Boolean;
+    function GetTop: TData;
+  public
+    property Count: Integer read GetCount;
+    property IsEmpty: Boolean read GetIsEmpty;
+    property Top: TData read GetTop;
+
+    function Pop: TData;
+    procedure Push (Data: Tdata);
+
+    constructor Create (InitCapacity: Integer);
+    constructor Create;
+    {
+    TGenericStack does not free the members stored in it.
+    }
+    destructor Destroy; override;
+
+    procedure Clear;
 
   end;
 
 implementation
+
+{ EStackIsEmpty }
+
+constructor EStackIsEmpty.Create;
+begin
+  inherited Create ('Stack is Empty');
+
+end;
+
+{ TGenericStackForBuildInData }
+
+function TGenericStackForBuildInData.GetCount: Integer;
+begin
+  Result:= Top;
+
+end;
+
+function TGenericStackForBuildInData.GetIsEmpty: Boolean;
+begin
+  Result:= (Count= 0);
+
+end;
+
+function TGenericStackForBuildInData.GetTop: TData;
+begin
+  Result:= Elements.Item [Count- 1];
+
+end;
+
+function TGenericStackForBuildInData.Pop: TData;
+begin
+  if IsEmpty then
+    raise EStackIsEmpty.Create;
+
+  Result:= GetTop;
+  Elements.Delete (Count- 1);
+
+end;
+
+procedure TGenericStackForBuildInData.Push (Data: Tdata);
+begin
+  Elements.AddItem (Data);
+
+end;
+
+constructor TGenericStackForBuildInData.Create (InitCapacity: Integer);
+begin
+  inherited Create;
+
+  Elements:= TDataCollection.Create (InitCapacity);
+
+end;
+
+constructor TGenericStackForBuildInData.Create;
+begin
+  inherited Create;
+
+  Elements:= TDataCollection.Create;
+
+end;
+
+destructor TGenericStackForBuildInData.Destroy;
+begin
+  Elements.Free;
+
+  inherited Destroy;
+
+end;
+
+procedure TGenericStackForBuildInData.Clear;
+begin
+  Elements.Clear;
+
+end;
 
 { TGenericStack }
 
@@ -81,6 +199,12 @@ begin
   Stack.Free;
 
   inherited Destroy;
+end;
+
+procedure TGenericStack.Clear;
+begin
+//  Stack.Clear;
+
 end;
 
 end.
