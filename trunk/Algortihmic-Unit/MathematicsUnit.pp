@@ -8,8 +8,30 @@ uses
   Classes, SysUtils;
 
 function Cnr (const n, m: Int64): Int64;
+function gcd (a, b: Int64; var x, y: Int64): Int64;
 
 implementation
+
+function gcd (a, b: Int64; var x, y: Int64): Int64;
+var
+  x1, y1: Int64;
+
+begin
+
+  if a= 0 then
+  begin
+    x:=0;
+    y:=1;
+    Result:= b;
+    Exit;
+
+  end;
+
+  Result:= gcd (b mod a, a, x1, y1);
+  x:= y1- b div a* x1;
+  y:= x1;
+
+end;
 
 function Cnr (const n, m: Int64): Int64;
 
