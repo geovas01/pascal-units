@@ -5,7 +5,6 @@ program PBPASSolver;
 {$DEFINE SYSTEMINLINE}
 {$ASSERTIONS ON}
 
-{$linklib gcc}
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads, 
