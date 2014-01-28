@@ -5,15 +5,24 @@ program PBPASSolver;
 {$DEFINE SYSTEMINLINE}
 {$ASSERTIONS ON}
 
+{$linklib gcc}
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads, 
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, TSeitinVariableUnit, SatSolverInterfaceUnit, PBParserUnit,
-  ProblemDescriptionUnit, AbstractPBSolverUnit,
+  Classes, SysUtils, TSeitinVariableUnit, ClauseUnit, SatSolverInterfaceUnit,
+  CNFCollectionUnit, CNFStreamUnit, MiniSatSolverInterfaceUnit, PBParserUnit,
+  ProblemDescriptionUnit, PBConstraintUnit, LazyProblemDescriptionUnit,
+  AbstractPBSolverUnit, SortingNetworkSorterEncoderUnit,
+  DCBasedSorterEncoderUnit, AbstractMyPBSolverEngineUnit, PBModEncoderDPUnit,
+  AbstractPBModEncoderUnit, PBModEncoderUsingCardUnit,
+  PBModEncoderUsingAdderUnit, MyPBSolverEngineUsingLargeModuloUnit,
+  DPBasedSorterEncoderUnit, MyPBSolverEngineUsingPrimesUnit,
+  AbstractSorterEncoderUnit, PBModEncoderDCUnit,
+  PBModEncoderUsingSingleSorterUnit, AbstractAdderUnit,
   //heaptrc,
-  BigInt,
-  BaseUnix, ParameterManagerUnit, WideStringUnit;
+  BigInt, BaseUnix, ParameterManagerUnit, GenericCollectionUnit,
+  GenericStackUnit, GenericFactoryUnit, StreamUnit, WideStringUnit;
 
 var
   ProblemType: TSpecMode;
@@ -58,13 +67,15 @@ end;
 function CreateLazyPBParser (Stream: TStream): TPBParser;
 var
   S: array [0..100] of Char;
+  Str: AnsiString;
 
 begin
-  S:= '';
+  FillChar (S, SizeOf (S), 0);
   Stream.Read (S, 100);
   Stream.Position:= 0;
+  Str:= S;
 
-  if UpperCase (Copy (S, 1, Length ('* Version 2')))= UpperCase ('* Version 2') then
+  if UpperCase (Copy (Str, 1, Length ('* Version 2')))= UpperCase ('* Version 2') then
     Result:= TLazyVersion2PBParser.Create (Stream)
   else
     Result:= TLazyPBParser.Create (Stream);
@@ -133,6 +144,7 @@ begin
   end;
 
   WriteLn ('<Main>');
+  WriteLn (GetRunTimeParameterManager.GetValueByName ('--InputFilename'));
   Stream:= TFileStream.Create (GetRunTimeParameterManager.GetValueByName ('--InputFilename'), fmOpenRead);
 
   if UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser') then
