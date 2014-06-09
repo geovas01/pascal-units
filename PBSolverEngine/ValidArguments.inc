@@ -13,48 +13,36 @@
      '--OutputFilename',
      '--Assignment'
     );
-  ValidArgumentsValues: array [1..13] of array [1..10] of AnsiString=
+  ValidArgumentsValues: array [1..13] of AnsiString=
     (
 //--ModularEncoder:
-     ('DP', 'DCDirect', 'DCTseitin', 'CARD.DP', 'CARD.DC', 'CARD.SN', 'Less.Variables', 'SingleSorter.DP',
-      'SingleSorter.DC', 'SingleSorter.SN'),
+     'DP:DCDirect:DCTseitin:CARD.DP:CARD.DC:CARD.SN:Less.Variables:'
+     + 'SingleSorter.DP:SingleSorter.DC:SingleSorter.SN:BIN:END',
 //     '--SATSolverType',
-     ('CNFCollection', 'InternalMiniSAT', 'CNFStream', 'NONE', 'NONE', 'NONE',
-        'NONE', 'NONE', 'NONE', 'NONE'),
+     'CNFCollection:InternalMiniSAT:CNFStream:END',
 //     '--Verbosity',
-     ('0', '1', '2', '3', '4', '5', '6', '7', 'NONE', 'NONE'),
+     '0:1:2:3:4:5:6:7:END',
 //     '--ExtraClausesLevel',
-     ('Off', 'Medium', 'High', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE'),
+     'Off:Medium:High:END',
 //     '--UseRandomPermutation',
-     ('0', '1', 'None', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE'),
+     '0:1:END',
 //     '--ModuloMode',
-     ('Prime', 'MinimalPrime', 'PrimePower', 'NONE', 'NONE', 'NONE',
-                 'NONE', 'NONE', 'NONE', 'NONE'),
+     'Prime:MinimalPrime:PrimePower:LogS:END',
 //     '--ForceLessThanForEquality',
-     ('UsingClauses', 'UsingCardinality', 'Disabled', 'NONE', 'NONE', 'NONE',
-                   'NONE', 'NONE', 'NONE', 'NONE'),
+     'UsingClauses:UsingCardinality:Disabled:END',
 ///     '--EncodeAsOneConstraint',
-      ('Disabled', 'NONE', 'NONE', 'NONE', 'NONE', 'NONE',
-              'NONE', 'NONE', 'NONE', 'NONE'),
+      'ENabled:Disabled:END',
 //     '--BreakSymmerty',
-      ('Disabled', 'Level1', 'None', 'NONE', 'NONE', 'NONE',
-              'NONE', 'NONE', 'NONE', 'NONE'),
-
-
+      'Disabled:Level1:END',
 //     '--Parser',
-      ('NOrmalParser', 'LazyParser', 'None', 'NONE', 'NONE', 'NONE',
-              'NONE', 'NONE', 'NONE', 'NONE'),
-
+      'NOrmalParser:LazyParser:END',
 //     '--InputFilename',
-     ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
-       'NONE', 'NONE', 'NONE', 'NONE'),
+     'None:END',
 //     '--OutputFilename'
-            ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
-              'NONE', 'NONE', 'NONE', 'NONE'),
+     'None:END',
 //     '--Assignment'
-     ('NONE', 'NONE', 'None', 'NONE', 'NONE', 'NONE',
-       'NONE', 'NONE', 'NONE', 'NONE')
-    );
+     'None:END'
+);
 
 
 

@@ -200,7 +200,7 @@ begin
       else
         break;
  }
-      ActiveClause:= AllClauses.Item [i];
+    ActiveClause:= AllClauses.Item [i];
 
     for j:= 0 to ActiveClause.Count- 1 do
       if MaxVarIndex< GetVar (ActiveClause.Item [j]) then
@@ -236,26 +236,10 @@ begin
     if 0< ActiveClause.Count then
     begin
       Lit:= ActiveClause.Item [0];
-   
-      if IsNegated (Lit) then
-      begin
-        OutputStringPChar^:= '-'; Inc (OutputStringPChar);// WriteStr ('-', OutputString);
-        WriteInt (GetVar (Lit), OutputStringPChar);
-        Inc (OutputStringPChar)//WriteStr (' ', OutputString);
-
-      end
+      if ((GetValue(GetVar (Lit))= gbTrue) and IsNegated (Lit)) or
+         ((GetValue(GetVar (Lit))= gbFalse) and (not IsNegated (Lit))) then
       else
       begin
-        WriteInt (GetVar (Lit), OutputStringPChar);
-        Inc (OutputStringPChar)//WriteStr (' ', OutputString);
-
-      end;
-
-  
-      for j:= 1 to ActiveClause.Count- 1 do
-      begin
-        Lit:= ActiveClause.Item [j];
-   
         if IsNegated (Lit) then
         begin
           OutputStringPChar^:= '-'; Inc (OutputStringPChar);// WriteStr ('-', OutputString);
@@ -267,6 +251,33 @@ begin
         begin
           WriteInt (GetVar (Lit), OutputStringPChar);
           Inc (OutputStringPChar)//WriteStr (' ', OutputString);
+
+        end;
+
+      end;
+
+  
+      for j:= 1 to ActiveClause.Count- 1 do
+      begin
+        Lit:= ActiveClause.Item [j];
+        if ((GetValue(GetVar (Lit))= gbTrue) and IsNegated (Lit)) or
+           ((GetValue(GetVar (Lit))= gbFalse) and (not IsNegated (Lit))) then
+        else
+        begin
+
+          if IsNegated (Lit) then
+          begin
+            OutputStringPChar^:= '-'; Inc (OutputStringPChar);// WriteStr ('-', OutputString);
+            WriteInt (GetVar (Lit), OutputStringPChar);
+            Inc (OutputStringPChar)//WriteStr (' ', OutputString);
+
+          end
+          else
+          begin
+            WriteInt (GetVar (Lit), OutputStringPChar);
+            Inc (OutputStringPChar)//WriteStr (' ', OutputString);
+
+          end;
 
         end;
 

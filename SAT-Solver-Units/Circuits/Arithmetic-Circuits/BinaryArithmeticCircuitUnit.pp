@@ -5,7 +5,8 @@ unit BinaryArithmeticCircuitUnit;
 interface
 
 uses
-  Classes, SysUtils, BaseArithmeticCircuitUnit, BitVectorUnit, ClauseUnit;
+  Classes, SysUtils, BaseArithmeticCircuitUnit, BitVectorUnit, ClauseUnit,
+  BigInt;
 
 type
 
@@ -32,25 +33,27 @@ type
     function Mul (a, b: TBitVector): TBitVector; override;
     { Result = a div b}
     function Divide (a, b: TBitVector): TBitVector; override;
-
     { Result is True iff a< b}
     function IsLessThan (a, b: TBitVector): TLiteral; override;
     { Result is True iff a= b}
     function IsEqual (a, b: TBitVector): TLiteral; override;
 
+    function BinaryRep (n: TBigInt): TBitVector;
 
   end;
 
 const
-  BinArithmCircuitADD: Integer = 2;
-  BinArithmCircuitMUL: Integer = 3;
-  BinArithmCircuitLessThan: Integer = 4;
+  VerbBinArithmCircuitADD: Integer = 2;
+  VerbBinArithmCircuitMUL: Integer = 3;
+  VerbBinArithmCircuitLessThan: Integer = 4;
 
 implementation
 
 uses
   Math, TSeitinVariableUnit, SatSolverInterfaceUnit,
   ParameterManagerUnit;
+
+
 { TBinaryArithmeticCircuit }
 
 function TBinaryArithmeticCircuit.Add (a, b: TBitVector): TBitVector;
@@ -73,7 +76,7 @@ begin
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (a [0]);
   SatSolver.AddLiteral (b [0]);
-  SatSolver.SubmitAndGate(Carry [0]);
+  SatSolver.SubmitAndGate (Carry [0]);
 
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (a [0]);
@@ -81,7 +84,7 @@ begin
   SatSolver.SubmitXOrGate (Result [0]);
 
   if StrToInt (GetRunTimeParameterManager.ValueByName ['--Verbosity']) and
-     (1 shl BinArithmCircuitADD)<> 0 then
+     (1 shl verbBinArithmCircuitADD)<> 0 then
   begin
     WriteLn ('[Add]: Carry = ', Carry.ToString);
     WriteLn ('[Add]: Result = ', Result.ToString);
@@ -106,7 +109,7 @@ begin
     SatSolver.AddLiteral (bi);
     SatSolver.AddLiteral (Carry [i- 1]);
 
-    SatSolver.SubmitXOrGate (Result [i]);
+    SatSolver.SubmitXOrGate(Result [i]);
 
     // a [i] and b [i] -> Carry [i]
     // a [i] and Carry [i- 1] -> Carry [i]
@@ -143,20 +146,8 @@ begin
 
     SatSolver.BeginConstraint;
     SatSolver.AddLiteral (NegateLiteral (Carry [i]));
-    SatSolver.AddLiteral (ai);
-    SatSolver.AddLiteral (Carry [i- 1]);
-    SatSolver.SubmitClause;
-
-    SatSolver.BeginConstraint;
-    SatSolver.AddLiteral (NegateLiteral (Carry [i]));
     SatSolver.AddLiteral (bi);
     SatSolver.AddLiteral (ai);
-    SatSolver.SubmitClause;
-
-    SatSolver.BeginConstraint;
-    SatSolver.AddLiteral (NegateLiteral (Carry [i]));
-    SatSolver.AddLiteral (bi);
-    SatSolver.AddLiteral (Carry [i- 1]);
     SatSolver.SubmitClause;
 
     SatSolver.BeginConstraint;
@@ -214,7 +205,7 @@ function TBinaryArithmeticCircuit.Mul (a, b: TBitVector): TBitVector;
       Result:= Mat [Start].Copy;
 
       if StrToInt (GetRunTimeParameterManager.ValueByName ['--Verbosity']) and
-         (1 shl BinArithmCircuitMUL)<> 0 then
+         (1 shl verbBinArithmCircuitMUL)<> 0 then
       begin
         WriteLn ('[Mul.ParallelAdder] Mat [', Start, '] = ', Result.ToString);
 
@@ -226,7 +217,7 @@ function TBinaryArithmeticCircuit.Mul (a, b: TBitVector): TBitVector;
     FirstHalf:= ParallelAdder (Mat, Start, (Start+ Finish) div 2);
     SecondHalf:= ParallelAdder (Mat, (Start+ Finish) div 2+ 1, Finish);
     if StrToInt (GetRunTimeParameterManager.ValueByName ['--Verbosity']) and
-       (1 shl BinArithmCircuitMUL)<> 0 then
+       (1 shl VerbBinArithmCircuitMUL)<> 0 then
     begin
       WriteLn ('[Mul.ParallelAdder] FirstHalf= ', FirstHalf.ToString);
       WriteLn ('[Mul.ParallelAdder] SecondHalf= ', SecondHalf.ToString);
@@ -236,7 +227,7 @@ function TBinaryArithmeticCircuit.Mul (a, b: TBitVector): TBitVector;
     Result:= Self.Add (FirstHalf, SecondHalf);
 
     if StrToInt (GetRunTimeParameterManager.ValueByName ['--Verbosity']) and
-       (1 shl BinArithmCircuitMUL)<> 0 then
+       (1 shl VerbBinArithmCircuitMUL)<> 0 then
     begin
       WriteLn ('[Mul.ParallelAdder] Mat [', Start, '] + ...+  Mat [', Finish, '] = ', Result.ToString);
     end;
@@ -267,18 +258,20 @@ begin
    // Mat [i][i + j] <=> a [i] and b[j]
     for j:= 0 to b.Count- 1 do
     begin
-      Mat [i][i+ j]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+      //Mat [i][i+ j]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
       SatSolver.BeginConstraint;
       SatSolver.AddLiteral (a [i]);
       SatSolver.AddLiteral (b [j]);
-      SatSolver.SubmitAndGate (Mat [i][i+ j]);
+      //SatSolver.SubmitAndGate (Mat[i][i+j]);
+      //Mat [i][i+ j]:=
+      Mat [i][i+ j]:= SatSolver.GenerateAndGate;
 
     end;
 
   end;
 
   if StrToInt (GetRunTimeParameterManager.ValueByName ['--Verbosity']) and
-     (1 shl BinArithmCircuitMUL)<> 0 then
+     (1 shl VerbBinArithmCircuitMUL)<> 0 then
   begin
     for i:= 0 to Mat.Count- 1 do
       WriteLn ('[MUL]: Mat [', i, ']= ', Mat [i].ToString);
@@ -329,7 +322,7 @@ begin//a< b
   aiIsEqbi:= TBitVector.Create (a.Count);
   aiIsLbi:= TBitVector.Create (a.Count);
 
-  if GetRunTimeParameterManager.Verbosity and BinArithmCircuitLessThan<> 0 then
+  if GetRunTimeParameterManager.Verbosity and VerbBinArithmCircuitLessThan<> 0 then
   begin
     WriteLn ('[IsLessThan] a: ', a.ToString);
     WriteLn ('[IsLessThan] b: ', b.ToString);
@@ -440,6 +433,47 @@ begin
   Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
   GetSatSolver.SubmitAndGate (Result);//Result<=> \bigwedge_i SameithBit;
 
+
+end;
+
+function TBinaryArithmeticCircuit.BinaryRep (n: TBigInt): TBitVector;
+var
+  P2: TBigInt;
+  BitCount: Integer;
+  i: Integer;
+  AndResult: TBigInt;
+
+begin
+  P2:= BigIntFactory.GetNewMemeber.SetValue (2);
+  BitCount:= 1;
+
+  while P2.CompareWith (n)<= 0 do
+  begin
+    Inc (BitCount);
+    P2.Add (P2);
+    WriteLn (BitCount, ' ', n.ToString, ' ', P2.ToString);
+
+  end;
+
+  Result:= TBitVector.Create (BitCount, GetVariableManager.FalseLiteral);
+  P2.SetValue (1);
+  for i:= 0 to BitCount- 1 do
+  begin
+    AndResult:= n.ArithmaticAnd (P2);
+//    WriteLn (P2.ToString, ' ', AndResult.ToString);
+
+    if AndResult.IsZero then
+      Result [i]:= GetVariableManager.FalseLiteral
+    else
+      Result [i]:= GetVariableManager.TrueLiteral;
+
+    BigIntFactory.ReleaseMemeber (AndResult);
+
+    P2.Add (P2);
+
+  end;
+
+  BigIntFactory.ReleaseMemeber (P2);
 
 end;
 

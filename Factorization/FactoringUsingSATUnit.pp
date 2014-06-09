@@ -61,9 +61,6 @@ begin
            UpperCase ('BinaryRep') then
     ActiveFactorizer:= TBinaryRepBasedFactorizer.Create
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--FactorizerMode'))=
-          UpperCase ('Modulo.Prime.Unary') then
-    ActiveFactorizer:= TPrimesUnaryFactorizer.Create
-  else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--FactorizerMode'))=
            UpperCase ('Modulo.Prime.Binary') then
     ActiveFactorizer:= TPrimesBinaryFactorizer.Create
   else

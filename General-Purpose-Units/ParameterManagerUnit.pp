@@ -33,7 +33,7 @@ function GetRunTimeParameterManager: TRunTimeParameterManager; inline;
 
 implementation
 uses
-  StreamUnit, ExceptionUnit;
+  ExceptionUnit;
 
 var
   RunTimeParameterManager: TRunTimeParameterManager;
@@ -95,35 +95,32 @@ const
     for i:= Low (ValidArguments) to High (ValidArguments) do
     begin
 
-      if UpperCase (Name)= UpperCase (ValidArguments [i]) then
+      if UpperCase (Name) = UpperCase(ValidArguments[i]) then
       begin
-        if UpperCase (ValidArgumentsValues [i][0])= 'NONE' then
+        if Pos('NONE', UpperCase(ValidArgumentsValues[i])) <> 0 then
           Exit;
 
-        for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i]) do
-          if UpperCase (Value)= UpperCase (ValidArgumentsValues [i][j]) then
-            Exit;
+        if Pos(UpperCase(Value), UpperCase(ValidArgumentsValues[i])) <> 0 then
+           Exit;
 
-
-        WriteLn ('Invalid Argument Value:', Name, ' ', Value, '.');
-        WriteLn ('Valid Arguments for ', Name, ' are');
-        for j:= Low (ValidArgumentsValues [i]) to High (ValidArgumentsValues [i])  do
-          Write (ValidArgumentsValues [i, j], ' , ');
-        Halt (1);
+        WriteLn('Invalid Argument Value:', Name, ' ', Value, '.');
+        WriteLn('Valid Arguments for ', Name, ' are');
+        Write(ValidArgumentsValues[i]);
+        Halt(1);
 
       end;
 
     end;
 
-    for i:= Low (ValidArguments) to High (ValidArguments) do
-      if UpperCase (Name)= UpperCase (ValidArguments [i]) then
+    for i:= Low(ValidArguments) to High(ValidArguments) do
+      if UpperCase(Name)= UpperCase(ValidArguments [i]) then
         Exit;
 
-    WriteLn ('Invalid Name :', Name, '.');
-    WriteLn ('Valid Parameters are: ');
-    for i:= Low (ValidArguments) to High (ValidArguments)  do
-      Write (ValidArguments [i], ' , ');
-    Halt (1);
+    WriteLn('Invalid Name :', Name, '.');
+    WriteLn('Valid Parameters are: ');
+    for i:= Low(ValidArguments) to High(ValidArguments)  do
+      Write(ValidArguments [i], ' , ');
+    Halt(1);
 
 
   end;
@@ -135,10 +132,10 @@ var
 begin
   inherited;
 
-  if Odd (Paramcount) then
+  if Odd(Paramcount) then
   begin
     PrintHelp;
-    raise Exception.Create ('Invalid set of parameters');
+    raise Exception.Create('Invalid set of parameters');
 
   end;
 
@@ -146,14 +143,14 @@ begin
 
   while i<= Paramcount do
   begin
-    Name:= ParamStr (i);
+    Name:= ParamStr(i);
     if Paramcount< i+ 1 then
       Break;
-    V:= ParamStr (i+ 1);
-    CheckParameter (Name, V);
-    AddArgument (Name, V);
+    V:= ParamStr(i+ 1);
+    CheckParameter(Name, V);
+    AddArgument(Name, V);
 
-    Inc (i, 2);
+    Inc(i, 2);
 
   end;
 
@@ -167,10 +164,10 @@ begin
 
 end;
 
-function TRunTimeParameterManager.GetValueByName (Name: AnsiString): AnsiString;
+function TRunTimeParameterManager.GetValueByName(Name: AnsiString): AnsiString;
 begin
   try
-    Result:= inherited GetValueByName (UpperCase (Name))
+    Result:= inherited GetValueByName(UpperCase(Name))
 
   except
     on e: ENameNotFound do
