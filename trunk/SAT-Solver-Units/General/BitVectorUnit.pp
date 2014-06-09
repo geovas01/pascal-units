@@ -21,6 +21,7 @@ type
 
     constructor Create (Size: Integer);
     constructor Create (Size: Integer; Literal: TLiteral);
+    constructor Create;
 
     function ToString: AnsiString;
     function Copy: TBitVector;
@@ -65,6 +66,12 @@ begin
   Count:= Size;
   for i:= 0 to Count- 1 do
     Items[i]:= Literal;
+
+end;
+
+constructor TBitVector.Create;
+begin
+  inherited;
 
 end;
 

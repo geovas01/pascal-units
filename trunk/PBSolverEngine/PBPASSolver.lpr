@@ -21,7 +21,8 @@ uses
   PBModEncoderUsingSingleSorterUnit, AbstractAdderUnit,
   //heaptrc,
   BigInt, BaseUnix, ParameterManagerUnit, GenericCollectionUnit,
-  GenericStackUnit, GenericFactoryUnit, StreamUnit, WideStringUnit;
+  GenericStackUnit, GenericFactoryUnit, StreamUnit, MyTypes, WideStringUnit,
+MyPBSolverEngineUsingLogSUnit;
 
 var
   ProblemType: TSpecMode;
@@ -131,6 +132,8 @@ var
   PBParser: TPBParser;
   Stream: TFileStream;
   Spec: TPBSpecification;
+
+{$R *.res}
 
 begin
   Initialize;

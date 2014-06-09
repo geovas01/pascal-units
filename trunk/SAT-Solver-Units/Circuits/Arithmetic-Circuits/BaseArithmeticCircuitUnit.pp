@@ -51,7 +51,7 @@ type
      the returned BitVector is the result of a mod b.
     }
 
-    function Reminder (a, b: TBitVector): TBitVector; virtual;
+    function Remainder (a, b: TBitVector): TBitVector; virtual;
 
     {
     Generates appropriate set clauses (and submits each of them to
@@ -101,14 +101,32 @@ uses
   TSeitinVariableUnit;
 { TBaseArithmeticCircuit }
 
-function TBaseArithmeticCircuit.Reminder (a, b: TBitVector): TBitVector;
+function TBaseArithmeticCircuit.Remainder (a, b: TBitVector): TBitVector;
 var
-  c, d: TBitVector;
+  c, d, bd: TBitVector;
+  EqLit, LeLit: TLiteral;
 
 begin
-  d:= Self.Divide(a, b);
-  c:= Self.Mul(b, d);
-  Result:= Self.Sub (a, c);
+  Result:= TBitVector.Create (b.Count);
+  WriteLn ('[Remainder] Result = ', Result.ToString);
+
+  d:= TBitVector.Create (a.Count);
+  WriteLn ('[Remainder] d = ', d.ToString);
+  bd:= Self.Mul(b, d);
+  WriteLn ('[Remainder] b*d = ', bd.ToString);
+  c:= Self.Add(bd, Result);
+  WriteLn ('[Remainder] b*d + r= ', c.ToString);
+  EqLit:= Self.IsEqual (a, c);
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (EqLit);
+  SatSolver.SubmitClause;
+
+  LeLit:= Self.IsLessThan (Result, b);
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral (LeLit);
+  SatSolver.SubmitClause;
+
 
 end;
 

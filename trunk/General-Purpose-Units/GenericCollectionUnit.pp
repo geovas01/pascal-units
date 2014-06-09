@@ -5,7 +5,7 @@ unit GenericCollectionUnit;
 interface
 
 uses
-  Classes, SysUtils, StreamUnit;
+  Classes, SysUtils, StreamUnit, gvector;
 
 type
   { TGenericCollection }

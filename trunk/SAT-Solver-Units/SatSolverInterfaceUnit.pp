@@ -68,6 +68,10 @@ type
     procedure SubmitFACarryGate (p: TLiteral); virtual;
     procedure SubmitClause; virtual;
 
+    function GenerateAndGate: TLiteral; virtual;
+    function GenerateOrGate: TLiteral; virtual;
+    function GenerateXOrGate: TLiteral; virtual;
+
     function Solve: Boolean; virtual; abstract;
     function Solve (Literal: TLiteral): Boolean; virtual; abstract;
     procedure GetSolution (out Answer: AnsiString); virtual; abstract;
@@ -243,6 +247,65 @@ begin
 
 end;
 
+function TSATSolverInterface.GenerateAndGate: TLiteral;
+begin
+  if 0 < NoOfLiteralInTopConstraint [gbFalse] then
+    Exit (GetVariableManager.FalseLiteral)
+  else if NoOfLiteralInTopConstraint [gbTrue] = TopConstraint.Count then
+    Exit (GetVariableManager.TrueLiteral)
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+    SubmitAndGate (Result);
+
+  end;
+
+end;
+
+function TSATSolverInterface.GenerateOrGate: TLiteral;
+begin
+  if 0 < NoOfLiteralInTopConstraint [gbTrue] then
+    Exit (GetVariableManager.TrueLiteral)
+  else if NoOfLiteralInTopConstraint [gbFalse] = TopConstraint.Count then
+    Exit (GetVariableManager.FalseLiteral)
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+    SubmitOrGate (Result);
+
+  end;
+
+end;
+
+function TSATSolverInterface.GenerateXOrGate: TLiteral;
+begin
+  if TopConstraint.Count= 2 then
+  begin
+    if GetLiteralValue (TopConstraint.Item [0])= gbFalse then// False xor x => x
+      Exit (TopConstraint.Item [1])
+    else if GetLiteralValue (TopConstraint.Item [0])= gbFalse then// True xor x => ~x
+      Exit (NegateLiteral (TopConstraint.Item [1]))
+    else if GetLiteralValue (TopConstraint.Item [1])= gbFalse then// False xor x => x
+        Exit (TopConstraint.Item [0])
+    else if GetLiteralValue (TopConstraint.Item [1])= gbFalse then// True xor x => ~x
+      Exit (NegateLiteral (TopConstraint.Item [0]))
+    else
+    begin
+      Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+      SubmitXOrGate (Result);
+
+    end;
+
+  end
+  else
+  begin
+    Result:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+    SubmitXOrGate (Result);
+
+  end;
+
+end;
+
 procedure TSATSolverInterface.AddComment (Comment: AnsiString);
 begin
 
@@ -362,6 +425,7 @@ begin
 
    gbUnknown:
    begin
+     BeginConstraint;
 
      for i:= 0 to ActiveClause.Count- 1 do
      begin
@@ -369,11 +433,14 @@ begin
        AddLiteral (ActiveClause.Item [i]);
        AddLiteral (NegateLiteral (p));
        SubmitClause;
-       ActiveClause.Item [i]:= NegateLiteral (ActiveClause.Item [i]);
+       //ActiveClause.Item [i]:= NegateLiteral (ActiveClause.Item [i]);
+       AddLiteral (NegateLiteral (ActiveClause.Item [i]));
 
      end;
      AddLiteral (p);
      SubmitClause;
+
+     AbortConstraint;
 
    end;
 
@@ -409,18 +476,17 @@ begin
        BeginConstraint;
        AddLiteral (p);
        SubmitClause;
+       AbortConstraint;
+
        Exit;
 
      end;
 
-   //\lnot l_1\land \lnot l_2 \land \cdots \land \lnot \l_n
+    //\lnot l_1\land \lnot l_2 \land \cdots \land \lnot \l_n
+     BeginConstraint;
      for i:= 0 to ActiveClause.Count- 1 do
-     begin
-       BeginConstraint;
        AddLiteral (NegateLiteral (ActiveClause.Item [i]));
-       SubmitClause;
-
-     end;
+     SubmitClause;
 
      AbortConstraint;
 
@@ -433,6 +499,8 @@ begin
        BeginConstraint;
        AddLiteral (NegateLiteral (p));
        SubmitClause;
+       AbortConstraint;
+
        Exit;
 
      end;
@@ -450,32 +518,37 @@ begin
        BeginConstraint;
        AddLiteral (p);
        SubmitClause;
+       AbortConstraint;
        Exit;
 
      end;
 
-     if ActiveClause.Count= NoOfLiteralInTopConstraint [gbFalse] then//Contradiction
+     if ActiveClause.Count= NoOfLiteralInTopConstraint [gbFalse] then
      begin
        BeginConstraint;
        AddLiteral (NegateLiteral (p));
        SubmitClause;
+       AbortConstraint;
        Exit;
 
      end;
 
+     BeginConstraint;
      for i:= 0 to ActiveClause.Count- 1 do
      begin
        BeginConstraint;
        AddLiteral (NegateLiteral (ActiveClause.Item [i]));
        AddLiteral (p);
        SubmitClause;
-//       ActiveClause.Item [i]:= ActiveClause.Item [i];
 
+       AddLiteral (ActiveClause.Item [i]);
+//       ActiveClause.Item [i]:= ActiveClause.Item [i];
 
      end;
 
      AddLiteral (NegateLiteral (p));
      SubmitClause;
+     AbortConstraint;
 
    end;
 
