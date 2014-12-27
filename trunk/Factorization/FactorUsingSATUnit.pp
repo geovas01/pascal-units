@@ -9,12 +9,10 @@ uses
   Classes, SatSolverInterfaceUnit, ParameterManagerUnit, MiniSatSolverUnit,
   MiniSatSolverInterfaceUnit, SysUtils, contnrs, gvector, BigInt,
   FactoringUsingSATUnit, AbstractSolverUnit, CNFCollectionUnit,
-  TSeitinVariableUnit, BinaryEncodingForFactoringUnit, BitVectorUnit,
+  TSeitinVariableUnit, BinaryEncodingBasedFactoringUnit, BitVectorUnit,
   BinaryArithmeticCircuitUnit, BaseArithmeticCircuitUnit, BaseCircuitUnit,
 FactoringUsingModulosUnit, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
-  AbstractPBModEncoderUnit, RSAFactoringUsingSATUnit,
-BinaryEncodingBasedRSAFactoringUnit, FactoringUsingRSAModulosUnit,
-BinaryModuloRSAFactorizerUnit;
+  AbstractPBModEncoderUnit;
 
 procedure Initialize;
 begin

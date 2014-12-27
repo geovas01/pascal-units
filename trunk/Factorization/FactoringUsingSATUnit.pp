@@ -28,7 +28,7 @@ type
 
 implementation
 uses
-  BinaryEncodingForFactoringUnit, ParameterManagerUnit,
+  BinaryEncodingBasedFactoringUnit, ParameterManagerUnit,
   FactoringUsingModulosUnit;
 
 { TBaseFactorizerUsingSAT }
