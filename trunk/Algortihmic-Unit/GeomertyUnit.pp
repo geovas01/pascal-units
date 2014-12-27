@@ -5,7 +5,7 @@ unit GeomertyUnit;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, Math;
 type
   TPoint= record
     x, y: Extended;
