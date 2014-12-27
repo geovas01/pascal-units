@@ -63,8 +63,8 @@ function GetSolverEngine: TAbstractPBSolverEngine; inline;
 implementation
 uses
   Math, ParameterManagerUnit,
-  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit,
-  MyPBSolverEngineUsingLogSUnit;
+  BigInt, MyPBSolverEngineUsingPrimesUnit, MyPBSolverEngineUsingLargeModuloUnit;
+  //MyPBSolverEngineUsingLogSUnit;
 
 var
   PBSolver: TAbstractPBSolverEngine;
@@ -244,8 +244,8 @@ begin
     PBSolver:= TMyPBSolverEngineUsingPrimePowerModulos.Create
   else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('LargeModulo')  then
     PBSolver:= TMyPBSolverEngineUsingLargeModulos.Create
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('LogS')  then
-    PBSolver:= TMyPBSolverEngineUsingLogSModulos.Create
+//  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('LogS')  then
+//    PBSolver:= TMyPBSolverEngineUsingLogSModulos.Create
   else
   begin
     WriteLn ('Invalid ModuloMode: "', GetRunTimeParameterManager.ValueByName ['--ModuloMode'], '"');
