@@ -5,26 +5,23 @@ unit GenericFactoryUnit;
 interface
 
 uses
-  Classes, SysUtils, GenericStackUnit, GenericCollectionUnit;
+  Classes, SysUtils, GenericStackUnit, gvector;
 
 type
-  TFactorizable= interface
-    procedure Reset;
-  end;
   { TGenericFactoy }
 
-  generic TGenericFactoy<T>= class (TObject)
+  generic TGenericFactoy<T>= class(TObject)
   private
     type
       TStackOfT= specialize TGenericStack<T>;
-      TCollectionOfT= specialize TGenericCollection<T>;
+      TCollectionOfT= specialize TVector<T>;
 
     var
       AvailableItems: TStackOfT;
       AllItems: TCollectionOfT;
 
   public
-    constructor Create (InitialMember: Integer= 0);
+    constructor Create(InitialMember: Integer= 0);
     destructor Destroy; override;
 
     {
@@ -35,14 +32,14 @@ type
     {
     Returns the number of availabe members
     }
-    function ReleaseMemeber (AMember: T): Integer;
+    function ReleaseMemeber(AMember: T): Integer;
 
   end;
 implementation
 
 { TGenericFactoy }
 
-constructor TGenericFactoy.Create (InitialMember: Integer);
+constructor TGenericFactoy.Create(InitialMember: Integer);
 var
   i: Integer;
   Obj: T;
@@ -57,8 +54,8 @@ begin
   for i:= 1 to InitialMember do
   begin
     Obj:= T.Create;
-    AvailableItems.Push (Obj);
-    AllItems.AddItem (Obj);
+    AvailableItems.Push(Obj);
+    AllItems.PushBack(Obj);
 
   end;
 
@@ -81,19 +78,19 @@ begin
   begin
     Result:= T.Create;
 
-//    AvailableItems.Push (T.Create);
+//    AvailableItems.Push(T.Create);
 //    Result:= AvailableItems.Pop;
 
-    AllItems.AddItem (Result);
+    AllItems.PushBack(Result);
 
   end;
 
 end;
 
-function TGenericFactoy.ReleaseMemeber (AMember: T): Integer;
+function TGenericFactoy.ReleaseMemeber(AMember: T): Integer;
 begin
   AMember.Reset;
-  AvailableItems.Push (AMember);
+  AvailableItems.Push(AMember);
 
 end;
 

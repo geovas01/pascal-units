@@ -5,10 +5,10 @@ unit FactoringUsingSATUnit;
 interface
 
 uses
-  Classes, SysUtils, BigInt, GenericCollectionUnit;
+  Classes, SysUtils, BigInt, gvector;
 
 type
-  TBigIntCollection= specialize TGenericCollection<TBigInt>;
+  TBigIntCollection = specialize TVector<TBigInt>;
 
   { TBaseFactorizerUsingSAT }
 
@@ -42,7 +42,7 @@ end;
 
 destructor TBaseFactorizerUsingSAT.Destroy;
 begin
-
+  inherited;
 end;
 
 var
