@@ -8,8 +8,8 @@ uses
   Classes, SysUtils, SatSolverInterfaceUnit, NameValueCollectionUnit;
 
 type
-  TVerbosityMode= (vbNone= 0, vbMedium, vbFull, vbEveryThing= 4);
-  TParameterList= specialize TGenericNameValueCollection<AnsiString>;
+  TVerbosityMode = (vbNone = 0, vbMedium, vbFull, vbEveryThing = 4);
+  TParameterList = specialize TGenericNameValueCollection<AnsiString>;
 
   { TRunTimeParameterManager }
 
@@ -41,7 +41,7 @@ var
 procedure Initialize;
 begin
   if RunTimeParameterManager= nil then
-    RunTimeParameterManager:= TRunTimeParameterManager.Create;
+    RunTimeParameterManager := TRunTimeParameterManager.Create;
 
 end;
 
@@ -53,7 +53,7 @@ end;
 
 function GetRunTimeParameterManager: TRunTimeParameterManager; inline;
 begin
-  Result:= RunTimeParameterManager;
+  Result := RunTimeParameterManager;
 
 end;
 
@@ -91,8 +91,8 @@ const
     Flag: Boolean;
 
   begin
-    Flag:= False;
-    for i:= Low (ValidArguments) to High (ValidArguments) do
+    Flag := False;
+    for i := Low (ValidArguments) to High (ValidArguments) do
     begin
 
       if UpperCase (Name) = UpperCase(ValidArguments[i]) then
@@ -112,13 +112,13 @@ const
 
     end;
 
-    for i:= Low(ValidArguments) to High(ValidArguments) do
-      if UpperCase(Name)= UpperCase(ValidArguments [i]) then
+    for i := Low(ValidArguments) to High(ValidArguments) do
+      if UpperCase(Name) = UpperCase(ValidArguments [i]) then
         Exit;
 
     WriteLn('Invalid Name :', Name, '.');
     WriteLn('Valid Parameters are: ');
-    for i:= Low(ValidArguments) to High(ValidArguments)  do
+    for i := Low(ValidArguments) to High(ValidArguments)  do
       Write(ValidArguments [i], ' , ');
     Halt(1);
 
@@ -139,14 +139,14 @@ begin
 
   end;
 
-  i:= 1;
+  i := 1;
 
   while i<= Paramcount do
   begin
-    Name:= ParamStr(i);
+    Name := ParamStr(i);
     if Paramcount< i+ 1 then
       Break;
-    V:= ParamStr(i+ 1);
+    V := ParamStr(i+ 1);
     CheckParameter(Name, V);
     AddArgument(Name, V);
 
@@ -167,18 +167,18 @@ end;
 function TRunTimeParameterManager.GetValueByName(Name: AnsiString): AnsiString;
 begin
   try
-    Result:= inherited GetValueByName(UpperCase(Name))
+    Result := inherited GetValueByName(UpperCase(Name))
 
   except
     on e: ENameNotFound do
-      Result:= '';
+      Result := '';
 
   end;
 
 end;
 
 initialization
-  RunTimeParameterManager:= nil;
+  RunTimeParameterManager := nil;
 
 
 end.
