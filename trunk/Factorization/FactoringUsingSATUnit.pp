@@ -56,13 +56,12 @@ end;
 
 procedure Initialize;// (FactorizerMode: AnsiString);
 begin
-  WriteLn ('Modulo.Prime.Unary');
   if UpperCase (GetRunTimeParameterManager.GetValueByName ('--FactorizerMode'))=
            UpperCase ('BinaryRep') then
     ActiveFactorizer:= TBinaryRepBasedFactorizer.Create
   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--FactorizerMode'))=
-           UpperCase ('Modulo.Prime.Binary') then
-    ActiveFactorizer:= TPrimesBinaryFactorizer.Create
+           UpperCase ('ModuloRep') then
+    ActiveFactorizer:= TBinaryModuloFactorizer.Create
   else
     raise Exception.Create ('Invalid Factorizer Mode!');
 
