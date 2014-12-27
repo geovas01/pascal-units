@@ -1,4 +1,4 @@
-unit FactoringUsingModulos;
+unit FactoringUsingModulosUnit;
 
 {$mode objfpc}{$H+}
 
