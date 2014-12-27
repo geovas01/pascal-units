@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FactoringUsingSATUnit, BigInt,
-    BitVectorUnit, BinaryArithmeticCircuitUnit;
+    BinaryArithmeticCircuitUnit;
 
 type
   { TBinaryRepBasedFactorizer }
@@ -26,8 +26,8 @@ type
 
 implementation
 uses
-  TSeitinVariableUnit, ClauseUnit, SatSolverInterfaceUnit, ParameterManagerUnit;
-
+  TSeitinVariableUnit, ClauseUnit, SatSolverInterfaceUnit, ParameterManagerUnit,
+   BitVectorUnit;
 { TBinaryRepBasedFactorizer }
 
 constructor TBinaryRepBasedFactorizer.Create;
@@ -58,8 +58,8 @@ var
 
 begin
   c := BinaryArithmeticCircuit.BinaryRep(n);
-  bBitCount := C.Count;
-  aBitCount := bBitCount;
+  bBitCount := c.Count;
+  aBitCount := c.Count;
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
@@ -106,7 +106,7 @@ begin
   One[0]:= GetVariableManager.TrueLiteral;
 
   aG1:= BinaryArithmeticCircuit.IsLessThan(One, a);
-  WriteLn('aG1 =', LiteralToString(aG1));
+
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aG1);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
@@ -115,6 +115,12 @@ begin
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(bG1);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
+
+  if GetRunTimeParameterManager.Verbosity<> 0 then
+  begin
+    WriteLn('aG1 =', LiteralToString(aG1));
+    WriteLn('bG1 =', LiteralToString(bG1));
+  end;
 
   One.Free;
   a.Free;
