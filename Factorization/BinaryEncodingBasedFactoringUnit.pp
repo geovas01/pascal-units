@@ -1,4 +1,4 @@
-unit BinaryEncodingForFactoringUnit;
+unit BinaryEncodingBasedFactoringUnit;
 
 {$mode objfpc}{$H+}
 
@@ -47,7 +47,7 @@ end;
 
 procedure TBinaryRepBasedFactorizer.GenerateCNF(n: TBigInt);
 var
-  BitCount: Integer;
+  aBitCount, bBitCount: Integer;
   a, b, One: TBitVector;
   c, cPrime: TBitVector;
   isEqualLit,
@@ -57,18 +57,19 @@ var
   aG1, bG1: TLiteral;
 
 begin
-  c:= BinaryArithmeticCircuit.BinaryRep(n);
-  BitCount:= C.Count;
+  c := BinaryArithmeticCircuit.BinaryRep(n);
+  bBitCount := C.Count;
+  aBitCount := bBitCount;
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
-    WriteLn('[GenerateCNF] Encoding ', n.ToString, ' needs ', BitCount, ' bits');
-    WriteLn('[GenerateCNF] n = a * b, where a is a ', BitCount, '-bit integer and b has a ', BitCount,'-bit integer.');
+    WriteLn('[GenerateCNF] Encoding ', n.ToString, ' needs ', c.Count, ' bits');
+    WriteLn('[GenerateCNF] n = a * b, where a is a ', aBitCount, '-bit integer and b is a ', bBitCount,'-bit integer.');
 
   end;
 
-  a:= TBitVector.Create(BitCount{- 1});
-  b:= TBitVector.Create(BitCount);
+  a:= TBitVector.Create(aBitCount{- 1});
+  b:= TBitVector.Create(bBitCount);
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin

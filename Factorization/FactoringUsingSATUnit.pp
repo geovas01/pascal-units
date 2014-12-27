@@ -29,7 +29,7 @@ type
 implementation
 uses
   BinaryEncodingForFactoringUnit, ParameterManagerUnit,
-  FactoringUsingModulos;
+  FactoringUsingModulosUnit;
 
 { TBaseFactorizerUsingSAT }
 

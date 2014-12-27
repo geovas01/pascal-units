@@ -10,7 +10,7 @@ uses
   SysUtils, BigInt, FactoringUsingSATUnit, AbstractSolverUnit,
   CNFCollectionUnit, TSeitinVariableUnit, BinaryEncodingForFactoringUnit,
   BitVectorUnit, BaseCircuitUnit, BinaryArithmeticCircuitUnit,
-  BaseArithmeticCircuitUnit, FactoringUsingModulos, GenericCollectionUnit;
+  BaseArithmeticCircuitUnit, FactoringUsingModulosUnit, GenericCollectionUnit;
 
 procedure Initialize;
 begin

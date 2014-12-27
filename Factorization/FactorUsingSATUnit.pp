@@ -11,8 +11,10 @@ uses
   FactoringUsingSATUnit, AbstractSolverUnit, CNFCollectionUnit,
   TSeitinVariableUnit, BinaryEncodingForFactoringUnit, BitVectorUnit,
   BinaryArithmeticCircuitUnit, BaseArithmeticCircuitUnit, BaseCircuitUnit,
-  FactoringUsingModulos, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
-  AbstractPBModEncoderUnit;
+FactoringUsingModulosUnit, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
+  AbstractPBModEncoderUnit, RSAFactoringUsingSATUnit,
+BinaryEncodingBasedRSAFactoringUnit, FactoringUsingRSAModulosUnit,
+BinaryModuloRSAFactorizerUnit;
 
 procedure Initialize;
 begin
