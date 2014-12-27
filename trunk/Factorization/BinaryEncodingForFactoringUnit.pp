@@ -11,7 +11,7 @@ uses
 type
   { TBinaryRepBasedFactorizer }
 
-  TBinaryRepBasedFactorizer= class (TBaseFactorizerUsingSAT)
+  TBinaryRepBasedFactorizer = class(TBaseFactorizerUsingSAT)
   private
     BinaryArithmeticCircuit: TBinaryArithmeticCircuit;
 
@@ -19,7 +19,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure GenerateCNF (n: TBigInt); override;
+    procedure GenerateCNF(n: TBigInt); override;
 
   end;
 
@@ -45,7 +45,7 @@ begin
 
 end;
 
-procedure TBinaryRepBasedFactorizer.GenerateCNF (n: TBigInt);
+procedure TBinaryRepBasedFactorizer.GenerateCNF(n: TBigInt);
 var
   BitCount: Integer;
   a, b, One: TBitVector;
@@ -57,62 +57,62 @@ var
   aG1, bG1: TLiteral;
 
 begin
-  c:= BinaryArithmeticCircuit.BinaryRep (n);
+  c:= BinaryArithmeticCircuit.BinaryRep(n);
   BitCount:= C.Count;
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
-    WriteLn ('[GenerateCNF] Encoding ', n.ToString, ' needs ', BitCount, ' bits');
-    WriteLn ('[GenerateCNF] n = a * b, where a is a ', BitCount, '-bit integer and b has a ', BitCount,'-bit integer.');
+    WriteLn('[GenerateCNF] Encoding ', n.ToString, ' needs ', BitCount, ' bits');
+    WriteLn('[GenerateCNF] n = a * b, where a is a ', BitCount, '-bit integer and b has a ', BitCount,'-bit integer.');
 
   end;
 
-  a:= TBitVector.Create (BitCount{- 1});
-  b:= TBitVector.Create (BitCount);
+  a:= TBitVector.Create(BitCount{- 1});
+  b:= TBitVector.Create(BitCount);
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
-    WriteLn ('[GenerateCNF] a = ', a.ToString);
-    WriteLn ('[GenerateCNF] b = ', b.ToString);
-    WriteLn ('[GenerateCNF] c = ', c.ToString);
+    WriteLn('[GenerateCNF] a = ', a.ToString);
+    WriteLn('[GenerateCNF] b = ', b.ToString);
+    WriteLn('[GenerateCNF] c = ', c.ToString);
 
   end;
 
 
-  cPrime:= BinaryArithmeticCircuit.Mul (a, b);
+  cPrime:= BinaryArithmeticCircuit.Mul(a, b);
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
-    WriteLn ('[GenerateCNF] Prime = ', cPrime.ToString);
-    WriteLn ('[GenerateCNF] c = ', c.ToString);
+    WriteLn('[GenerateCNF] Prime = ', cPrime.ToString);
+    WriteLn('[GenerateCNF] c = ', c.ToString);
 
   end;
 
-  IsEqualLit:= BinaryArithmeticCircuit.IsEqual (c, cPrime);
+  IsEqualLit:= BinaryArithmeticCircuit.IsEqual(c, cPrime);
 
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral (isEqualLit);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(isEqualLit);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
   cPrime.Free;
 
-  aLEb:= BinaryArithmeticCircuit.IsLessThanOrEq (a, b);
+  aLEb:= BinaryArithmeticCircuit.IsLessThanOrEq(a, b);
 
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral (aLEb);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aLEb);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
-  One:= TBitVector.Create (a.Count, GetVariableManager.FalseLiteral);
-  One [0]:= GetVariableManager.TrueLiteral;
+  One:= TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
+  One[0]:= GetVariableManager.TrueLiteral;
 
-  aG1:= BinaryArithmeticCircuit.IsLessThan (One, a);
-  WriteLn ('aG1 =', LiteralToString (aG1));
+  aG1:= BinaryArithmeticCircuit.IsLessThan(One, a);
+  WriteLn('aG1 =', LiteralToString(aG1));
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral (aG1);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aG1);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
-  bG1:= BinaryArithmeticCircuit.IsLessThan (One, b);
+  bG1:= BinaryArithmeticCircuit.IsLessThan(One, b);
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral (bG1);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(bG1);
   SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
   One.Free;

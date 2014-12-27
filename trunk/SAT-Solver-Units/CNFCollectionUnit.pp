@@ -83,7 +83,7 @@ end;
 procedure TCNFCollection.SubmitClause; 
 begin
   if NoOfLiteralInTopConstraint [gbTrue]= 0 then
-    AllClauses.Add (TopConstraint.Copy);
+    AllClauses.AddItem(TopConstraint.Copy);
 
   inherited;
 
@@ -213,14 +213,14 @@ begin
     begin
        ActiveClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        ActiveClause.Item [0]:= CreateLiteral (i, False);
-       AllClauses.Add (ActiveClause);
+       AllClauses.AddItem(ActiveClause);
 
     end
     else if GetValue (i)= gbFalse then
     begin
        ActiveClause:= TClause.Create (1, GetVariableManager.FalseLiteral);
        ActiveClause.Item [0]:= CreateLiteral (i, True);
-       AllClauses.Add (ActiveClause);
+       AllClauses.AddItem(ActiveClause);
 
     end;
 
