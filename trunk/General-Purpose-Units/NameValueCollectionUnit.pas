@@ -9,17 +9,17 @@ uses
   
 type
   //Variable not found in a Collection
-  EVariableNotFound= class (Exception);
+  EVariableNotFound= class(Exception);
 
   { ENameExistsInCollection }
 
-  ENameExistsInCollection= class (Exception)
+  ENameExistsInCollection= class(Exception)
   public
-    constructor Create (VarName: String);
+    constructor Create(VarName: String);
 
   end;
 
-  EInvalidNameValueFormat= class (Exception);
+  EInvalidNameValueFormat= class(Exception);
 
   { TNameValueCollection }
 
@@ -32,27 +32,29 @@ type
 
   { TGenericNameValueCollection }
 
-  generic TGenericNameValueCollection<TValue>= class (TStringList)
+  generic TGenericNameValueCollection<TValue> = class(TStringList)
   private
-    function GetValueByIndex (Index: Integer): TValue;
-    function GetValueByName (Name: AnsiString): TValue; virtual;
+    function GetValueByIndex(Index: Integer): TValue;
+    function GetValueByName(Name: AnsiString): TValue; virtual;
   public type
-    TNameValue= record
-//      Name: AnsiString;
+
+    { TNameValue }
+
+    TNameValue= class(TObject)
       Value: TValue;
+      constructor Create(v: TValue);
 
     end;
-    PNameValue= ^TNameValue;
 
   var private
     function GetSize: Integer;
     
   public
     property Size: Integer read GetSize;
-    property ValueByName [Name: AnsiString]: TValue read GetValueByName;
-    property ValueByIndex [Index: Integer]: TValue read GetValueByIndex;
+    property ValueByName[Name: AnsiString]: TValue read GetValueByName;
+    property ValueByIndex[Index: Integer]: TValue read GetValueByIndex;
 
-    procedure AddNameValue (NewName: AnsiString; NewValue: TValue); virtual;
+    procedure AddNameValue(NewName: AnsiString; NewValue: TValue); virtual;
     
     destructor Destroy; override;
     {
@@ -66,61 +68,69 @@ type
 
       Caller should take care of deleting the old value.
     }
-    procedure UpdateValue (AName: AnsiString; AValue: TValue);
+    procedure UpdateValue(AName: AnsiString; AValue: TValue);
 
     {
       Removes the pair Aname and its corresponding value for collection
     }
-    procedure EraseValue (AName: AnsiString);
+    procedure EraseValue(AName: AnsiString);
     
   end;
 
 implementation
 
+{ TGenericNameValueCollection.TNameValue }
+
+constructor TGenericNameValueCollection.TNameValue.Create(v: TValue);
+begin
+  inherited Create;
+
+  Value := v;
+end;
+
 { ENameExistsInCollection }
 
-constructor ENameExistsInCollection.Create  (VarName: String);
+constructor ENameExistsInCollection.Create (VarName: String);
 begin
-  inherited Create ('Name: '+ VarName+ ' is already exists in the collection!');
+  inherited Create('Name: '+ VarName+ ' is already exists in the collection!');
 
 end;
 
 { TGenericNameValueCollection }
 
-function TGenericNameValueCollection.GetValueByIndex (Index: Integer): TValue;
+function TGenericNameValueCollection.GetValueByIndex(Index: Integer): TValue;
 begin
-  Result:= (PNameValue (Objects [Index]))^.Value;
+  Result :=(TNameValue(Objects[Index])).Value;
 
 end;
 
-function TGenericNameValueCollection.GetValueByName (Name: AnsiString): TValue;
+function TGenericNameValueCollection.GetValueByName(Name: AnsiString): TValue;
 var
   Index: Integer;
 
 begin
-  Index:= Self.IndexOf (UpperCase (Name));
+  Index := Self.IndexOf(UpperCase(Name));
 
   if 0<= Index then
-    Exit (ValueByIndex [Index])
+    Exit(ValueByIndex[Index])
   else
-    raise ENameNotFound.Create (Name);
+    raise ENameNotFound.Create(Name);
 
 end;
 
 function TGenericNameValueCollection.GetSize: Integer;
 begin
-  Result:= Count;
+  Result := Count;
 
 end;
 
-procedure TGenericNameValueCollection.AddNameValue (NewName: AnsiString; NewValue: TValue);
+procedure TGenericNameValueCollection.AddNameValue(NewName: AnsiString; NewValue: TValue);
 var
-  NewNameValue: PNameValue;
+  NewNameValue: TNameValue;
 
 begin
-  New (NewNameValue);
-  NewNameValue^.Value:= NewValue;
-  Self.AddObject (UpperCase (NewName), TObject (NewNameValue));
+  NewNameValue := TNameValue.Create(NewValue);
+  Self.AddObject(UpperCase(NewName), NewNameValue);
 
 end;
 
@@ -129,8 +139,8 @@ var
   i: Integer;
   
 begin
-  for i:= 0 to Size- 1 do
-    Dispose (PNameValue (Objects [i]));
+  for i := 0 to Size- 1 do
+    Objects[i].Free;
     
   inherited Destroy;
 end;
@@ -141,30 +151,30 @@ begin
 
 end;
 
-procedure TGenericNameValueCollection.UpdateValue (AName: AnsiString; AValue: TValue);
+procedure TGenericNameValueCollection.UpdateValue(AName: AnsiString; AValue: TValue);
 var
-  ANameValue: PNameValue;
+  ANameValue: TNameValue;
 
 begin
   try
-    ValueByName [AName];
-    ANameValue:= PNameValue (Objects [IndexOf (AName)]);
-    ANameValue^.Value:= AValue;
+    ValueByName[AName];
+    ANameValue := TNameValue(Objects[IndexOf(AName)]);
+    ANameValue.Value := AValue;
 
   except
     on e: ENameNotFound do
-      AddNameValue (AName, AValue);
+      AddNameValue(AName, AValue);
 
   end;
 
 end;
 
-procedure TGenericNameValueCollection.EraseValue (AName: AnsiString);
+procedure TGenericNameValueCollection.EraseValue(AName: AnsiString);
 begin
-  ValueByName [AName];
+  ValueByName[AName];
 
-  Dispose (PNameValue (Objects [IndexOf (AName)]));
-  Delete (IndexOf (AName));
+  Objects[IndexOf(AName)].Free;
+  Delete(IndexOf(AName));
 
 end;
 
