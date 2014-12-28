@@ -1,12 +1,12 @@
 unit BinaryEncodingBasedFactoringUnit;
 
 {$mode objfpc}{$H+}
-
+{$ASSERTIONS on}
 interface
 
 uses
   Classes, SysUtils, FactoringUsingSATUnit, BigInt,
-    BinaryArithmeticCircuitUnit;
+    BinaryArithmeticCircuitUnit, BitVectorUnit, ClauseUnit;
 
 type
   { TBinaryRepBasedFactorizer }
@@ -19,15 +19,14 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure GenerateCNF(n: TBigInt); override;
+    function GenerateCNF(const a, b: TBitVector; n: TBigInt): TLiteral; override;
 
   end;
 
 
 implementation
 uses
-  TSeitinVariableUnit, ClauseUnit, SatSolverInterfaceUnit, ParameterManagerUnit,
-   BitVectorUnit;
+  TSeitinVariableUnit, SatSolverInterfaceUnit, ParameterManagerUnit;
 { TBinaryRepBasedFactorizer }
 
 constructor TBinaryRepBasedFactorizer.Create;
@@ -45,21 +44,27 @@ begin
 
 end;
 
-procedure TBinaryRepBasedFactorizer.GenerateCNF(n: TBigInt);
+function TBinaryRepBasedFactorizer.GenerateCNF(const a, b: TBitVector;
+  n: TBigInt): TLiteral;
 var
   aBitCount, bBitCount: Integer;
-  a, b, One: TBitVector;
-  c, cPrime: TBitVector;
-  isEqualLit,
-    aLEb: TLiteral;
-  i: Integer;
-  AndResult: TBigInt;
+  One: TBitVector;
+  c: TBitVector;
+  cBinRep,
+  MulEncOutputLit,
+  aLEb,
   aG1, bG1: TLiteral;
 
 begin
-  c := BinaryArithmeticCircuit.BinaryRep(n);
-  bBitCount := c.Count;
-  aBitCount := c.Count;
+  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+
+  c := TBitVector.Create();
+  cBinRep := BinaryArithmeticCircuit.EncodeBinaryRep(n, c);
+
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(cBinRep);
+  bBitCount := a.Count;
+  aBitCount := b.Count;
+  assert(aBitCount + bBitCount >= c.Count, 'a.Count + b.Count < c.Count');
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
@@ -67,9 +72,6 @@ begin
     WriteLn('[GenerateCNF] n = a * b, where a is a ', aBitCount, '-bit integer and b is a ', bBitCount,'-bit integer.');
 
   end;
-
-  a:= TBitVector.Create(aBitCount{- 1});
-  b:= TBitVector.Create(bBitCount);
 
   if GetRunTimeParameterManager.Verbosity<> 0 then
   begin
@@ -79,53 +81,57 @@ begin
 
   end;
 
+  MulEncOutputLit := BinaryArithmeticCircuit.EncodeMul(a, b, c);
 
-  cPrime:= BinaryArithmeticCircuit.Mul(a, b);
-  if GetRunTimeParameterManager.Verbosity<> 0 then
-  begin
-    WriteLn('[GenerateCNF] Prime = ', cPrime.ToString);
-    WriteLn('[GenerateCNF] c = ', c.ToString);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(MulEncOutputLit);
 
-  end;
+  c.Free;
 
-  IsEqualLit:= BinaryArithmeticCircuit.IsEqual(c, cPrime);
+  if UpperCase(ParameterManagerUnit.GetRunTimeParameterManager.GetValueByName('--AddaLeb'))
+    = UpperCase('True') then
+    aLEb:= BinaryArithmeticCircuit.EncodeIsLessThanOrEq(a, b)
+  else
+    aLEb := GetVariableManager.TrueLiteral;
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(isEqualLit);
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
-
-  cPrime.Free;
-
-  aLEb:= BinaryArithmeticCircuit.IsLessThanOrEq(a, b);
-
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aLEb);
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
-  One:= TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
-  One[0]:= GetVariableManager.TrueLiteral;
-
-  aG1:= BinaryArithmeticCircuit.IsLessThan(One, a);
-
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aG1);
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
-
-  bG1:= BinaryArithmeticCircuit.IsLessThan(One, b);
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(bG1);
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
-
-  if GetRunTimeParameterManager.Verbosity<> 0 then
+  One := nil;
+  if (a.Count = c.Count) or (b.Count = c.Count) then
   begin
-    WriteLn('aG1 =', LiteralToString(aG1));
-    WriteLn('bG1 =', LiteralToString(bG1));
+    One:= TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
+    One[0]:= GetVariableManager.TrueLiteral;
+
+    aG1:= BinaryArithmeticCircuit.EncodeIsLessThan(One, a);
+
+    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aG1);
+
+    bG1:=   BinaryArithmeticCircuit.EncodeIsLessThan(One, b);
+    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(bG1);
+
+  end
+  else
+  begin
+    aG1:= GetVariableManager.TrueLiteral;
+    bG1:= GetVariableManager.TrueLiteral;
+
   end;
 
   One.Free;
   a.Free;
   b.Free;
 
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+
+  if GetRunTimeParameterManager.Verbosity<> 0 then
+  begin
+    WriteLn('cBinRep =', LiteralToString(cBinRep));
+    WriteLn('aLEb =', LiteralToString(aLEb));
+    WriteLn('aG1 =', LiteralToString(aG1));
+    WriteLn('bG1 =', LiteralToString(bG1));
+    WriteLn('Result =', LiteralToString(Result));
+  end;
+
+  SatSolverInterfaceUnit.GetSatSolver.SubmitAndGate(Result);
 end;
 
 end.

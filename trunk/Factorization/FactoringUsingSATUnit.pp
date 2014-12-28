@@ -5,7 +5,7 @@ unit FactoringUsingSATUnit;
 interface
 
 uses
-  Classes, SysUtils, BigInt, gvector;
+  Classes, SysUtils, BigInt, gvector, BitVectorUnit, ClauseUnit;
 
 type
   TBigIntCollection = specialize TVector<TBigInt>;
@@ -17,7 +17,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure GenerateCNF (n: TBigInt); virtual; abstract;
+    function GenerateCNF (const a, b: TBitVector; n: TBigInt): TLiteral; virtual; abstract;
 
   end;
 
