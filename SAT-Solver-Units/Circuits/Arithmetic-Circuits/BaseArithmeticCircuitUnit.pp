@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, BaseCircuitUnit, BitVectorUnit, ClauseUnit,
-  SatSolverInterfaceUnit, fgl;
+  SatSolverInterfaceUnit, fgl, BigInt;
 
 type
   TBitVectorList= specialize TFPGList<TBitVector>;
@@ -21,69 +21,83 @@ type
   private
   public
     {
-    Generates appropriate set clauses (and submits each of them to
-      SatSolver such that
-     we have the returned BitVector is the result of a+ b
+    Generate an encoding for consraint \bar{a}[\tau] = n.
     }
-    function Add (a, b: TBitVector): TBitVector; virtual; abstract;
+    function EncodeBinaryRep(const n: TBigInt; a: TBitVector; nbits: Integer = -1): TLiteral; virtual; abstract;
     {
-    Generates appropriate set clauses (and submits each of them to
-      SatSolver such that
-     we have the returned BitVector is the result of a+ b
+    Generate an encoding for constraint a+b=c.
     }
-    function Sub (a, b: TBitVector): TBitVector; virtual; abstract;
+    function EncodeAdd(const a, b, c: TBitVector): TLiteral; virtual;
     {
-    Generates appropriate set clauses (and submits each of them to
-       SatSolver such that
-     we have the returned BitVector is the result of a+ b
+    Generate an encoding for constraint a * b = c.
     }
-    function Mul (a, b: TBitVector): TBitVector; virtual; abstract;
-    {
-    Generates appropriate set clauses (and submits each of them to
-       SatSolver such that
-     the returned BitVector is the result of a div b.
-    }
+    function EncodeMul(const a, b, c: TBitVector): Tliteral; virtual;
 
-    function Divide (a, b: TBitVector): TBitVector; virtual; abstract;
-    {
-    Generates appropriate set clauses (and submits each of them to
-       SatSolver such that
-     the returned BitVector is the result of a mod b.
-    }
-
-    function Remainder (a, b: TBitVector): TBitVector; virtual;
-
-    {
+      {
     Generates appropriate set clauses (and submits each of them to
        SatSolver such that the returning literal is true iff a< b.
     }
-    function IsLessThan (a, b: TBitVector): TLiteral; virtual; abstract;
+    function EncodeIsLessThan (const a, b: TBitVector): TLiteral; virtual; abstract;
     {
     Generates appropriate set clauses (and submits each of them to
        SatSolver such that the returning literal is true iff a= b.
     }
-    function IsEqual (a, b: TBitVector): TLiteral; virtual; abstract;
+    function EncodeIsEqual (const a, b: TBitVector): TLiteral; virtual; abstract;
     {
     Generates appropriate set clauses (and submits each of them to
        SatSolver such that the returning literal is true iff a< b.
       The implememtation provided by the base class uses the following observation:
       a<= b iff a< b or a= b.
     }
-    function IsLessThanOrEq (a, b: TBitVector): TLiteral; virtual;
+    function EncodeIsLessThanOrEq (const a, b: TBitVector): TLiteral; virtual;
     {
     Generates appropriate set clauses (and submits each of them to
        SatSolver such that the returning literal is true iff a> b.
       The implememtation provided by the base class uses the following observation:
       a> b iff not (a<= b).
     }
-    function IsGreaterThan (a, b: TBitVector): TLiteral; virtual;
+    function EncodeIsGreaterThan (const a, b: TBitVector): TLiteral; virtual;
     {
     Generates appropriate set clauses (and submits each of them to
        SatSolver such that the returning literal is true iff a< b.
       The implememtation provided by the base class uses the following observation:
       a>= b iff not(a< b).
     }
-    function IsGreaterThanOrEq (a, b: TBitVector): TLiteral; virtual;
+    function EncodeIsGreaterThanOrEq (const a, b: TBitVector): TLiteral; virtual;
+
+  protected
+    {
+    Generates appropriate set clauses (and submits each of them to
+      SatSolver such that
+     we have the returned BitVector is the result of a+ b
+    }
+    function Add (const a, b: TBitVector): TBitVector; virtual; abstract;
+    {
+    Generates appropriate set clauses (and submits each of them to
+      SatSolver such that
+     we have the returned BitVector is the result of a+ b
+    }
+    function Sub (const a, b: TBitVector): TBitVector; virtual;
+    {
+    Generates appropriate set clauses (and submits each of them to
+       SatSolver such that
+     we have the returned BitVector is the result of a+ b
+    }
+    function Mul (const a, b: TBitVector): TBitVector; virtual; abstract;
+    {
+    Generates appropriate set clauses (and submits each of them to
+       SatSolver such that
+     the returned BitVector is the result of a div b.
+    }
+
+    function Divide (const a, b: TBitVector): TBitVector; virtual;
+    {
+    Generates appropriate set clauses (and submits each of them to
+       SatSolver such that
+     the returned BitVector is the result of a mod b.
+    }
+
+    function Remainder (const a, b: TBitVector): TBitVector; virtual;
 
 
     {
@@ -101,7 +115,32 @@ uses
   TSeitinVariableUnit;
 { TBaseArithmeticCircuit }
 
-function TBaseArithmeticCircuit.Remainder (a, b: TBitVector): TBitVector;
+function TBaseArithmeticCircuit.EncodeAdd(const a, b, c: TBitVector): TLiteral;
+var
+  cPrime: TBitVector;
+
+begin
+  cPrime := Add(a, b);
+  Result := EncodeIsEqual(cPrime, c);
+
+  cPrime.Free;
+
+end;
+
+function TBaseArithmeticCircuit.EncodeMul(const a, b, c: TBitVector): Tliteral;
+var
+  cPrime: TBitVector;
+
+begin
+  cPrime := Mul(a, b);
+  WriteLn ('[EncodeMul] cPrime = ', cPrime.ToString);
+  WriteLn ('[EncodeMul] c = ', c.ToString);
+  Result := EncodeIsEqual(cPrime, c);
+
+  cPrime.Free;
+end;
+
+function TBaseArithmeticCircuit.Remainder(const a, b: TBitVector): TBitVector;
 var
   c, d, bd: TBitVector;
   EqLit, LeLit: TLiteral;
@@ -116,13 +155,13 @@ begin
   WriteLn ('[Remainder] b*d = ', bd.ToString);
   c:= Self.Add(bd, Result);
   WriteLn ('[Remainder] b*d + r= ', c.ToString);
-  EqLit:= Self.IsEqual (a, c);
+  EqLit:= Self.EncodeIsEqual (a, c);
 
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (EqLit);
   SatSolver.SubmitClause;
 
-  LeLit:= Self.IsLessThan (Result, b);
+  LeLit:= Self.EncodeIsLessThan (Result, b);
   SatSolver.BeginConstraint;
   SatSolver.AddLiteral (LeLit);
   SatSolver.SubmitClause;
@@ -130,13 +169,14 @@ begin
 
 end;
 
-function TBaseArithmeticCircuit.IsLessThanOrEq (a, b: TBitVector): TLiteral;
+function TBaseArithmeticCircuit.EncodeIsLessThanOrEq(const a, b: TBitVector
+  ): TLiteral;
 var
   l1, l2: TLiteral;
 
 begin
-  l1:= IsLessThan(a, b);
-  l2:= IsEqual(a, b);
+  l1:= EncodeIsLessThan(a, b);
+  l2:= EncodeIsEqual(a, b);
 
   Result:= CreateLiteral (TSeitinVariableUnit.GetVariableManager.
                         CreateNewVariable, False);
@@ -148,15 +188,57 @@ begin
 
 end;
 
-function TBaseArithmeticCircuit.IsGreaterThan (a, b: TBitVector): TLiteral;
+function TBaseArithmeticCircuit.EncodeIsGreaterThan(const a, b: TBitVector): TLiteral;
 begin
-  Result:= NegateLiteral (Self.IsLessThanOrEq (a, b));
+  Result:= NegateLiteral (Self.EncodeIsLessThanOrEq (a, b));
 
 end;
 
-function TBaseArithmeticCircuit.IsGreaterThanOrEq (a, b: TBitVector): TLiteral;
+function TBaseArithmeticCircuit.EncodeIsGreaterThanOrEq(const a, b: TBitVector
+  ): TLiteral;
 begin
-  Result:= NegateLiteral (IsLessThan (a, b));
+  Result:= NegateLiteral (EncodeIsLessThan (a, b));
+
+end;
+
+{
+  Instead of encoding c=a- b, the sub function encodes
+  (a'= b+ c) and(a= a')
+}
+function TBaseArithmeticCircuit.Sub(const a, b: TBitVector): TBitVector;
+var
+  aPrime: TBitVector;
+  aPrimeEqa: TLiteral;
+
+begin
+  Result:= TBitVector.Create(a.Count);
+
+  aPrime:= Self.Add(b, Result);
+
+  aPrimeEqa:= Self.EncodeIsEqual(aPrime, a);
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral(aPrimeEqa);
+  SatSolver.SubmitClause;
+
+
+end;
+
+function TBaseArithmeticCircuit.Divide(const a, b: TBitVector): TBitVector;
+var
+  aPrime: TBitVector;
+  aPrimeEqa: TLiteral;
+
+begin
+  Result:= TBitVector.Create(a.Count);
+
+  aPrime:= Self.Mul(b, Result);
+
+  aPrimeEqa:= Self.EncodeIsEqual(aPrime, a);
+
+  SatSolver.BeginConstraint;
+  SatSolver.AddLiteral(aPrimeEqa);
+  SatSolver.SubmitClause;
 
 end;
 
