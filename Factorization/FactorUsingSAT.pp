@@ -1,7 +1,7 @@
 program FactorUsingSAT;
 
 {$mode objfpc}{$H+}
-
+{$ASSERTIONS ON}
 uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
@@ -53,12 +53,14 @@ begin
   InputNumber:= GetRunTimeParameterManager.ValueByName['--InputNumber'];
   n:= BigIntFactory.GetNewMemeber.LoadFromString(@InputNumber[1]);
 
-
   a:= TBitVector.Create(n.Log.ToInteger);
   b:= TBitVector.Create(n.Log.ToInteger);
   WriteLn('c a = ', a.ToString);
   WriteLn('c b = ', b.ToString);
-  FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n);//, CNFCollection);
+
+  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n));//, CNFCollection);
+  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
   BigIntFactory.ReleaseMemeber(n);
 

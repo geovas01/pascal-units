@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FactoringUsingSATUnit, BigInt,
-  BitVectorUnit, BinaryArithmeticCircuitUnit, gvector;
+  BitVectorUnit, BinaryArithmeticCircuitUnit,
+  ClauseUnit;
 
 type
 
@@ -37,7 +38,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure GenerateCNF(n: TBigInt); override;
+    function GenerateCNF(const a, b: TBitVector; n: TBigInt): TLiteral; override;
 
   end;
 
@@ -59,7 +60,7 @@ type
 
 implementation
 uses
-  ClauseUnit, TSeitinVariableUnit, ParameterManagerUnit,
+  TSeitinVariableUnit, ParameterManagerUnit,
   GenericCollectionUnit, SatSolverInterfaceUnit, PBConstraintUnit;
 
 function TBinaryModuloFactorizer.Modulo(a: TBitVector; m: TBigInt;
@@ -231,24 +232,29 @@ begin
   inherited Destroy;
 end;
 
-procedure TBaseFactoringUsingModulo.GenerateCNF(n: TBigInt);
+function TBaseFactoringUsingModulo.GenerateCNF(const a, b: TBitVector;
+  n: TBigInt): TLiteral;
 var
   i: Integer;
   MCount: Integer;
   Temp, m, cmodMInt: TBigInt;
   Modulos: TBigIntCollection;
   BitCount, Logm: Integer;
-
-  One, a, b, c: TBitVector;
+  One, c: TBitVector;
   aModm, bModm, cModm, mBin,
   cPrime, cPrimeModm: TBitVector;
   P2, AndResult: TBigInt;
   IsEqualLit: TLiteral;
 
 begin
+  Result := GetVariableManager.TrueLiteral;
+  {
+  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+
   Modulos:= GetModulos(n);
 
-  c:= BinaryArithmeticCircuit.BinaryRep(n);
+  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(
+      BinaryArithmeticCircuit.BinaryRep(n, c));
   BitCount:= c.Count;
 
   if (GetRunTimeParameterManager.Verbosity and
@@ -259,9 +265,6 @@ begin
 
   end;
 
-  a:= TBitVector.Create(BitCount{- 1});
-  b:= TBitVector.Create(BitCount);
-
   if (GetRunTimeParameterManager.Verbosity and
      (1 shl VerbBaseFactoringUsingModulo)) <> 0 then
   begin
@@ -271,29 +274,21 @@ begin
 
   end;
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(
       BinaryArithmeticCircuit.IsLessThanOrEq(a, b));
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral
      (BinaryArithmeticCircuit.IsLessThan(b, c));
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
   Temp:= BigIntFactory.GetNewMemeber.SetValue(1);
   One:= BinaryArithmeticCircuit.BinaryRep(Temp, a.Count);
   BigIntFactory.ReleaseMemeber(Temp);
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(
     BinaryArithmeticCircuit.IsLessThan(One, a));// AG1
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(
     BinaryArithmeticCircuit.IsLessThan(One, b)); // bG1
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
 
   One.Free;
 
@@ -350,7 +345,7 @@ begin
 
   Modulos.Clear;
   Modulos.Free;
-
+  }
 end;
 
 end.
