@@ -95,7 +95,7 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
 
     SetLength (TermExistsInSimplifiedCons, AConstraint.LHS.Count);
     for i:= 0 to AConstraint.LHS.Count- 1 do
-      TermExistsInSimplifiedCons [i]:= True;
+      TermExistsInSimplifiedCons[i]:= True;
 
     TrueIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
     UnknownIntegers:= BigIntFactory.GetNewMemeber.SetValue (0);
@@ -103,20 +103,20 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
     Done:= False;
 
     for i:= 0 to AConstraint.LHS.Count- 1 do
-      if AConstraint.RHS.CompareWith (AConstraint.LHS.Item [i].Coef)< 0 then
+      if AConstraint.RHS.CompareWith (AConstraint.LHS.Item[i].Coef)< 0 then
       begin
-        case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
+        case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item[i].Literal) of
           gbUnknown:
           begin
             CNFGenerator.BeginConstraint;
-            CNFGenerator.AddLiteral (NegateLiteral (AConstraint.LHS.Item [i].Literal));
+            CNFGenerator.AddLiteral (NegateLiteral (AConstraint.LHS.Item[i].Literal));
             CNFGenerator.SubmitClause;
             Changed:= True;
-            TermExistsInSimplifiedCons [i]:= False;
+            TermExistsInSimplifiedCons[i]:= False;
 
           end;
           gbFalse:
-            TermExistsInSimplifiedCons [i]:= False;
+            TermExistsInSimplifiedCons[i]:= False;
 
           gbTrue:
           begin
@@ -130,23 +130,23 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
       end
       else
       begin
-        case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item [i].Literal) of
+        case CNFGenerator.GetLiteralValue (AConstraint.LHS.Item[i].Literal) of
           gbUnknown:
           begin
-            TermExistsInSimplifiedCons [i]:= True;
-            UnknownIntegers.Add (AConstraint.LHS.Item [i].Coef);
+            TermExistsInSimplifiedCons[i]:= True;
+            UnknownIntegers.Add (AConstraint.LHS.Item[i].Coef);
 
           end;
           gbTrue:
           begin
-            TrueIntegers.Add (AConstraint.LHS.Item [i].Coef);
-            TermExistsInSimplifiedCons [i]:= False;
+            TrueIntegers.Add (AConstraint.LHS.Item[i].Coef);
+            TermExistsInSimplifiedCons[i]:= False;
             Changed:= True;
 
           end;
           gbFalse:
           begin
-            TermExistsInSimplifiedCons [i]:= False;
+            TermExistsInSimplifiedCons[i]:= False;
             Changed:= True;
 
           end;
@@ -161,10 +161,10 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
       WriteLn ('UnknownInteger=', UnknownIntegers.ToString);
 
       for i:= 0 to AConstraint.LHS.Count- 1 do
-        if TermExistsInSimplifiedCons [i] then
-          Write ('(', LiteralToString (AConstraint.LHS.Item [i].Literal), ':', 1, ')')
+        if TermExistsInSimplifiedCons[i] then
+          Write ('(', LiteralToString (AConstraint.LHS.Item[i].Literal), ':', 1, ')')
         else
-          Write ('(', LiteralToString (AConstraint.LHS.Item [i].Literal), ':', 0, ')');
+          Write ('(', LiteralToString (AConstraint.LHS.Item[i].Literal), ':', 0, ')');
       WriteLn;
     end;
 
@@ -189,8 +189,8 @@ function TAbstractPBSolverEngine.SimplifyEqualityConstraint (AConstraint: TPBCon
       NewRHS:= AConstraint.RHS.Copy.Sub (TrueIntegers);
       NewLHS:= TPBSum.Create;
       for i:= 0 to AConstraint.LHS.Count- 1 do
-        if TermExistsInSimplifiedCons [i] then
-          NewLHS.AddNewTerm (AConstraint.LHS.Item [i].Copy);
+        if TermExistsInSimplifiedCons[i] then
+          NewLHS.AddNewTerm (AConstraint.LHS.Item[i].Copy);
       Result:= TPBConstraint.Create (NewLHS, '=', True, NewRHS);
       if (GetRunTimeParameterManager.Verbosity and Ord (vbFull))<> 0 then
         WriteLn ('New Constraint is: ', Result.ToString);
@@ -236,19 +236,19 @@ end;
 
 procedure Initialize;
 begin
-  if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('Prime')  then
+  if UpperCase (GetRunTimeParameterManager.ValueByName['--ModuloMode'])= UpperCase ('Prime')  then
     PBSolver:= TMyPBSolverEngineUsingPrimeModulos.Create
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('MinimalPrime')  then
+  else if UpperCase (GetRunTimeParameterManager.ValueByName['--ModuloMode'])= UpperCase ('MinimalPrime')  then
     PBSolver:= TMyPBSolverEngineUsingMinimalPrimeModulos.Create
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('PrimePower')  then
+  else if UpperCase (GetRunTimeParameterManager.ValueByName['--ModuloMode'])= UpperCase ('PrimePower')  then
     PBSolver:= TMyPBSolverEngineUsingPrimePowerModulos.Create
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('LargeModulo')  then
+  else if UpperCase (GetRunTimeParameterManager.ValueByName['--ModuloMode'])= UpperCase ('LargeModulo')  then
     PBSolver:= TMyPBSolverEngineUsingLargeModulos.Create
-//  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--ModuloMode'])= UpperCase ('LogS')  then
+//  else if UpperCase (GetRunTimeParameterManager.ValueByName['--ModuloMode'])= UpperCase ('LogS')  then
 //    PBSolver:= TMyPBSolverEngineUsingLogSModulos.Create
   else
   begin
-    WriteLn ('Invalid ModuloMode: "', GetRunTimeParameterManager.ValueByName ['--ModuloMode'], '"');
+    WriteLn ('Invalid ModuloMode: "', GetRunTimeParameterManager.ValueByName['--ModuloMode'], '"');
     WriteLn ('ModuloMode can be "Prime", "MinimalPrime", "PrimePower" or "LogS"');
     Halt (1);
 
@@ -282,8 +282,8 @@ begin
 
   for i:= 0 to AConstraint.LHS.Count- 1 do
   begin
-    if Assignment.GetValue (AConstraint.LHS.Item [i].Literal)= gbTrue then
-      LHSValue.Add (AConstraint.LHS.Item [i].Coef);
+    if Assignment.GetValue (AConstraint.LHS.Item[i].Literal)= gbTrue then
+      LHSValue.Add (AConstraint.LHS.Item[i].Coef);
 
   end;
 
@@ -318,15 +318,15 @@ function TAbstractPBSolverEngine.BreakSymmetries (Problem: TPBSpecification): Bo
     LHS.Sort (@CompareBigInts);
 //    WriteLn (LHS.ToString, ' ', AConstraint.RHS.ToString);
     for i:= 0 to LHS.Count- 2 do
-      if LHS.Item [i].Coef.CompareWith (LHS.Item [i+ 1].Coef)= 0 then
+      if LHS.Item[i].Coef.CompareWith (LHS.Item[i+ 1].Coef)= 0 then
       begin
-        WriteLn (LiteralToString (NegateLiteral (LHS.Item [i].Literal)));
-        WriteLn (LiteralToString (NegateLiteral (LHS.Item [i+ 1].Literal)));
+        WriteLn (LiteralToString (NegateLiteral (LHS.Item[i].Literal)));
+        WriteLn (LiteralToString (NegateLiteral (LHS.Item[i+ 1].Literal)));
 
         CNFGenerator.BeginConstraint;
 
-        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item [i].Literal));
-        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item [i+ 1].Literal));
+        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item[i].Literal));
+        CNFGenerator.AddLiteral (NegateLiteral (LHS.Item[i+ 1].Literal));
 
         CNFGenerator.SubmitClause;
 
@@ -337,7 +337,7 @@ function TAbstractPBSolverEngine.BreakSymmetries (Problem: TPBSpecification): Bo
 begin
 
   if (Problem.ClauseCount= 0) and (Problem.ConstraintCount= 1) then
-    BreakObviousSymmetry (Problem.Constraint [0]);
+    BreakObviousSymmetry (Problem.Constraint[0]);
 
   Result:= False;
 
@@ -348,11 +348,11 @@ function TAbstractPBSolverEngine.BreakTheSymmetries (Problem: TPBSpecification):
 var
   i, j: Integer;
   VarsInClauses: TList;
-  {VarsInClauses [i]==> All the clauses in which the i-th variable has been occured}
+  {VarsInClauses[i]==> All the clauses in which the i-th variable has been occured}
   VarsInConstraints: TList;
-  {VarsInConstraint [i]==> All the constraints in which the i-th variable has been occured}
+  {VarsInConstraint[i]==> All the constraints in which the i-th variable has been occured}
   VarSumOfCoefs, NegVArSumOfCoefs: TList;
-  {SumOfPos{Neg}Coefs [i]==> Sum of all positive {Negative} coefficient of the i-th variable in all clauses and constraints}
+  {SumOfPos{Neg}Coefs[i]==> Sum of all positive {Negative} coefficient of the i-th variable in all clauses and constraints}
 
   function AreSame (v1, v2: Integer): Boolean;
 
@@ -372,12 +372,12 @@ var
       Result:= False;
       for i:= 0 to ActiveConstraint1.LHS.Count- 1 do
       begin
-        Term1:= ActiveConstraint1.LHS.Item [i];
+        Term1:= ActiveConstraint1.LHS.Item[i];
         Matched:= False;
 
         for j:= 0 to ActiveConstraint2.LHS.Count- 1 do
         begin
-          Term2:= ActiveConstraint2.LHS.Item [j];
+          Term2:= ActiveConstraint2.LHS.Item[j];
 
           if (Term1.Literal.FRawValue= Term2.Literal.FRawValue) and (GetVar (Term1.Literal)<> v1) and (GetVar (Term1.Literal)<> v2)
              {(GetVar (Term2.Literal)<> v1) and (GetVar (Term2.Literal)<> v2) } then
@@ -432,21 +432,21 @@ var
         for j:= 0 to ActiveClause2.Count- 1 do
         begin
 
-          if (ActiveClause1.Item [i].FRawValue= ActiveClause2.Item [j].FRawValue) and (GetVar (ActiveClause1.Item [i])<> v1) and (GetVar (ActiveClause1.Item [i])<> v2) then
+          if (ActiveClause1.Item[i].FRawValue= ActiveClause2.Item[j].FRawValue) and (GetVar (ActiveClause1.Item[i])<> v1) and (GetVar (ActiveClause1.Item[i])<> v2) then
             begin
               Matched:= True;
               Break;
 
             end;
 
-          if (GetVar (ActiveClause1.Item [i])= v1) and (GetVar (ActiveClause2.Item [j])= v2) and not (IsNegated (ActiveClause1.Item [i]) xor IsNegated (ActiveClause2.Item [j])) then
+          if (GetVar (ActiveClause1.Item[i])= v1) and (GetVar (ActiveClause2.Item[j])= v2) and not (IsNegated (ActiveClause1.Item[i]) xor IsNegated (ActiveClause2.Item[j])) then
           begin
             Matched:= True;
             Break;
 
           end;
 
-          if (GetVar (ActiveClause1.Item [i])= v2) and (GetVar (ActiveClause2.Item [j])= v1) and not (IsNegated (ActiveClause1.Item [i]) xor IsNegated (ActiveClause2.Item [j])) then
+          if (GetVar (ActiveClause1.Item[i])= v2) and (GetVar (ActiveClause2.Item[j])= v1) and not (IsNegated (ActiveClause1.Item[i]) xor IsNegated (ActiveClause2.Item[j])) then
           begin
             Matched:= True;
             Break;
@@ -475,23 +475,23 @@ var
     Result:= False;
 
     if not (
-       (TClauseCollection (VarsInClauses [v1]).Count= TClauseCollection (VarsInClauses [v2]).Count) and
-       (TConstraintCollection (VarsInConstraints [v1]).Count= TConstraintCollection (VarsInConstraints [v2]).Count) and
-       (TBigInt (VarSumOfCoefs [v1]).CompareWith (TBigInt (VarSumOfCoefs [v2]))= 0) and
-       (TBigInt (NegVArSumOfCoefs [v1]).CompareWith (TBigInt (NegVArSumOfCoefs [v2]))= 0)
+       (TClauseCollection (VarsInClauses[v1]).Count= TClauseCollection (VarsInClauses[v2]).Count) and
+       (TConstraintCollection (VarsInConstraints[v1]).Count= TConstraintCollection (VarsInConstraints[v2]).Count) and
+       (TBigInt (VarSumOfCoefs[v1]).CompareWith (TBigInt (VarSumOfCoefs[v2]))= 0) and
+       (TBigInt (NegVArSumOfCoefs[v1]).CompareWith (TBigInt (NegVArSumOfCoefs[v2]))= 0)
         ) then
       Exit;
 
-    for i:= 0 to TConstraintCollection (VarsInConstraints [v1]).Count- 1 do
+    for i:= 0 to TConstraintCollection (VarsInConstraints[v1]).Count- 1 do
     begin
       Matched:= False;
-      ActiveConstraint1:= TConstraintCollection (VarsInConstraints [v1]).Item [i];
+      ActiveConstraint1:= TConstraintCollection (VarsInConstraints[v1]).Item[i];
 
-      for j:= 0 to TConstraintCollection (VarsInConstraints [v2]).Count- 1 do
+      for j:= 0 to TConstraintCollection (VarsInConstraints[v2]).Count- 1 do
       begin
-        ActiveConstraint2:= TConstraintCollection (VarsInConstraints [v2]).Item [j];
+        ActiveConstraint2:= TConstraintCollection (VarsInConstraints[v2]).Item[j];
 
-        if ConstraintsAreTheSame (ActiveConstraint1, ActiveConstraint2, Problem.InputVariable [v1], Problem.InputVariable [v2]) then
+        if ConstraintsAreTheSame (ActiveConstraint1, ActiveConstraint2, Problem.InputVariable[v1], Problem.InputVariable[v2]) then
         begin
           Matched:= True;
           Break;
@@ -505,16 +505,16 @@ var
 
     end;
 
-    for i:= 0 to TConstraintCollection (VarsInConstraints [v2]).Count- 1 do
+    for i:= 0 to TConstraintCollection (VarsInConstraints[v2]).Count- 1 do
     begin
       Matched:= False;
-      ActiveConstraint1:= TConstraintCollection (VarsInConstraints [v2]).Item [i];
+      ActiveConstraint1:= TConstraintCollection (VarsInConstraints[v2]).Item[i];
 
-      for j:= 0 to TConstraintCollection (VarsInConstraints [v1]).Count- 1 do
+      for j:= 0 to TConstraintCollection (VarsInConstraints[v1]).Count- 1 do
       begin
-        ActiveConstraint2:= TConstraintCollection (VarsInConstraints [v1]).Item [j];
+        ActiveConstraint2:= TConstraintCollection (VarsInConstraints[v1]).Item[j];
 
-        if ConstraintsAreTheSame (ActiveConstraint1, ActiveConstraint2, Problem.InputVariable [v1], Problem.InputVariable [v2]) then
+        if ConstraintsAreTheSame (ActiveConstraint1, ActiveConstraint2, Problem.InputVariable[v1], Problem.InputVariable[v2]) then
         begin
           Matched:= True;
           Break;
@@ -528,16 +528,16 @@ var
 
     end;
 
-    for i:= 0 to TClauseCollection (VarsInClauses [v1]).Count- 1 do
+    for i:= 0 to TClauseCollection (VarsInClauses[v1]).Count- 1 do
     begin
       Matched:= False;
-      ActiveCluase1:= TClauseCollection (VarsInClauses [v1]).Item [i];
+      ActiveCluase1:= TClauseCollection (VarsInClauses[v1]).Item[i];
 
-      for j:= 0 to TClauseCollection (VarsInClauses [v2]).Count- 1 do
+      for j:= 0 to TClauseCollection (VarsInClauses[v2]).Count- 1 do
       begin
-        ActiveCluase2:= TClauseCollection (VarsInClauses [v2]).Item [j];
+        ActiveCluase2:= TClauseCollection (VarsInClauses[v2]).Item[j];
 
-        if ClausessAreTheSame (ActiveCluase1, ActiveCluase2, Problem.InputVariable [v1], Problem.InputVariable [v2]) then
+        if ClausessAreTheSame (ActiveCluase1, ActiveCluase2, Problem.InputVariable[v1], Problem.InputVariable[v2]) then
         begin
           Matched:= True;
           Break;
@@ -551,16 +551,16 @@ var
 
     end;
 
-    for i:= 0 to TClauseCollection (VarsInClauses [v2]).Count- 1 do
+    for i:= 0 to TClauseCollection (VarsInClauses[v2]).Count- 1 do
     begin
       Matched:= False;
-      ActiveCluase1:= TClauseCollection (VarsInClauses [v2]).Item [i];
+      ActiveCluase1:= TClauseCollection (VarsInClauses[v2]).Item[i];
 
-      for j:= 0 to TClauseCollection (VarsInClauses [v1]).Count- 1 do
+      for j:= 0 to TClauseCollection (VarsInClauses[v1]).Count- 1 do
       begin
-        ActiveCluase2:= TClauseCollection (VarsInClauses [v1]).Item [j];
+        ActiveCluase2:= TClauseCollection (VarsInClauses[v1]).Item[j];
 
-        if ClausessAreTheSame (ActiveCluase1, ActiveCluase2, Problem.InputVariable [v1], Problem.InputVariable [v2]) then
+        if ClausessAreTheSame (ActiveCluase1, ActiveCluase2, Problem.InputVariable[v1], Problem.InputVariable[v2]) then
         begin
           Matched:= True;
           Break;
@@ -598,32 +598,32 @@ begin
   end;
 
   for i:= 0 to Problem.HardConstraintCount- 1 do
-    Problem.HardConstraint [i].Finalize;
+    Problem.HardConstraint[i].Finalize;
 
 
   for i:= 1 to Problem.InputVariableCount do
     for j:= 0 to Problem.HardConstraintCount- 1 do
-      if Problem.HardConstraint [j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], False))<> nil then
+      if Problem.HardConstraint[j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], False))<> nil then
       begin
-        TConstraintCollection (VarsInConstraints [i]).AddItem (Problem.HardConstraint [j]);
-        TBigInt (VarSumOfCoefs [i]).Add (Problem.HardConstraint [j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], False)));
+        TConstraintCollection (VarsInConstraints[i]).AddItem (Problem.HardConstraint[j]);
+        TBigInt (VarSumOfCoefs[i]).Add (Problem.HardConstraint[j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], False)));
 
       end;
 
   for i:= 1 to Problem.InputVariableCount do
     for j:= 0 to Problem.HardConstraintCount- 1 do
-      if Problem.HardConstraint [j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], True))<> nil then
+      if Problem.HardConstraint[j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], True))<> nil then
       begin
-        TConstraintCollection (VarsInConstraints [i]).AddItem (Problem.HardConstraint [j]);
-        TBigInt (NegVArSumOfCoefs [i]).Add (Problem.HardConstraint [j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], True)));
+        TConstraintCollection (VarsInConstraints[i]).AddItem (Problem.HardConstraint[j]);
+        TBigInt (NegVArSumOfCoefs[i]).Add (Problem.HardConstraint[j].LHS.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], True)));
 
       end;
 
   for i:= 1 to Problem.InputVariableCount do
     for j:= 0 to Problem.CNFClauses.Count- 1 do
-      if Problem.CNFClauses.Item [j].IsExist (CreateLiteral (Problem.InputVariable [i], False))
-      or Problem.CNFClauses.Item [j].IsExist (CreateLiteral (Problem.InputVariable [i], True)) then
-        TClauseCollection (VarsInClauses [i]).AddItem (Problem.CNFClauses.Item [j]);
+      if Problem.CNFClauses.Item[j].IsExist (CreateLiteral (Problem.InputVariable[i], False))
+      or Problem.CNFClauses.Item[j].IsExist (CreateLiteral (Problem.InputVariable[i], True)) then
+        TClauseCollection (VarsInClauses[i]).AddItem (Problem.CNFClauses.Item[j]);
 
       AreSame (1, 5);
 
@@ -631,42 +631,42 @@ begin
     for j:= i+ 1 to Problem.InputVariableCount do
       if AreSame (i, j) then
       begin
-        if (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], False))<> nil) xor
-           (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [j], False))<> nil)
+        if (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], False))<> nil) xor
+           (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[j], False))<> nil)
         then
           Continue;
-        if (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], True))<> nil) xor
-           (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [j], True))<> nil)
+        if (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], True))<> nil) xor
+           (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[j], True))<> nil)
         then
           Continue;
 
-        if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], False))<> nil then
-          if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], False)).CompareWith
-                  (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [j], False)))<> 0 then
+        if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], False))<> nil then
+          if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], False)).CompareWith
+                  (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[j], False)))<> 0 then
           Continue;
 
-        if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], True))<> nil then
-          if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [i], True)).CompareWith
-                  (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable [j], True)))<> 0 then
+        if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], True))<> nil then
+          if Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[i], True)).CompareWith
+                  (Problem.ObjectiveFunction.GetCoefByLiteral (CreateLiteral (Problem.InputVariable[j], True)))<> 0 then
           Continue;
 
         AClause:= TClause.Create;
-        AClause.AddItem (CreateLiteral (Problem.InputVariable [i], True));
-        AClause.AddItem (CreateLiteral (Problem.InputVariable [j], False));
+        AClause.AddItem (CreateLiteral (Problem.InputVariable[i], True));
+        AClause.AddItem (CreateLiteral (Problem.InputVariable[j], False));
         Problem.CNFClauses.Add (AClause);
 
       end;
 
   for i:= 0 to Problem.InputVariableCount do
   begin
-    TClauseCollection (VarsInClauses [i]).Clear;
-    TConstraintCollection (VarsInConstraints [i]).Clear;
+    TClauseCollection (VarsInClauses[i]).Clear;
+    TConstraintCollection (VarsInConstraints[i]).Clear;
 
-    TClauseCollection (VarsInClauses [i]).Free;
-    TConstraintCollection (VarsInConstraints [i]).Free;
+    TClauseCollection (VarsInClauses[i]).Free;
+    TConstraintCollection (VarsInConstraints[i]).Free;
 
-    TBigInt (VarSumOfCoefs [i]).Free;
-    TBigInt (NegVArSumOfCoefs [i]).Free;
+    TBigInt (VarSumOfCoefs[i]).Free;
+    TBigInt (NegVArSumOfCoefs[i]).Free;
 
   end;
 
@@ -767,7 +767,7 @@ begin
   VarsInProblem:= Math.Max (VarsInProblem, VariableGenerator.LastUsedCNFIndex);
 
   FLastModel:= TIntegerCollection.Create;
-  CNFGenerator.ImportModel (Problem.InputVariable [Problem.InputVariableCount], LastModel);
+  CNFGenerator.ImportModel (Problem.InputVariable[Problem.InputVariableCount], LastModel);
 
   LastAnswerSign:= True;
   Result:= NewObjectiveFunction.Evaluate (CNFGenerator, LastAnswerSign);
@@ -809,7 +809,7 @@ begin
     GetVariableGenerator.SetLastVariableIndex (VarsInProblem);
 {
     for i:= 0 to DecisionProblemDescription.Count- 1 do
-      CNFCollection.AddClause (DecisionProblemDescription.Item [i]);
+      CNFCollection.AddClause (DecisionProblemDescription.Item[i]);
 }
     DecisionProblemResult:= SolveDecisionProblem (NewProblemDesc, False, False);
 
@@ -818,7 +818,7 @@ begin
 
     if DecisionProblemResult then
     begin
-      CNFGenerator.ImportModel (Problem.InputVariable [Problem.InputVariableCount], LastModel);
+      CNFGenerator.ImportModel (Problem.InputVariable[Problem.InputVariableCount], LastModel);
 //      High.Free;
 //      Result.Free;
       Result:= NewObjectiveFunction.Evaluate (CNFGenerator, LastAnswerSign);
@@ -853,10 +853,10 @@ begin
     Report ('v ');
     for i:= 1 to Problem.InputVariableCount do
     begin
-      if LastModel.Item [Problem.InputVariable [i]]= 1 then
-         Report ('x'+ IntToStr (Problem.InputVariable [i]- 1)+ ' ')
+      if LastModel.Item[Problem.InputVariable[i]]= 1 then
+         Report ('x'+ IntToStr (Problem.InputVariable[i]- 1)+ ' ')
       else
-         Report ('-x'+ IntToStr (Problem.InputVariable [i]- 1)+ ' ');
+         Report ('-x'+ IntToStr (Problem.InputVariable[i]- 1)+ ' ');
     end;
     ReportLn ();
 
@@ -887,20 +887,20 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
   begin
     SetLength (LiteralsCoef, 2* (Problem.InputVariableCount+ 1));// Each variable can be either positive or negative
     for i:= 1 to 2* (Problem.InputVariableCount+ 1) do
-      LiteralsCoef [i]:= TBigInt.Create.SetValue (0);
+      LiteralsCoef[i]:= TBigInt.Create.SetValue (0);
 
     RHS:= TBigInt.Create.SetValue (0);
     MultiplicationFactor:= TBigInt.Create.SetValue (1);
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-      ActiveConstraint:= Problem.Constraint [i];
+      ActiveConstraint:= Problem.Constraint[i];
 
       for j:= 0 to ActiveConstraint.LHS.Count- 1 do
       begin
-        Temp:= ActiveConstraint.LHS.Item [j].Coef.Mul (MultiplicationFactor);
+        Temp:= ActiveConstraint.LHS.Item[j].Coef.Mul (MultiplicationFactor);
 
-        LiteralsCoef [ActiveConstraint.LHS.Item [j].Literal].Add (Temp);
+        LiteralsCoef[ActiveConstraint.LHS.Item[j].Literal].Add (Temp);
 
         Temp.Free;
 
@@ -924,30 +924,30 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
 
     for i:= 1 to Problem.InputVariableCount do
     begin
-      if LiteralsCoef [2* i].CompareWith (LiteralsCoef [2* i+ 1])< 0 then
+      if LiteralsCoef[2* i].CompareWith (LiteralsCoef[2* i+ 1])< 0 then
       begin
         Sum.AddNewTerm (TTerm.Create (2* i+ 1,
-                    LiteralsCoef [2* i+ 1].Sub (LiteralsCoef [2* i])));
+                    LiteralsCoef[2* i+ 1].Sub (LiteralsCoef[2* i])));
 
-        if 0< RHS.CompareWith (LiteralsCoef [2* i]) then
+        if 0< RHS.CompareWith (LiteralsCoef[2* i]) then
         begin
           Break;
 
         end;
 
-        RHS.Sub (LiteralsCoef [2* i]);
+        RHS.Sub (LiteralsCoef[2* i]);
 
       end
-      else if LiteralsCoef [2* i+ 1].CompareWith (LiteralsCoef [2* i])< 0 then
+      else if LiteralsCoef[2* i+ 1].CompareWith (LiteralsCoef[2* i])< 0 then
       begin
-        Sum.AddItem (TTerm.Create (2* i, LiteralsCoef [2* i].Sub (LiteralsCoef [2* i+ 1])));
-        if 0< RHS.CompareWith (LiteralsCoef [2* i+ 1]) then
+        Sum.AddItem (TTerm.Create (2* i, LiteralsCoef[2* i].Sub (LiteralsCoef[2* i+ 1])));
+        if 0< RHS.CompareWith (LiteralsCoef[2* i+ 1]) then
         begin
           Break;
 
         end;
 
-        RHS.Sub (LiteralsCoef [2* i]);
+        RHS.Sub (LiteralsCoef[2* i]);
 
       end
 
@@ -957,7 +957,7 @@ function TAbstractPBSolverEngine.SolveDecisionProblem (Problem: TPBSpecification
     Result:= TPBConstraint.Create (Sum, ActiveConstraint.CompareOperator, True, RHS);
 
     for i:= 0 to 2* (Problem.InputVariableCount+ 1) do
-      LiteralsCoef [i].Free;
+      LiteralsCoef[i].Free;
     SetLength (LiteralsCoef, 0);
 
   end;
@@ -971,15 +971,15 @@ begin
   if GetRunTimeParameterManager.Verbosity and Ord (vbFull)<> 0 then
     GetCNFGenerator.ReportForcedVariables;
 
-  if (UpperCase (GetRunTimeParameterManager.ValueByName ['--BreakSymmetry'])<> UpperCase ('Disabled')) and
-     (UpperCase (GetRunTimeParameterManager.ValueByName ['--BreakSymmetry'])<> '') then
+  if (UpperCase (GetRunTimeParameterManager.ValueByName['--BreakSymmetry'])<> UpperCase ('Disabled')) and
+     (UpperCase (GetRunTimeParameterManager.ValueByName['--BreakSymmetry'])<> '') then
     BreakSymmetries (Problem);
 
-  if not (UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser')) then
+  if not (UpperCase (GetRunTimeParameterManager.ValueByName['--Parser'])= UpperCase ('LazyParser')) then
     Problem.DescribeNonLinearVariables;
   Result:= True;
 
-  if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
+  if UpperCase (GetRunTimeParameterManager.ValueByName['--EncodeAsOneConstraint'])= UpperCase ('Enabled') then
   begin
     WriteLn ('--EncodeAsOneConstraint cannot be enabled in this version');
     Halt (1);
@@ -1001,13 +1001,13 @@ begin
     end;
 
   end
-  else if (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Disabled')) or
-          (UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= '') then
+  else if (UpperCase (GetRunTimeParameterManager.ValueByName['--EncodeAsOneConstraint'])= UpperCase ('Disabled')) or
+          (UpperCase (GetRunTimeParameterManager.ValueByName['--EncodeAsOneConstraint'])= '') then
   begin
 
     for i:= 0 to Problem.ConstraintCount- 1 do
     begin
-      ActiveConstraint:= Problem.Constraint [i];
+      ActiveConstraint:= Problem.Constraint[i];
 
       if GetRunTimeParameterManager.Verbosity and Ord (vbEveryThing)<> 0 then
         WriteLn ('c TAbstractPBSolverEngine.SolveDecision c ', i, ': ', ActiveConstraint.ToString);
@@ -1045,7 +1045,7 @@ begin
     end;
 
   end
-  else if UpperCase (GetRunTimeParameterManager.ValueByName ['--EncodeAsOneConstraint'])= UpperCase ('Automatic') then
+  else if UpperCase (GetRunTimeParameterManager.ValueByName['--EncodeAsOneConstraint'])= UpperCase ('Automatic') then
   begin
     WriteLn ('--EncodeAsOneConstraint Automatic has not implemented, yet!');
     Halt (1);
@@ -1057,7 +1057,7 @@ begin
   CNFGenerator.AddLiteral (VariableGenerator.TrueLiteral);
   CNFGenerator.AbortConstraint;
 
-  if UpperCase (GetRunTimeParameterManager.ValueByName ['--Parser'])= UpperCase ('LazyParser') then
+  if UpperCase (GetRunTimeParameterManager.ValueByName['--Parser'])= UpperCase ('LazyParser') then
     Problem.DescribeNonLinearVariables;
 
   ReportLn ('c Calling SatSolver');
@@ -1074,13 +1074,13 @@ begin
 
       for i:= 1 to Min (GetSatSolver.VarCount- 1, Problem.InputVariableCount) do
       begin
-        case GetSatSolver.GetValueInModel (Problem.InputVariable [i]) of
+        case GetSatSolver.GetValueInModel (Problem.InputVariable[i]) of
           gbTrue:
-             Report ('x'+ IntToStr (Problem.InputVariable [i]- 1)+ ' ');
+             Report ('x'+ IntToStr (Problem.InputVariable[i]- 1)+ ' ');
           gbFalse:
-             Report ('-x'+ IntToStr (Problem.InputVariable [i]- 1)+ ' ');
+             Report ('-x'+ IntToStr (Problem.InputVariable[i]- 1)+ ' ');
           gbUnknown:
-             Report ('?x'+ IntToStr (Problem.InputVariable [i]- 1)+ ' ');
+             Report ('?x'+ IntToStr (Problem.InputVariable[i]- 1)+ ' ');
         end;
 
       end;
@@ -1110,7 +1110,7 @@ begin
 
   for i:= 0 to Problem.ConstraintCount- 1 do
   begin
-    ActiveConstraint:= Problem.Constraint [i];
+    ActiveConstraint:= Problem.Constraint[i];
     if not VerifyHardConstraint (ActiveConstraint, Assignment) then
     begin
       WriteLn (ActiveConstraint.ToString);
@@ -1136,12 +1136,12 @@ begin
   for i:= 0 to Problem.ClauseCount- 1 do
   begin
     assert (False);
-    ActiveClause:= Problem.Clause [i];
+    ActiveClause:= Problem.Clause[i];
 
     CNFGenerator.BeginConstraint;
     for j:= 0 to ActiveClause.Count- 1 do
     begin
-      Lit:= ActiveClause.Item [j];
+      Lit:= ActiveClause.Items[j];
       CNFGenerator.AddLiteral (Lit);
 
     end;
@@ -1183,12 +1183,12 @@ begin
 
   for i:= 0 to Problem.ClauseCount- 1 do
   begin
-    ActiveClause:= Problem.Clause [i];
+    ActiveClause:= Problem.Clause[i];
 
     Satisfied:= False;
     for j:= 0 to ActiveClause.Count- 1 do
     begin
-      Lit:= ActiveClause.Item [j];
+      Lit:= ActiveClause.Items[j];
       if Assignments.GetValue (Lit)= gbTrue then
       begin
         Satisfied:= True;

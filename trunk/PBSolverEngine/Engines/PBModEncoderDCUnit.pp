@@ -69,23 +69,23 @@ begin
   { Recursive Construction}
 
   for l:= 0 to High (Memory) do
-    for i:= 0 to Memory [l].Count- 1 do
+    for i:= 0 to Memory[l].Count- 1 do
       begin
-        ActiveAnswer:= Memory [l].Item [i];
+        ActiveAnswer:= Memory[l].Item[i];
 
         for b1:= 0 to Modulo- 1 do
-          if GetVar (ActiveAnswer.Item [b1])<> 0 then
+          if GetVar (ActiveAnswer.Items[b1])<> 0 then
             for b2:= b1+ 1 to Modulo- 1 do
-              if GetVar (ActiveAnswer.Item [b2])<> 0 then
-                if (ActiveAnswer.Item [b1]<> VariableGenerator.FalseLiteral) and
-                   (ActiveAnswer.Item [b2]<> VariableGenerator.FalseLiteral) then
+              if GetVar (ActiveAnswer.Items[b2])<> 0 then
+                if (ActiveAnswer.Items[b1]<> VariableGenerator.FalseLiteral) and
+                   (ActiveAnswer.Items[b2]<> VariableGenerator.FalseLiteral) then
                 begin
                   VariableGenerator.SatSolver.BeginConstraint;
 
-                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b1]));
-                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Item [b2]));
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Items[b1]));
+                  VariableGenerator.SatSolver.AddLiteral (NegateLiteral (ActiveAnswer.Items[b2]));
 
-                  VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result [j]
+                  VariableGenerator.SatSolver.SubmitClause;// Result[i]=> \lnot Result[j]
 
                 end;
 
@@ -103,17 +103,17 @@ var
 begin
 
   for l:= 0 to High (Memory) do
-    for i:= 0 to Memory [l].Count- 1 do
+    for i:= 0 to Memory[l].Count- 1 do
       begin
-        ActiveAnswer:= Memory [l].Item [i];
+        ActiveAnswer:= Memory[l].Item[i];
 
         VariableGenerator.SatSolver.BeginConstraint;
 
         for b1:= 0 to Modulo- 1 do
-          if GetVar (ActiveAnswer.Item [b1])<> 0 then
-            VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Item [b1]);
+          if GetVar (ActiveAnswer.Items[b1])<> 0 then
+            VariableGenerator.SatSolver.AddLiteral (ActiveAnswer.Items[b1]);
 
-        VariableGenerator.SatSolver.SubmitClause;// Result[0] \lor Result [1] \lor Result [M-1]
+        VariableGenerator.SatSolver.SubmitClause;// Result[0] \lor Result[1] \lor Result[M-1]
 
       end;
 
@@ -130,7 +130,7 @@ var
 
   function EncodeUsingTseitin (Index: Integer; Len: Integer): TLiteralCollection;
   {
-    Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
+    Create an answer for InputLiterals[Index, ..., Index+ Len- 1]
   }
   var
     Temp: TLiteralCollection;
@@ -143,16 +143,16 @@ var
     begin
       Result:= TLiteralCollection.Create (Modulo, VariableGenerator.FalseLiteral);
 
-      if Coefs.Item [Index]<> 0 then
+      if Coefs.Item[Index]<> 0 then
       begin
-        Result.Item [Coefs.Item [Index]]:= CopyLiteral (OrigSum.Item [Index].Literal);
-        Result.Item [0]:= CopyLiteral (NegateLiteral (OrigSum.Item [Index].Literal));
+        Result.Items[Coefs.Item[Index]]:= CopyLiteral (OrigSum.Item[Index].Literal);
+        Result.Items[0]:= CopyLiteral (NegateLiteral (OrigSum.Item[Index].Literal));
 
       end
       else
-        Result.Item [0]:= VariableGenerator.TrueLiteral;
+        Result.Items[0]:= VariableGenerator.TrueLiteral;
 
-      Memory [Len].AddItem (Result);
+      Memory[Len].AddItem (Result);
 
     end
     else
@@ -170,12 +170,12 @@ var
       begin
 
         for j:= 0 to Modulo- 1 do
-          Temp.Item [j]:= VariableGenerator.CreateVariableDescribingAND
+          Temp.Items[j]:= VariableGenerator.CreateVariableDescribingAND
                                (
-                               Left.Item [j],
-                               Right.Item [(i- j+ Modulo) mod Modulo]
+                               Left.Items[j],
+                               Right.Items[(i- j+ Modulo) mod Modulo]
                                );
-        Result.Item [i]:= VariableGenerator.CreateVariableDescribingOR (Temp);
+        Result.Items[i]:= VariableGenerator.CreateVariableDescribingOR (Temp);
 
       end;
 
@@ -185,7 +185,7 @@ var
       Left.Free;
       Right.Free;
 }
-      Memory [Len].AddItem (Result);
+      Memory[Len].AddItem (Result);
 
     end;
 
@@ -209,7 +209,7 @@ begin
   begin
       Temp:= EncodeUsingTseitin (0, OrigSum.Count);
 
-    Result:= Temp.Item [b];
+    Result:= Temp.Items[b];
 
   end;
   LiteralCollectionFactory.Free;
@@ -232,7 +232,7 @@ var
 
   function EncodeDirectly (Index: Integer; Len: Integer): TLiteralCollection;
   {
-    Create an answer for InputLiterals [Index, ..., Index+ Len- 1]
+    Create an answer for InputLiterals[Index, ..., Index+ Len- 1]
   }
   var
     Left, Right: TLiteralCollection;
@@ -244,16 +244,16 @@ var
     begin
       Result:= TLiteralCollection.Create (Modulo, VariableGenerator.FalseLiteral);
 
-      if Coefs.Item [Index]<> 0 then
+      if Coefs.Item[Index]<> 0 then
       begin
-        Result.Item [Coefs.Item [Index]]:= CopyLiteral (OrigSum.Item [Index].Literal);
-        Result.Item [0]:= CopyLiteral (NegateLiteral (OrigSum.Item [Index].Literal));
+        Result.Items[Coefs.Item[Index]]:= CopyLiteral (OrigSum.Item[Index].Literal);
+        Result.Items[0]:= CopyLiteral (NegateLiteral (OrigSum.Item[Index].Literal));
 
       end
       else
-        Result.Item [0]:= VariableGenerator.TrueLiteral;
+        Result.Items[0]:= VariableGenerator.TrueLiteral;
 
-      Memory [Len].AddItem (Result);
+      Memory[Len].AddItem (Result);
 
     end
     else
@@ -263,16 +263,16 @@ var
 
       Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
       for i:= 0 to Modulo- 1 do
-        Result.Item [i]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
+        Result.Items[i]:= CreateLiteral (GetVariableManager.CreateNewVariable, False);
 
       for k:= 0 to Modulo- 1 do
         for i:= 0 to Modulo- 1 do
         begin
-          CNFGenerator.BeginConstraint;{Left [i] \land Right [k] => Result [i+ k]}
+          CNFGenerator.BeginConstraint;{Left[i] \land Right[k] => Result[i+ k]}
 
-          CNFGenerator.AddLiteral (NegateLiteral (Left.Item [i]));
-          CNFGenerator.AddLiteral (NegateLiteral (Right.Item [k]));
-          CNFGenerator.AddLiteral (Result.Item [(i+ k) mod Modulo]);
+          CNFGenerator.AddLiteral (NegateLiteral (Left.Items[i]));
+          CNFGenerator.AddLiteral (NegateLiteral (Right.Items[k]));
+          CNFGenerator.AddLiteral (Result.Items[(i+ k) mod Modulo]);
 
           CNFGenerator.SubmitClause;
 
@@ -281,25 +281,25 @@ var
       for k1:= 0 to Modulo- 1 do
         for k2:= k1+ 1 to Modulo- 1 do
         begin
-          CNFGenerator.BeginConstraint;{Result [k1]=> ~Result [k2]}
+          CNFGenerator.BeginConstraint;{Result[k1]=> ~Result[k2]}
 
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k1]));
-          CNFGenerator.AddLiteral (NegateLiteral (Result.Item [k2]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Items[k1]));
+          CNFGenerator.AddLiteral (NegateLiteral (Result.Items[k2]));
 
           CNFGenerator.SubmitClause;
 
         end;
 
-      CNFGenerator.BeginConstraint;{Result [0], Result [1], ..., Result [Modulo- 1]}
+      CNFGenerator.BeginConstraint;{Result[0], Result[1], ..., Result[Modulo- 1]}
       for i:= 0 to Modulo- 1 do
-        CNFGenerator.AddLiteral (Result.Item [i]);
+        CNFGenerator.AddLiteral (Result.Items[i]);
       CNFGenerator.SubmitClause;
 
 {
       Left.Free;
       Right.Free;
 }
-      Memory [Len].AddItem (Result);
+      Memory[Len].AddItem (Result);
 
     end;
 
@@ -323,7 +323,7 @@ begin
   begin
     Temp:= EncodeDirectly (0, OrigSum.Count);
 
-    Result:= Temp.Item [b];
+    Result:= Temp.Items[b];
 
   end;
   LiteralCollectionFactory.Free;
@@ -339,7 +339,7 @@ var
 begin
 
   for i:= 0 to High (Memory) do
-    Memory [i].Free;
+    Memory[i].Free;
   SetLength (Memory, 0);
 
   inherited;
@@ -357,7 +357,7 @@ begin
 
   SetLength (Memory, OrigSum.Count+ 1);
   for i:= 0 to High (Memory) do
-    Memory [i]:= TListOfLiteralCollection.Create;
+    Memory[i]:= TListOfLiteralCollection.Create;
 
 end;
 
