@@ -1,5 +1,5 @@
 unit BinaryArithmeticCircuitUnit;
-
+{$Assertions on}
 {$mode objfpc}{$H+}
 
 interface
@@ -59,8 +59,8 @@ var
   ai, bi: TLiteral;
 
 begin
-  assert(1<= a.Count);
-  assert(1<= b.Count);
+  assert(1<= a.Count, 'a.Count must be greater than 1.');
+  assert(1<= b.Count, 'b.Count must be greater than 1.');
 
   MaxLen:= Max(a.Count, b.Count);
 

@@ -257,7 +257,7 @@ begin
 
       Lit:= CreateLiteral (v, Ch= '~');
 
-      Result.AddItem (Lit);
+      Result.PushBack(Lit);
       ParseZeroOrMoreSpace;
 
     end;
@@ -458,7 +458,7 @@ begin
 
     Lit:= CreateLiteral (v, Ch= '~');
 
-    Result.AddItem (Lit);
+    Result.PushBack(Lit);
     ParseZeroOrMoreSpace;
 
   end;
@@ -510,7 +510,7 @@ function TPBParser.ParseSum: TPBSum;
           v:= InputVariables.Item [StrToInt (Copy (vStr, 2, Length (vStr)))];
 
        Lit:= CreateLiteral (v, (vStr [1]= '~') xor (CoefSign= '-'));
-       Literals.AddItem (Lit);
+       Literals.PushBack(Lit);
 
       end;
 

@@ -5,10 +5,10 @@ unit ClauseUnit;
 interface
 
 uses
-  Classes, SysUtils, GenericCollectionUnit, MyTypes, StreamUnit;
+  Classes, SysUtils, GenericCollectionUnit, MyTypes, StreamUnit, gvector;
 
 type
-  TGroundBool= (gbFalse= 0, gbUnknown= 1, gbTrue= 2);// TODO: Change the default Values ..
+  TGroundBool=(gbFalse= 0, gbUnknown= 1, gbTrue= 2);// TODO: Change the default Values ..
 
   { TLiteral }
 
@@ -17,21 +17,29 @@ type
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
-  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
+  //  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
+  TSpecializeTGenericCollectionForBuiltInDataTLiteral= class(specialize TVector<TLiteral>)
+  end;
 
-  TLiteralCollection= class (TSpecializeTGenericCollectionForBuiltInDataTLiteral)
+  TLiteralCollection= class(TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   private
+    function GetCount: Integer;
     function GetMaxVar: TVariable;
+    procedure SetCount(AValue: Integer);
 
   public
     property MaxVar: TVariable read GetMaxVar;
+    property Count: Integer read GetCount write SetCount;
+
+    constructor Create(n: Integer; Lit: TLiteral);
+    constructor Create;
 
     function ToXML: AnsiString;
     function ToString: AnsiString; override;
 
     function Copy: TLiteralCollection;
 
-    function IsExist (Lit: TLiteral): Boolean;
+    function IsExist(Lit: TLiteral): Boolean;
 
     procedure Reset;
   end;
@@ -43,7 +51,7 @@ type
 
   { TClauseCollection }
 
-  TClauseCollection= class (TGenericCollectionTClause)
+  TClauseCollection= class(TGenericCollectionTClause)
   private
   public
     constructor Create;
@@ -51,37 +59,65 @@ type
     function Copy: TClauseCollection;
     function ToString: AnsiString; override;
 
-    procedure Load (Stream: TMyTextStream); override;
+    procedure Load(Stream: TMyTextStream); override;
 
   end;
 
   TListOfClauseCollection= specialize TGenericCollection<TClauseCollection>;
 
 
-  function GetVar (Lit: TLiteral): TVariable; inline;
-  function IsNegated (Lit: TLiteral): Boolean; inline;
-  function GetValue (Lit: TLiteral): Integer; inline;
-  function NegateLiteral   (Lit: TLiteral): TLiteral; inline;
-  function CopyLiteral   (Lit: TLiteral): TLiteral; inline;
+  function GetVar(Lit: TLiteral): TVariable; inline;
+  function IsNegated(Lit: TLiteral): Boolean; inline;
+  function GetValue(Lit: TLiteral): Integer; inline;
+  function NegateLiteral  (Lit: TLiteral): TLiteral; inline;
+  function CopyLiteral  (Lit: TLiteral): TLiteral; inline;
 //  function CreateLiteral: TLiteral; inline;
-  function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
-  function LiteralToString (Lit: TLiteral): AnsiString;
+  function CreateLiteral(VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
+  function LiteralToString(Lit: TLiteral): AnsiString;
 
 
 implementation
 uses
   TSeitinVariableUnit, Math;
 
+function TLiteralCollection.GetCount: Integer;
+begin
+  Result := Size;
+end;
+
 function TLiteralCollection.GetMaxVar: TVariable;
 var
   i: Integer;
 
 begin
-  Result:= GetVar (GetVariableManager.TrueLiteral);
+  Result:= GetVar(GetVariableManager.TrueLiteral);
 
   for i:= 0 to Count- 1 do
-    if Result< GetVar (Item [i]) then
-      Result:= GetVar (Item [i]);
+    if Result< GetVar(Items[i]) then
+      Result:= GetVar(Items[i]);
+
+end;
+
+procedure TLiteralCollection.SetCount(AValue: Integer);
+begin
+  Resize(AValue);
+end;
+
+constructor TLiteralCollection.Create(n: Integer; Lit: TLiteral);
+var
+  i: Integer;
+begin
+  inherited Create;
+
+  Count := n;
+  for i := 0 to Count - 1 do
+    Items[n];
+
+end;
+
+constructor TLiteralCollection.Create;
+begin
+  inherited Create;
 
 end;
 
@@ -92,7 +128,7 @@ var
 begin
   Result:= '<LiteralCollection>';
   for i:= 0 to Count- 1 do
-    Result+= '<Literal v= "'+ LiteralToString (Item [i])+ '"/>';
+    Result+= '<Literal v= "'+ LiteralToString(Items[i])+ '"/>';
 
   Result+= '</LiteralCollection>';
 
@@ -105,7 +141,7 @@ var
 begin
   Result:= '';
   for i:= 0 to Count- 1 do
-    Result+= LiteralToString (Item [i])+ ' ';
+    Result+= LiteralToString(Items[i])+ ' ';
 
 end;
 
@@ -114,15 +150,15 @@ var
   i: Integer;
 
 begin
-  Result:= TLiteralCollection.Create (Self.Count, 3);
+  Result:= TLiteralCollection.Create(Self.Count, 3);
   Result.Count:= Self.Count;
 
   for i:= 0 to Self.Count- 1 do
-    Result.Item [i]:= Self.Item [i];
+    Result.Items[i]:= Self.Items[i];
 
 end;
 
-function TLiteralCollection.IsExist (Lit: TLiteral): Boolean;
+function TLiteralCollection.IsExist(Lit: TLiteral): Boolean;
 var
   i: Integer;
 
@@ -130,7 +166,7 @@ begin
   Result:= True;
 
   for i:= 0 to Count- 1 do
-    if Item [i]= Lit then
+    if Items[i]= Lit then
       Exit;
 
   Result:= False;
@@ -143,28 +179,28 @@ begin
 
 end;
 
-function GetVar (Lit: TLiteral): Integer; inline;
+function GetVar(Lit: TLiteral): Integer; inline;
 begin
-  Exit (Lit shr 1);
+  Exit(Lit shr 1);
 
 end;
 
-function IsNegated (Lit: TLiteral): Boolean;
+function IsNegated(Lit: TLiteral): Boolean;
 begin
-  Exit ((Lit and 1)= 1);
+  Exit((Lit and 1)= 1);
 
 end;
 
-function GetValue (Lit: TLiteral): Integer; inline;
+function GetValue(Lit: TLiteral): Integer; inline;
 begin
-  if IsNegated (Lit) then
-    Exit (-GetVar (Lit))
+  if IsNegated(Lit) then
+    Exit(-GetVar(Lit))
   else
-    Exit (GetVar (Lit));
+    Exit(GetVar(Lit));
 
 end;
 
-function NegateLiteral (Lit: TLiteral): TLiteral; inline;
+function NegateLiteral(Lit: TLiteral): TLiteral; inline;
 begin
   Result:= Lit;
   Result:= Result xor 1;
@@ -179,9 +215,9 @@ begin
 end;
 }
 
-function CopyLiteral (Lit: TLiteral): TLiteral;
+function CopyLiteral(Lit: TLiteral): TLiteral;
 begin
-  case TSeitinVariableUnit.GetVariableManager.SatSolver.GetLiteralValue (Lit) of
+  case TSeitinVariableUnit.GetVariableManager.SatSolver.GetLiteralValue(Lit) of
     gbFalse:
       Result:= GetVariableManager.FalseLiteral;
     gbTrue:
@@ -193,22 +229,22 @@ begin
 
 end;
 
-function CreateLiteral (VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
+function CreateLiteral(VarValue: Integer; IsNegated: Boolean): TLiteral; inline;
 begin
-  Result:= (VarValue shl 1);
+  Result:=(VarValue shl 1);
   if IsNegated then
     Result:= Result or 1;
 
 end;
 
-function LiteralToString (Lit: TLiteral): AnsiString;
+function LiteralToString(Lit: TLiteral): AnsiString;
 begin
-  if IsNegated (Lit) then
+  if IsNegated(Lit) then
     Result:= '~'
   else
     Result:= '';
 
-  Result+= 'x'+ IntToStr (GetVar (Lit));
+  Result+= 'x'+ IntToStr(GetVar(Lit));
 
 end;
 
@@ -231,7 +267,7 @@ begin
   Result:= TClauseCollection.Create;
 
   for i:= 0 to Self.Count- 1 do
-    Result.AddItem (Self.Item [i].Copy);
+    Result.AddItem(Self.Item[i].Copy);
 
 end;
 
@@ -243,11 +279,11 @@ begin
   Result:= '';
 
   for i:= 0 to Self.Count- 1 do
-    Result+= Self.Item [i].ToString+ #10;
+    Result+= Self.Items[i].ToString+ #10;
 
 end;
 
-procedure TClauseCollection.Load (Stream: TMyTextStream);
+procedure TClauseCollection.Load(Stream: TMyTextStream);
 var
   S: AnsiString;
   ActiveClause: TClause;
@@ -256,10 +292,10 @@ var
 
 begin
   S:= Stream.ReadLine;
-  if System.Copy (S, 1, Length ('p cnf'))<> 'p cnf' then
+  if System.Copy(S, 1, Length('p cnf'))<> 'p cnf' then
   begin
-    WriteLn ('Invalid file!');
-    Halt (1);
+    WriteLn('Invalid file!');
+    Halt(1);
 
   end;
 
@@ -271,15 +307,15 @@ begin
 
     while n<> 0 do
     begin
-      Lit:= CreateLiteral (abs (n), n< 0);
-      ActiveClause.AddItem (Lit);
+      Lit:= CreateLiteral(abs(n), n< 0);
+      ActiveClause.PushBack(Lit);
 
       n:= Stream.ReadInteger;
 
     end;
     Stream.ReadLine;
 
-    Self.AddItem (ActiveClause);
+    Self.AddItem(ActiveClause);
 
   end;
 
