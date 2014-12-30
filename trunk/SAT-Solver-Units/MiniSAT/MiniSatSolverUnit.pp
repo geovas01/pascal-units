@@ -129,7 +129,7 @@ begin
 
   for i:= 0 to AClause.Count- 1 do
   begin
-    Lit:= AClause.Item [i];
+    Lit:= AClause.Items[i];
     LiteralValue:= GetValue (GetVar (Lit));
 
     if IsNegated (Lit) then;
@@ -139,7 +139,7 @@ begin
       gbUnknown:
       begin
         Inc (Count);
-        Temp:= cAddLiteralToClause (FSolverID, AClause.Item [i]);
+        Temp:= cAddLiteralToClause (FSolverID, AClause.Items [i]);
 //        Write (LiteralToString (AClause.Item [i]), ' ');
 //        ActiveClause+= LiteralToString (AClause.Item [i])+ ' ';
         Assert (Temp= Count);

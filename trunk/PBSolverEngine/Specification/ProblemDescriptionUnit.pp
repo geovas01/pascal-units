@@ -43,10 +43,10 @@ type
     property CorrespondingLinearVariables: TLiteralCollection read FCorrespondingLinearVariables;
 
     property ConstraintCount: Integer read GetConstraintCount;
-    property Constraint [Index: Integer]: TPBConstraint read GetConstraint;
-    property Clause [Index: Integer]: TClause read GetClause;
+    property Constraint[Index: Integer]: TPBConstraint read GetConstraint;
+    property Clause[Index: Integer]: TClause read GetClause;
     property InputVariableCount: Integer read GetVarCount;
-    property InputVariable [Index: Integer]: Integer read GetInputVariable;
+    property InputVariable[Index: Integer]: Integer read GetInputVariable;
     property CNFClauses: TClauseCollection read GetAllClauses;
     property SpecMode: TSpecMode read GetSpecMode;
     property ClauseCount: Integer read GetClauseCount;
@@ -98,7 +98,7 @@ end;
 
 function TPBSpecification.GetClause (Index: Integer): TClause;
 begin
-  Result:= AllClauses.Item [Index];
+  Result:= AllClauses.Item[Index];
 
 end;
 
@@ -118,7 +118,7 @@ function TPBSpecification.GetConstraint (Index: Integer): TPBConstraint;
 begin
   assert (Index< ConstraintCount);
 
-  Result:= AllConstraints.Item [Index];
+  Result:= AllConstraints.Item[Index];
 
 end;
 
@@ -130,7 +130,7 @@ end;
 
 function TPBSpecification.GetInputVariable (Index: Integer): Integer;
 begin
-  Result:= FInputVariables.Item [Index];
+  Result:= FInputVariables.Item[Index];
 
 end;
 
@@ -193,7 +193,7 @@ begin
   FInputVariables.Free;
 
   for i:= 0 to NonLinearVariableDescriptions.Count- 1 do
-    TLiteralCollection (NonLinearVariableDescriptions.Items [i]).Free;
+    TLiteralCollection (NonLinearVariableDescriptions.Items[i]).Free;
   NonLinearVariableDescriptions.Clear;
   NonLinearVariableDescriptions.Free;
 
@@ -224,15 +224,15 @@ begin
    Result:= '<PBSpecification Mode= "'+ IntToStr (Ord (SpecMode))+ '" >';
 
    for i:= 0 to AllConstraints.Count- 1 do
-     Result+= '<Constraint Weight= "-1">'+ Constraint [i].ToXML
+     Result+= '<Constraint Weight= "-1">'+ Constraint[i].ToXML
              +'</Constraint>';
 
    Result+= '<NonLinearVariables>';
    {
    for i:= 0 to NonLinearVariableDescriptions.Count- 1 do
    begin
-     for j:= 0 to NonLinearVariableDescriptions.Items [i].Count - 1 do
-     Result+= '<NonLinearVariable Variable="'+ IntToStr (NonLinearVariableDescriptions.Items[].Item [i])+ '">'+ AllConstraints.Item [i].ToXML
+     for j:= 0 to NonLinearVariableDescriptions.Items[i].Count - 1 do
+     Result+= '<NonLinearVariable Variable="'+ IntToStr (NonLinearVariableDescriptions.Items[].Item[i])+ '">'+ AllConstraints.Item[i].ToXML
              +'</Constraint>';
 
    end;
@@ -253,18 +253,18 @@ begin
 
   for i:= 0 to CorrespondingLinearVariables.Count- 1 do
   begin
-    Result+= LiteralToString (CorrespondingLinearVariables.Item [i])+ '<=> ';
+    Result+= LiteralToString (CorrespondingLinearVariables.Items[i])+ '<=> ';
 
-    Activeclause:= TLiteralCollection (NonLinearVariableDescriptions [i]);
+    Activeclause:= TLiteralCollection (NonLinearVariableDescriptions[i]);
     for j:= 0 to ActiveClause.Count- 1 do
-      Result+= LiteralToString (ActiveClause.Item [j])+ ' ';
+      Result+= LiteralToString (ActiveClause.Items[j])+ ' ';
     Result+= #10;
 
   end;
 
   for i:= 0 to ClauseCount- 1 do
   begin
-    Result+= Clause [i].ToString;
+    Result+= Clause[i].ToString;
     Result+= #10;
     if i= 10 then
        break;
@@ -272,7 +272,7 @@ begin
   end;
 
   for i:= 0 to ConstraintCount- 1 do
-    Result+= Constraint [i].ToString+ #10;
+    Result+= Constraint[i].ToString+ #10;
 
   Result+= '.'#10;
 
@@ -291,34 +291,34 @@ TODO: more complicated Merge and simplify is possible!
 begin
 
   for i:= 0 to AllConstraints.Count- 1 do
-    AllConstraints.Item [i].Finalize;
+    AllConstraints.Item[i].Finalize;
 
   HCount:= ConstraintCount;;
   SetLength (G, HCount);
   for i:= 0 to HCount- 1 do
-    SetLength (G [i], HCount);
+    SetLength (G[i], HCount);
 
   for i:= 0 to HCount- 1 do
     for j:= 0 to HCount- 1 do
-      if Constraint [i].IsWeaker (Constraint [j]) then
-        G [i, j]:= True;
+      if Constraint[i].IsWeaker (Constraint[j]) then
+        G[i, j]:= True;
 
   Result:= False;
   for i:= 0 to HCount- 1 do
-    SetLength (G [i], 0);
+    SetLength (G[i], 0);
   SetLength (G, 0);
 
 end;
 
 procedure TPBSpecification.SetConstraint (Index: Integer; AConstraint: TPBConstraint);
 begin
-  AllConstraints.Item [Index]:= AConstraint;
+  AllConstraints.Item[Index]:= AConstraint;
 
 end;
 
 procedure TPBSpecification.DeleteConstraint (Index: Integer);
 begin
-  AllConstraints.Item [Index].Free;
+  AllConstraints.Item[Index].Free;
   AllConstraints.Delete (Index);
 
 end;
@@ -334,22 +334,22 @@ begin
 
   for i:= 0 to CNFClauses.Count- 1 do
   begin
-    ActiveClause:= CNFClauses.Item [i];
+    ActiveClause:= CNFClauses.Item[i];
 
     for j:= 0 to ActiveClause.Count- 1 do
-      if Result< GetVar (ActiveClause.item [j]) then
-        Result:= GetVar (ActiveClause.item [j]);
+      if Result< GetVar (ActiveClause.Items[j]) then
+        Result:= GetVar (ActiveClause.Items[j]);
 
   end;
 
   for i:= 0 to ConstraintCount- 1 do
   begin
-    ActiveConstraint:= Constraint [i];
+    ActiveConstraint:= Constraint[i];
 
     for j:= 0 to ActiveConstraint.LHS.Count- 1 do
     begin
-      if Result< GetVar (ActiveConstraint.LHS.item [j].Literal) then
-        Result:= GetVar (ActiveConstraint.LHS.item [j].Literal);
+      if Result< GetVar (ActiveConstraint.LHS.item[j].Literal) then
+        Result:= GetVar (ActiveConstraint.LHS.item[j].Literal);
 
     end;
 
@@ -363,7 +363,7 @@ var
 
 begin
   for i:= 0 to ConstraintCount- 1 do
-    Constraint [i].Finalize;
+    Constraint[i].Finalize;
 
 end;
 
@@ -377,8 +377,8 @@ begin
 
   for i:= 0 to NonLinearVariableDescriptions.Count- 1 do
   begin
-    ActiveLiteralCollection:= TLiteralCollection (NonLinearVariableDescriptions.Items [i]);
-    ActiveLit:= CorrespondingLinearVariables.Item [i];
+    ActiveLiteralCollection:= TLiteralCollection (NonLinearVariableDescriptions.Items[i]);
+    ActiveLit:= CorrespondingLinearVariables.Items[i];
 
     GetVariableManager.DescribeAND (ActiveLiteralCollection, ActiveLit);
 

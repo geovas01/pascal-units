@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, GenericStackUnit, ClauseUnit, MyTypes;
 
 type
-  TArrayofInteger = array [0..2] of Integer;
+  TArrayofInteger = array[0..2] of Integer;
   TVariablePolarity = (vpFalse= 0, vpTrue, vpNone);
 
   TSolverResult = (srError, srSAT, srUNSAT);
@@ -20,7 +20,7 @@ type
   TSATSolverInterface = class (TObject)
   private
     type
-      TNoOfLiteralsInTopConstraint = array [gbFalse..gbTrue] of Integer;
+      TNoOfLiteralsInTopConstraint = array[gbFalse..gbTrue] of Integer;
       TClauseNoOfLiteralsPair = specialize TPairForBuiltInData<TClause, TNoOfLiteralsInTopConstraint>;
       TStackOfClauses = specialize TGenericStack<TClauseNoOfLiteralsPair>;
   private
@@ -51,7 +51,7 @@ type
     property ClauseCount: Int64 read GetClauseCount;
     property TopConstraint: TClause read FTopConstraint;
     property TopConstarintSize: Integer read GetTopConstarintSize;
-    property NoOfLiteralInTopConstraint [gbValue: TGroundBool]: Integer read GetNoOfLiteralInTopConstraint;
+    property NoOfLiteralInTopConstraint[gbValue: TGroundBool]: Integer read GetNoOfLiteralInTopConstraint;
     property CNF: TClauseCollection read GetCNF;
 
     procedure AddComment(Comment: AnsiString); virtual;
@@ -204,9 +204,9 @@ begin
 
   for v:= 0 to HighIndex do
     if GetValueInModel(v)= gbTrue then
-      Model.Item [v]:= 1
+      Model.Item[v]:= 1
     else
-      Model.Item [v]:= -1;
+      Model.Item[v]:= -1;
 
 end;
 
@@ -252,9 +252,9 @@ end;
 
 function TSATSolverInterface.GenerateAndGate: TLiteral;
 begin
-  if 0 < NoOfLiteralInTopConstraint [gbFalse] then
+  if 0 < NoOfLiteralInTopConstraint[gbFalse] then
     Exit(GetVariableManager.FalseLiteral)
-  else if NoOfLiteralInTopConstraint [gbTrue] = TopConstraint.Count then
+  else if NoOfLiteralInTopConstraint[gbTrue] = TopConstraint.Count then
     Exit(GetVariableManager.TrueLiteral)
   else
   begin
@@ -267,9 +267,9 @@ end;
 
 function TSATSolverInterface.GenerateOrGate: TLiteral;
 begin
-  if 0 < NoOfLiteralInTopConstraint [gbTrue] then
+  if 0 < NoOfLiteralInTopConstraint[gbTrue] then
     Exit(GetVariableManager.TrueLiteral)
-  else if NoOfLiteralInTopConstraint [gbFalse] = TopConstraint.Count then
+  else if NoOfLiteralInTopConstraint[gbFalse] = TopConstraint.Count then
     Exit(GetVariableManager.FalseLiteral)
   else
   begin
@@ -284,14 +284,14 @@ function TSATSolverInterface.GenerateXOrGate: TLiteral;
 begin
   if TopConstraint.Count= 2 then
   begin
-    if GetLiteralValue(TopConstraint.Item [0])= gbFalse then// False xor x => x
-      Exit(TopConstraint.Item [1])
-    else if GetLiteralValue(TopConstraint.Item [0])= gbFalse then// True xor x => ~x
-      Exit(NegateLiteral(TopConstraint.Item [1]))
-    else if GetLiteralValue(TopConstraint.Item [1])= gbFalse then// False xor x => x
-        Exit(TopConstraint.Item [0])
-    else if GetLiteralValue(TopConstraint.Item [1])= gbFalse then// True xor x => ~x
-      Exit(NegateLiteral(TopConstraint.Item [0]))
+    if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// False xor x => x
+      Exit(TopConstraint.Items[1])
+    else if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// True xor x => ~x
+      Exit(NegateLiteral(TopConstraint.Items[1]))
+    else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// False xor x => x
+        Exit(TopConstraint.Items[0])
+    else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// True xor x => ~x
+      Exit(NegateLiteral(TopConstraint.Items[0]))
     else
     begin
       Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
@@ -319,7 +319,7 @@ var
   Pair: TClauseNoOfLiteralsPair;
 
 begin
-  FTopConstraint:= TClause.Create(30);
+  FTopConstraint:= TClause.Create;//(30);
   FillChar(FNoOfLiteralInTopConstraint, SizeOf(FNoOfLiteralInTopConstraint), 0);
   Pair:= TClauseNoOfLiteralsPair.Create(FTopConstraint, FNoOfLiteralInTopConstraint);
   Stack.Push(Pair);
@@ -365,7 +365,7 @@ begin
   while VarCount <= v do
     GenerateNewVariable(vpNone, True);
 
-  TopConstraint.AddItem(Lit);
+  TopConstraint.PushBack(Lit);
 
   LiteralValue:= GetValue(v);
   if IsNegated(Lit) then
@@ -383,7 +383,7 @@ begin
   BeginConstraint;
 
   for i:= 0 to AClause.Count- 1 do
-    AddLiteral(AClause.Item [i]);
+    AddLiteral(AClause.Items[i]);
 
   SubmitClause;
 
@@ -406,7 +406,7 @@ begin
    begin
    //\lnot l_1\lor \lnor l_2 \lor \cdots \lor \lnot l_n
      for i:= 0 to ActiveClause.Count- 1 do
-       ActiveClause.Item [i]:= NegateLiteral(ActiveClause.Item [i]);
+       ActiveClause.Items[i]:= NegateLiteral(ActiveClause.Items[i]);
      SubmitClause;
 
    end;
@@ -417,7 +417,7 @@ begin
      for i:= 0 to ActiveClause.Count- 1 do
      begin
        BeginConstraint;
-       AddLiteral(ActiveClause.Item [i]);
+       AddLiteral(ActiveClause.Items[i]);
        SubmitClause;
 
      end;
@@ -433,11 +433,11 @@ begin
      for i:= 0 to ActiveClause.Count- 1 do
      begin
        BeginConstraint;
-       AddLiteral(ActiveClause.Item [i]);
+       AddLiteral(ActiveClause.Items[i]);
        AddLiteral(NegateLiteral(p));
        SubmitClause;
-       //ActiveClause.Item [i]:= NegateLiteral(ActiveClause.Item [i]);
-       AddLiteral(NegateLiteral(ActiveClause.Item [i]));
+       //ActiveClause.Item[i]:= NegateLiteral(ActiveClause.Item[i]);
+       AddLiteral(NegateLiteral(ActiveClause.Items[i]));
 
      end;
      AddLiteral(p);
@@ -488,7 +488,7 @@ begin
     //\lnot l_1\land \lnot l_2 \land \cdots \land \lnot \l_n
      BeginConstraint;
      for i:= 0 to ActiveClause.Count- 1 do
-       AddLiteral(NegateLiteral(ActiveClause.Item [i]));
+       AddLiteral(NegateLiteral(ActiveClause.Items[i]));
      SubmitClause;
 
      AbortConstraint;
@@ -497,7 +497,7 @@ begin
 
    gbTrue:
    begin
-     if ActiveClause.Count= NoOfLiteralInTopConstraint [gbFalse] then//Contradiction
+     if ActiveClause.Count= NoOfLiteralInTopConstraint[gbFalse] then//Contradiction
      begin
        BeginConstraint;
        AddLiteral(NegateLiteral(p));
@@ -516,7 +516,7 @@ begin
 
    gbUnknown:
    begin
-     if 0< NoOfLiteralInTopConstraint [gbTrue] then
+     if 0< NoOfLiteralInTopConstraint[gbTrue] then
      begin
        BeginConstraint;
        AddLiteral(p);
@@ -526,7 +526,7 @@ begin
 
      end;
 
-     if ActiveClause.Count= NoOfLiteralInTopConstraint [gbFalse] then
+     if ActiveClause.Count= NoOfLiteralInTopConstraint[gbFalse] then
      begin
        BeginConstraint;
        AddLiteral(NegateLiteral(p));
@@ -540,12 +540,12 @@ begin
      for i:= 0 to ActiveClause.Count- 1 do
      begin
        BeginConstraint;
-       AddLiteral(NegateLiteral(ActiveClause.Item [i]));
+       AddLiteral(NegateLiteral(ActiveClause.Items[i]));
        AddLiteral(p);
        SubmitClause;
 
-       AddLiteral(ActiveClause.Item [i]);
-//       ActiveClause.Item [i]:= ActiveClause.Item [i];
+       AddLiteral(ActiveClause.Items[i]);
+//       ActiveClause.Item[i]:= ActiveClause.Item[i];
 
      end;
 
@@ -586,10 +586,10 @@ begin
       if(i and(1 shl j))= 0 then
       begin
         Inc(Count);
-        AddLiteral(NegateLiteral(ActiveClause.Item[j]));
+        AddLiteral(NegateLiteral(ActiveClause.Items[j]));
       end
       else
-        AddLiteral(ActiveClause.Item [j]);
+        AddLiteral(ActiveClause.Items[j]);
 
     if Count mod 2 = 1 then
       AddLiteral(p)
@@ -625,9 +625,9 @@ begin
 
 //  ActiveClause.Sort(@CompareLiteral);
 
-  s:= ActiveClause.Item [0];
-  t:= ActiveClause.Item [1];
-  f:= ActiveClause.Item [2];
+  s:= ActiveClause.Items[0];
+  t:= ActiveClause.Items[1];
+  f:= ActiveClause.Items[2];
 
   BeginConstraint;
   AddLiteral(NegateLiteral(s));
@@ -681,8 +681,8 @@ begin
   3) a \land ~b -> ~p
   4) ~a \land ~b -> p
   }
-  a := TopConstraint.Item[0];
-  b := TopConstraint.Item[1];
+  a := TopConstraint.Items[0];
+  b := TopConstraint.Items[1];
 
   for i := 0 to 3 do
   begin
@@ -724,8 +724,8 @@ begin
     begin
       BeginConstraint;
 
-      AddLiteral(NegateLiteral(ActiveClause.Item [i]));
-      AddLiteral(NegateLiteral(ActiveClause.Item [j]));
+      AddLiteral(NegateLiteral(ActiveClause.Item[i]));
+      AddLiteral(NegateLiteral(ActiveClause.Item[j]));
       AddLiteral(p);
 
       SubmitClause;
@@ -738,8 +738,8 @@ begin
     begin
       BeginConstraint;
 
-      AddLiteral(ActiveClause.Item [i]);
-      AddLiteral(ActiveClause.Item [j]);
+      AddLiteral(ActiveClause.Item[i]);
+      AddLiteral(ActiveClause.Item[j]);
       AddLiteral(NegateLiteral(p));
 
       SubmitClause;

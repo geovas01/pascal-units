@@ -382,13 +382,13 @@ begin
   begin
     j:= 0;
     for i:= 0 to Math.Min(Literals.Count, Size)- 1 do
-      case SatSolver.GetLiteralValue(Literals.Item[i]) of
+      case SatSolver.GetLiteralValue(Literals.Items[i]) of
         gbTrue:;
         gbFalse:
           Exit(FalseLiteral);
         gbUnknown:
         begin
-          Literals.Item[j]:= Literals.Item[i];
+          Literals.Items[j]:= Literals.Items[i];
           Inc(j);
           {TODO: It can be improved. ..}
 
@@ -403,7 +403,7 @@ begin
   if j= 0 then
     Exit(TrueLiteral);
   if j= 1 then
-    Exit(Literals.Item[0]);
+    Exit(Literals.Items[0]);
 
 {
   Result:= AndDicTree.Search(Literals, j);
@@ -466,13 +466,13 @@ begin
 
   j:= 0;
   for i:= 0 to Math.Min(Literals.Count, Size)- 1 do
-    case SatSolver.GetLiteralValue(Literals.Item[i]) of
+    case SatSolver.GetLiteralValue(Literals.Items[i]) of
       gbTrue:
         Exit(TrueLiteral);
       gbFalse: ;
       gbUnknown:
       begin
-        Literals.Item[j]:= Literals.Item[i];
+        Literals.Items[j]:= Literals.Items[i];
         Inc(j);
         {TODO: It can be improved. ..}
 
@@ -483,7 +483,7 @@ begin
   if j= 0 then
     Exit(FalseLiteral);
   if j= 1 then
-    Exit(Literals.Item[0]);
+    Exit(Literals.Items[0]);
 
 {
   Result:= OrDicTree.Search(Literals, j);
@@ -589,13 +589,13 @@ begin
 //  Literals.Sort(@CompareLiteral);
   j:= 0;
   for i:= 0 to Math.Min(Literals.Count, Size)- 1 do
-    case SatSolver.GetLiteralValue(Literals.Item[i]) of
+    case SatSolver.GetLiteralValue(Literals.Items[i]) of
       gbTrue:
         Exit(TrueLiteral);
       gbFalse: ;
       gbUnknown:
       begin
-        Literals.Item[j]:= Literals.Item[i];
+        Literals.Items[j]:= Literals.Items[i];
         Inc(j);
         {TODO: It can be improved. ..}
 
@@ -609,7 +609,7 @@ begin
   if j= 0 then
     Exit(FalseLiteral);
   if j= 1 then
-    Exit(Literals.Item[0]);
+    Exit(Literals.Items[0]);
 
 {
   Result:= OrDicTree.Search(Literals, j);
@@ -666,7 +666,7 @@ end;
 
 procedure TVariableManager.ResetSimulationMode;
 begin
-  FLastUsedCNFIndex:= SimulationModeStack.Item[0];
+  FLastUsedCNFIndex:= SimulationModeStack.Items[0];
 
   SimulationModeStack.Delete(0);
   SimulationModeStateStack.Delete(0);
@@ -729,7 +729,7 @@ begin
 
   SatSolver.BeginConstraint;
   for i:= 0 to Math.Min(Literals.Count, Size)- 1 do
-    SatSolver.AddLiteral(Literals.Item[i]);
+    SatSolver.AddLiteral(Literals.Items[i]);
 
 //  WriteLn('False=', SatSolver.NoOfLiteralInTopConstraint[gbFalse],
 //           'True=', SatSolver.NoOfLiteralInTopConstraint[gbTrue],
@@ -766,16 +766,16 @@ begin
     SatSolver.AbortConstraint;
 
     for i:= 0 to Literals.Count- 1 do
-      if SatSolver.GetLiteralValue(Literals.Item[i])= gbUnknown then
-      begin    //ResultLit= Literals.Item[i]
+      if SatSolver.GetLiteralValue(Literals.Items[i])= gbUnknown then
+      begin    //ResultLit= Literals.Items[i]
         SatSolver.BeginConstraint;
         SatSolver.AddLiteral(ResultLit);
-        SatSolver.AddLiteral(NegateLiteral(Literals.Item[i]));
+        SatSolver.AddLiteral(NegateLiteral(Literals.Items[i]));
         SatSolver.SubmitClause;
 
         SatSolver.BeginConstraint;
         SatSolver.AddLiteral(NegateLiteral(ResultLit));
-        SatSolver.AddLiteral(Literals.Item[i]);
+        SatSolver.AddLiteral(Literals.Items[i]);
         SatSolver.SubmitClause;
 
       end;
@@ -843,7 +843,7 @@ begin
   SatSolver.BeginConstraint;
 
   for i:= 0 to Literals.Count- 1 do
-    SatSolver.AddLiteral(Literals.Item[i]);
+    SatSolver.AddLiteral(Literals.Items[i]);
 
   SatSolver.SubmitXOrGate(ResultLit);
 
@@ -923,7 +923,7 @@ begin
 
   SatSolver.BeginConstraint;
   for i:= 0 to Math.Min(Literals.Count, Size)- 1 do
-    SatSolver.AddLiteral(Literals.Item[i]);
+    SatSolver.AddLiteral(Literals.Items[i]);
 
   if 0< SatSolver.NoOfLiteralInTopConstraint[gbTrue] then
   begin
@@ -955,17 +955,17 @@ begin
   begin
     SatSolver.AbortConstraint;
     for i:= 0 to Literals.Count- 1 do
-      if SatSolver.GetLiteralValue(Literals.Item[i])= gbUnknown then
+      if SatSolver.GetLiteralValue(Literals.Items[i])= gbUnknown then
       begin
 
         SatSolver.BeginConstraint;
         SatSolver.AddLiteral(ResultLit);
-        SatSolver.AddLiteral(NegateLiteral(Literals.Item[i]));
+        SatSolver.AddLiteral(NegateLiteral(Literals.Items[i]));
         SatSolver.SubmitClause;
 
         SatSolver.BeginConstraint;
         SatSolver.AddLiteral(NegateLiteral(ResultLit));
-        SatSolver.AddLiteral(Literals.Item[i]);
+        SatSolver.AddLiteral(Literals.Items[i]);
         SatSolver.SubmitClause;
 
       end;
