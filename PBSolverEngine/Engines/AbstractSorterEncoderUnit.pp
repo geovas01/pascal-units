@@ -96,10 +96,10 @@ begin
   if InputLiterals.Count= 0 then
   begin
     Result:= TLiteralCollection.Create (Modulo, GetVariableManager.FalseLiteral);
-    Result.Item [0]:= VariableManager.TrueLiteral;
+    Result.Items[0]:= VariableManager.TrueLiteral;
 
     for i:= 1 to Modulo- 1 do
-      Result.Item[i]:= VariableManager.FalseLiteral;
+      Result.Items[i]:= VariableManager.FalseLiteral;
 
   end
   else

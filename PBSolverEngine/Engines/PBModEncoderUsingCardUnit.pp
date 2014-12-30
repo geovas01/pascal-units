@@ -55,8 +55,8 @@ begin
     VariableGenerator.SatSolver.BeginConstraint;
 
     for b1:= 0 to Modulo- 1 do
-      if GetVar (DP.Item [n1].Item [b1])<> 0 then
-        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1].Item [b1]);
+      if GetVar (DP.Item [n1].Items [b1])<> 0 then
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1].Items [b1]);
 
     VariableGenerator.SatSolver.SubmitClause; {DP [i][0] or DP [i][0] or ... DP [i][Modulo- 1]}
 
@@ -64,14 +64,14 @@ begin
 
   for n1:= 1 to Modulo- 1 do
     for b1:= 0 to Modulo- 1 do
-      if GetVar (DP.Item [n1].Item [b1])<> 0 then
+      if GetVar (DP.Item [n1].Items [b1])<> 0 then
         for b2:= b1+ 1 to Modulo- 1 do
-          if (GetVar (DP.Item [n1].Item [b2])<> 0) then
+          if (GetVar (DP.Item [n1].Items [b2])<> 0) then
           begin
             VariableGenerator.SatSolver.BeginConstraint;
 
-            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b2]));
+            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b1]));
+            VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b2]));
 
             VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b2]}
 
@@ -99,8 +99,8 @@ function TPBModEncoderUsingCard.EncodePBMod: TLiteral;
     k: integer;
 
   begin
-    if GetVar (Dp.Item [Index].Item [b])<> 0 then
-      Exit (Dp.Item [Index].Item [b]);
+    if GetVar (Dp.Item [Index].Items [b])<> 0 then
+      Exit (Dp.Item [Index].Items [b]);
 
     if Index= 0 then
       if b= 0 then
@@ -111,22 +111,22 @@ function TPBModEncoderUsingCard.EncodePBMod: TLiteral;
     TempLiterals:= TLiteralCollection.Create;
 
     for k:= 0 to Modulo- 1 do
-      if TrueLiteralCountModModuloPerSorter.Item [Index].Item [k]<>
+      if TrueLiteralCountModModuloPerSorter.Item [Index].Items [k]<>
           VariableGenerator.FalseLiteral then
-        TempLiterals.AddItem (
+        TempLiterals.PushBack (
           VariableGenerator.CreateVariableDescribingAND  (
               Encode (
                         Index- 1, (b+ k* (Modulo- Index)) mod Modulo,
                         TrueLiteralCountModModuloPerSorter
                       ),
-              TrueLiteralCountModModuloPerSorter.Item [Index].Item [k]
+              TrueLiteralCountModModuloPerSorter.Item [Index].Items [k]
                                                          )
                      );
 
     Result:= VariableGenerator.CreateVariableDescribingOR (TempLiterals,
           TempLiterals.Count);
 
-    Dp.Item [Index].Item [b]:= Result;
+    Dp.Item [Index].Items [b]:= Result;
 
     TempLiterals.Free;
 
@@ -209,7 +209,7 @@ begin
 
   for i:= 0 to OrigSum.Count- 1 do
     if Coefs.Item [i] mod Modulo<> 0 then// We do not need a sorter for literals whose remainders are equal to 0.
-      LiteralsBasedOnRemainder.Item [Coefs.Item [i] mod Modulo].AddItem (OrigSum.Item [i].Literal);
+      LiteralsBasedOnRemainder.Item [Coefs.Item [i] mod Modulo].PushBack (OrigSum.Item [i].Literal);
 
   SetLength (Sorters, Modulo);
   for i:= 0 to Modulo- 1 do
@@ -228,13 +228,13 @@ begin
   begin
     Dp.Item [i].Count:= Modulo;
     for j:= 0 to Modulo- 1 do
-      Dp.Item [i].Item [j]:= 0;
+      Dp.Item [i].Items [j]:= 0;
 
   end;
 
-  Dp.Item [0].Item [0]:= VariableGenerator.TrueLiteral;
+  Dp.Item [0].Items [0]:= VariableGenerator.TrueLiteral;
   for i:= 1 to Modulo- 1 do
-    Dp.Item [0].Item [i]:= VariableGenerator.FalseLiteral;
+    Dp.Item [0].Items [i]:= VariableGenerator.FalseLiteral;
 
   for i:= 0 to Modulo- 1 do
     Encode (Modulo- 1, i, TrueLiteralCountModModuloPerSorter);

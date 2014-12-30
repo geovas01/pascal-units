@@ -517,7 +517,7 @@ function TPBParser.ParseSum: TPBSum;
       Lit:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
 
       NonLinearVariableDescriptions.Add (Literals);
-      CorrespondingLinearVariables.AddItem (Lit);
+      CorrespondingLinearVariables.PushBack(Lit);
 
     end;
 
@@ -541,7 +541,7 @@ begin
   Terms:= TListOfStringList.Create;
 
   ActiveTermStr:= ParseTerm;
-  Terms.Add (ActiveTermStr);
+  Terms.PushBack(ActiveTermStr);
 
   Ch:= GetNextChar;
   while Ch in ['+', '-', '0'..'9'] do
@@ -549,7 +549,7 @@ begin
     Rewind;
 
     ActiveTermStr:= ParseTerm;
-    Terms.Add (ActiveTermStr);
+    Terms.PushBack(ActiveTermStr);
 
     Ch:= GetNextChar;
 
@@ -600,7 +600,7 @@ begin
 
   for i:= 0 to Literals.Count- 1 do
   begin
-    Lit:= Literals.Item [i];
+    Lit:= Literals.Items[i];
     ActiveTerm:= TTerm.Create (Lit, BigIntFactory.GetNewMemeber.SetValue (1));
     PBSum.AddItem (ActiveTerm);
 

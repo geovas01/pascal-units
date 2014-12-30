@@ -12,7 +12,7 @@ type
 
   { TPBModEncoderUsingAdders }
 
-  TPBModEncoderUsingAdders= class (TAbstractPBModEncoder)
+  TPBModEncoderUsingAdders= class(TAbstractPBModEncoder)
   private
   protected
     DP: TListOfLiteralCollection;
@@ -61,17 +61,17 @@ var
 
 begin
   InputLiterals:= TLiteralCollection.Create;
-  m:= BigIntFactory.GetNewMemeber.SetValue (Modulo);
+  m:= BigIntFactory.GetNewMemeber.SetValue(Modulo);
 
   for i:= 0 to OrigSum.Count- 1 do
   begin
-    Res:= OrigSum.Coef [i].Modulo (m);
+    Res:= OrigSum.Coef [i].Modulo(m);
 
     for j:= 1 to Res.GetValue do
-      InputLiterals.AddItem (OrigSum.Literal [i]);
+      InputLiterals.PushBack(OrigSum.Literal [i]);
 
   end;
-  raise Exception.Create ('Not Implemented Yet!');
+  raise Exception.Create('Not Implemented Yet!');
   Result:= 0;
 
 end;

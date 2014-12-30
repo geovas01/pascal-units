@@ -12,11 +12,11 @@ type
 
   { TSNBasedEncoder }
 
-  TPBModEncoderUsingSingleSorter= class (TAbstractPBModEncoder)
+  TPBModEncoderUsingSingleSorter= class(TAbstractPBModEncoder)
   private
     Sorter: TAbstractSorterEncoder;
 
-    function CreateSorter (InputLiterals: TLiteralCollection): TAbstractSorterEncoder;
+    function CreateSorter(InputLiterals: TLiteralCollection): TAbstractSorterEncoder;
 
   protected
     procedure AddExtraClauses_Medium; override;
@@ -26,7 +26,7 @@ type
     function EncodePBMod: TLiteral; override;
     procedure AddExtraClauses; override;
 
-    constructor Create (_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
+    constructor Create(_OrigConsrraint: TPBConstraint; _VariableManager: TVariableManager;
                         _Coefs: TInt64Collection; _b: Int64;
                         _OrigSum: TPBSum; _Modulo: Integer);
     destructor Destroy; override;
@@ -40,33 +40,33 @@ uses
 
 { TSNBasedEncoder }
 
-function TPBModEncoderUsingSingleSorter.CreateSorter (InputLiterals: TLiteralCollection): TAbstractSorterEncoder;
+function TPBModEncoderUsingSingleSorter.CreateSorter(InputLiterals: TLiteralCollection): TAbstractSorterEncoder;
 var
   DPVarCount, DCVarCount, SNVarCount: Integer;
   Winner: AnsiString;
 
 begin
    if InputLiterals.Count= 0 then
-     Result:= TAbstractSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
-   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.SN') then
-     Result:= TSortingNetworkSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
-   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.DP') then
-      Result:= TDPBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
-   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.DC') then
+     Result:= TAbstractSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals)
+   else if UpperCase(GetRunTimeParameterManager.GetValueByName('--ModularEncoder'))= UpperCase('SingleSorter.SN') then
+     Result:= TSortingNetworkSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals)
+   else if UpperCase(GetRunTimeParameterManager.GetValueByName('--ModularEncoder'))= UpperCase('SingleSorter.DP') then
+      Result:= TDPBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals)
+   else if UpperCase(GetRunTimeParameterManager.GetValueByName('--ModularEncoder'))= UpperCase('SingleSorter.DC') then
    begin
-     if Modulo< 4* ln (InputLiterals.Count)/ ln (2) then
-       Result:= TDCBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals)
+     if Modulo< 4* ln(InputLiterals.Count)/ ln(2) then
+       Result:= TDCBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals)
      else
-       Result:= TSortingNetworkSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+       Result:= TSortingNetworkSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
 
    end
-   else if UpperCase (GetRunTimeParameterManager.GetValueByName ('--ModularEncoder'))= UpperCase ('SingleSorter.Less.Variable') then
+   else if UpperCase(GetRunTimeParameterManager.GetValueByName('--ModularEncoder'))= UpperCase('SingleSorter.Less.Variable') then
    begin
      VariableGenerator.SetSimulationMode;
 
      SNVarCount:= VariableGenerator.LastUsedCNFIndex;
      Result:= nil;
-     Result:= TSortingNetworkSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+     Result:= TSortingNetworkSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
      SNVarCount:= VariableGenerator.LastUsedCNFIndex- SNVarCount;
      Result.Free;
      VariableGenerator.ResetSimulationMode;
@@ -74,7 +74,7 @@ begin
      VariableGenerator.SetSimulationMode;
 
      DPVarCount:= VariableGenerator.LastUsedCNFIndex;
-     Result:= TDPBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+     Result:= TDPBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
      DPVarCount:= VariableGenerator.LastUsedCNFIndex- DPVarCount;
      Result.Free;
      VariableGenerator.ResetSimulationMode;
@@ -82,37 +82,37 @@ begin
      VariableGenerator.SetSimulationMode;
 
      DCVarCount:= VariableGenerator.LastUsedCNFIndex;
-     Result:= TDCBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+     Result:= TDCBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
      DCVarCount:= VariableGenerator.LastUsedCNFIndex- DCVarCount;
      Result.Free;
      VariableGenerator.ResetSimulationMode;
 
      Winner:= '';
-     if SNVarCount= Min (Min (SNVarCount, DPVarCount), DCVarCount) then
+     if SNVarCount= Min(Min(SNVarCount, DPVarCount), DCVarCount) then
      begin
-       Result:= TSortingNetworkSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+       Result:= TSortingNetworkSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
        Winner:= 'SN';
 
      end
-     else if DPVarCount= Min (Min (SNVarCount, DPVarCount), DCVarCount) then
+     else if DPVarCount= Min(Min(SNVarCount, DPVarCount), DCVarCount) then
      begin
-       Result:= TDPBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+       Result:= TDPBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
        Winner:= 'DP';
 
      end
-     else if DCVarCount= Min (Min (SNVarCount, DPVarCount), DCVarCount) then
+     else if DCVarCount= Min(Min(SNVarCount, DPVarCount), DCVarCount) then
      begin
-       Result:= TDCBasedSorterEncoder.Create (VariableGenerator, Modulo, InputLiterals);
+       Result:= TDCBasedSorterEncoder.Create(VariableGenerator, Modulo, InputLiterals);
        Winner:= 'DC';
 
      end;
 
-     if (GetRunTimeParameterManager.Verbosity and Ord (vbFull))<> 0 then
-       WriteLn ('The winner for Comparsion network is: ', Winner);
+     if(GetRunTimeParameterManager.Verbosity and Ord(vbFull))<> 0 then
+       WriteLn('The winner for Comparsion network is: ', Winner);
 
   end
   else
-    Assert (False);
+    Assert(False);
 
 end;
 
@@ -133,26 +133,26 @@ var
 
 begin
   InputLiterals:= TLiteralCollection.Create;
-  m:= BigIntFactory.GetNewMemeber.SetValue (Modulo);
+  m:= BigIntFactory.GetNewMemeber.SetValue(Modulo);
 
   for i:= 0 to OrigSum.Count- 1 do
   begin
-    Res:= OrigSum.Coef [i].Modulo (m);
+    Res:= OrigSum.Coef [i].Modulo(m);
 
     for j:= 1 to Res.GetValue do
-      InputLiterals.AddItem (OrigSum.Literal [i]);
+      InputLiterals.PushBack(OrigSum.Literal [i]);
 
     Res.Free;
 
   end;
 
-//  WriteLn (InputLiterals.ToString);
-  Sorter:= CreateSorter (InputLiterals);
+//  WriteLn(InputLiterals.ToString);
+  Sorter:= CreateSorter(InputLiterals);
 
   InputLiterals.Free;
 
   SorterOutput:= Sorter.Encode;
-  Result:= SorterOutput.Item [b];
+  Result:= SorterOutput.Items[b];
   SorterOutput.Free;
 
   m.Free;

@@ -11,7 +11,7 @@ type
 
   { TSortingNetworkSorterEncoder }
 
-  TSortingNetworkSorterEncoder= class (TAbstractSorterEncoder)
+  TSortingNetworkSorterEncoder= class(TAbstractSorterEncoder)
   private
   protected
     procedure AddExtraClauses_Medium; override;
@@ -39,11 +39,11 @@ end;
 
 function TSortingNetworkSorterEncoder.Encode: TLiteralCollection;
 
-  function CreateSorter (InputLiterals: TLiteralCollection): TLiteralCollection;
+  function CreateSorter(InputLiterals: TLiteralCollection): TLiteralCollection;
   var
     LastLayerLiterals: TLiteralCollection;
 
-    function GreatestPowerOfTwoLessThan (n: Integer): Integer;
+    function GreatestPowerOfTwoLessThan(n: Integer): Integer;
     begin
       Result:= 1;
       while Result< n do
@@ -53,48 +53,48 @@ function TSortingNetworkSorterEncoder.Encode: TLiteralCollection;
 
     end;
 
-    procedure Compare (Index1, Index2: Integer; Dir: Boolean);
+    procedure Compare(Index1, Index2: Integer; Dir: Boolean);
     var
       l1, l2: TLiteral;
 
     begin
-      L1:= LastLayerLiterals.Item [Index1];
-      L2:= LastLayerLiterals.Item [Index2];
+      L1:= LastLayerLiterals.Items[Index1];
+      L2:= LastLayerLiterals.Items[Index2];
 
       if Dir then
       begin
-        LastLayerLiterals.Item [Index1]:= VariableManager.CreateVariableDescribingAND (l1, l2);
-        LastLayerLiterals.Item [Index2]:= VariableManager.CreateVariableDescribingOr (l1, l2);
+        LastLayerLiterals.Items[Index1]:= VariableManager.CreateVariableDescribingAND(l1, l2);
+        LastLayerLiterals.Items[Index2]:= VariableManager.CreateVariableDescribingOr(l1, l2);
 
       end
       else
       begin
-        LastLayerLiterals.Item [Index1]:= VariableManager.CreateVariableDescribingOr (l1, l2);
-        LastLayerLiterals.Item [Index2]:= VariableManager.CreateVariableDescribingAnd (l1, l2);
+        LastLayerLiterals.Items[Index1]:= VariableManager.CreateVariableDescribingOr(l1, l2);
+        LastLayerLiterals.Items[Index2]:= VariableManager.CreateVariableDescribingAnd(l1, l2);
 
       end;
 
     end;
 
-    procedure Merge (lo, n: Integer; Dir: Boolean);
+    procedure Merge(lo, n: Integer; Dir: Boolean);
     var
       m, i: Integer;
 
     begin
       if 1< n then
       begin
-        m:= GreatestPowerOfTwoLessThan (n);
+        m:= GreatestPowerOfTwoLessThan(n);
         for i:= lo to lo+ n- m- 1 do
-          Compare (i, i+ m, Dir);
+          Compare(i, i+ m, Dir);
 
-        Merge (lo, m, Dir);
-        Merge (lo+ m, n- m, Dir);
+        Merge(lo, m, Dir);
+        Merge(lo+ m, n- m, Dir);
 
       end;
 
     end;
 
-    procedure Sort (lo, n: Integer; Dir: Boolean);
+    procedure Sort(lo, n: Integer; Dir: Boolean);
     var
       m: Integer;
 
@@ -102,9 +102,9 @@ function TSortingNetworkSorterEncoder.Encode: TLiteralCollection;
       if n<> 1 then
       begin
         m:= n div 2;
-        Sort (lo, m, not Dir);
-        Sort (lo+ m, n- m, Dir);
-        Merge (lo, n, Dir);
+        Sort(lo, m, not Dir);
+        Sort(lo+ m, n- m, Dir);
+        Merge(lo, n, Dir);
 
       end;
 
@@ -113,7 +113,7 @@ function TSortingNetworkSorterEncoder.Encode: TLiteralCollection;
   begin
     LastLayerLiterals:= InputLiterals.Copy;
 
-    Sort (0, InputLiterals.Count, False);
+    Sort(0, InputLiterals.Count, False);
 
     Result:= LastLayerLiterals;
 
@@ -126,17 +126,17 @@ var
 
 begin
   if 1< InputLiterals.Count then
-    Sorter:= CreateSorter (InputLiterals)
+    Sorter:= CreateSorter(InputLiterals)
   else {if InputLiterals.Count= 0 or 1  then}
     Sorter:= InputLiterals.Copy;
 
-  Result:= TLiteralCollection.Create (Modulo, VariableManager.FalseLiteral);
+  Result:= TLiteralCollection.Create(Modulo, VariableManager.FalseLiteral);
 
   if Sorter.Count= 0 then
   begin
-    Result.Item [0]:= VariableManager.TrueLiteral;
+    Result.Items[0]:= VariableManager.TrueLiteral;
     for i:= 1 to Modulo- 1 do
-      Result.Item [i]:= VariableManager.FalseLiteral;
+      Result.Items[i]:= VariableManager.FalseLiteral;
 
   end
   else
@@ -152,20 +152,20 @@ begin
       while j<= InputLiterals.Count do
       begin
         if j= InputLiterals.Count then
-          TempLitCollection.AddItem (Sorter.Item [j- 1])
+          TempLitCollection.PushBack(Sorter.Items[j- 1])
         else if j= 0 then
-          TempLitCollection.AddItem (NegateLiteral (Sorter.Item [j]))
+          TempLitCollection.PushBack(NegateLiteral(Sorter.Items[j]))
         else
-          TempLitCollection.AddItem (
-                  VariableManager.CreateVariableDescribingAND (
-                                    Sorter.Item [j- 1],
-                                    NegateLiteral (Sorter.Item [j])));
-        Inc (j, Modulo);
+          TempLitCollection.PushBack(
+                  VariableManager.CreateVariableDescribingAND(
+                                    Sorter.Items[j- 1],
+                                    NegateLiteral(Sorter.Items[j])));
+        Inc(j, Modulo);
 
       end;
 
-      Result.Item [i]:=
-                       VariableManager.CreateVariableDescribingOR (
+      Result.Items[i]:=
+                       VariableManager.CreateVariableDescribingOR(
                                      TempLitCollection, TempLitCollection.Count
                                                                   );
 

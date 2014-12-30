@@ -42,13 +42,13 @@ begin
     VariableGenerator.SatSolver.BeginConstraint;
 
     for b1:= 0 to Modulo- 1 do
-      if GetVar (DP.Item [n1].Item [b1])<> 0 then
-        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1].Item [b1]);
+      if GetVar (DP.Item [n1].Items[b1])<> 0 then
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1].Items[b1]);
 
     Write ('( ');
     for b1:= 0 to Modulo- 1 do
-      if GetVar (DP.Item [n1].Item [b1])<> 0 then
-        Write (LiteralToString (DP.Item [n1].Item [b1]), ' ');
+      if GetVar (DP.Item [n1].Items[b1])<> 0 then
+        Write (LiteralToString (DP.Item [n1].Items[b1]), ' ');
     WriteLn (')');
 
     VariableGenerator.SatSolver.SubmitClause; {DP [i][0] or DP [i][0] or ... DP [i][Modulo- 1]}
@@ -59,15 +59,15 @@ begin
   begin
 
     for b1:= 0 to Modulo- 1 do
-      if (GetVar (DP.Item [n1].Item [b1])<> 0) and
-         (GetVar (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo])<> 0) and
-         (GetVar (DP.Item [n1- 1].Item [b1])<> 0) then
+      if (GetVar (DP.Item [n1].Items[b1])<> 0) and
+         (GetVar (DP.Item [n1- 1].Items[(b1+ Modulo- Coefs.Item [n1]) mod Modulo])<> 0) and
+         (GetVar (DP.Item [n1- 1].Items[b1])<> 0) then
       begin
         VariableGenerator.SatSolver.BeginConstraint;
 
-        VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [b1]);
-        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Item [(b1+ Modulo- Coefs.Item [n1]) mod Modulo]); (*  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}  *)
+        VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items[b1]));
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Items[b1]);
+        VariableGenerator.SatSolver.AddLiteral (DP.Item [n1- 1].Items[(b1+ Modulo- Coefs.Item [n1]) mod Modulo]); (*  D^i_b=> D^{i-1}_b \lor D^{i-1}_{b-ci}  *)
 
         VariableGenerator.SatSolver.SubmitClause;
 
@@ -78,14 +78,14 @@ begin
 
     for n1:= 0 to OrigSum.Count- 1 do
       for b1:= 0 to Modulo- 2 do
-        if GetVar (DP.Item [n1].Item [b1])<> 0 then
+        if GetVar (DP.Item [n1].Items [b1])<> 0 then
   //        for b2:= b1+ 1 to Modulo- 1 do
-            if GetVar (DP.Item [n1].Item [b1+ 1])<> 0 then
+            if GetVar (DP.Item [n1].Items [b1+ 1])<> 0 then
             begin
               VariableGenerator.SatSolver.BeginConstraint;
 
-              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1+ 1]));
+              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b1]));
+              VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b1+ 1]));
 
               VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b1+ 1]}
 
@@ -93,14 +93,14 @@ begin
 
       for n1:= 0 to OrigSum.Count- 1 do
         for b1:= 1 to Modulo- 1 do
-          if GetVar (DP.Item [n1].Item [b1])<> 0 then
+          if GetVar (DP.Item [n1].Items [b1])<> 0 then
     //        for b2:= b1+ 1 to Modulo- 1 do
-              if GetVar (DP.Item [n1].Item [b1- 1])<> 0 then
+              if GetVar (DP.Item [n1].Items [b1- 1])<> 0 then
               begin
                 VariableGenerator.SatSolver.BeginConstraint;
 
-                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1]));
-                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Item [b1- 1]));
+                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b1]));
+                VariableGenerator.SatSolver.AddLiteral (NegateLiteral (DP.Item [n1].Items [b1- 1]));
 
                 VariableGenerator.SatSolver.SubmitClause; {DP [n1][b1]=> \lnot DP [n1][b1- 1]}
 
@@ -172,13 +172,13 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
       else
         Exit (VariableGenerator.FalseLiteral);
 
-    if GetVar (Dp.Item [Index].Item [b])<> 0 then
-      Exit (CopyLiteral (Dp.Item [Index].Item [b]));
+    if GetVar (Dp.Item [Index].Items [b])<> 0 then
+      Exit (CopyLiteral (Dp.Item [Index].Items [b]));
 
     if Coefs.Item [Index]= 0 then
     begin
       Result:= RecEncodeUsingTseitin (Index- 1, b);
-      Dp.Item [Index].Item [b]:= Result;
+      Dp.Item [Index].Items [b]:= Result;
       Exit;
 
     end;
@@ -207,7 +207,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
       Result:= VariableGenerator.CreateVariableDescribingOR (l1, l2);
     end;
 
-    Dp.Item [Index].Item [b]:= Result;
+    Dp.Item [Index].Items [b]:= Result;
 
   end;
 
@@ -227,13 +227,13 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
 
     xi:= OrigSum.Item [Index].Literal;
 
-    if GetVar (Dp.Item [Index].Item [b])<> 0 then
-      Exit (CopyLiteral (Dp.Item [Index].Item [b]));
+    if GetVar (Dp.Item [Index].Items [b])<> 0 then
+      Exit (CopyLiteral (Dp.Item [Index].Items [b]));
 
     if Coefs.Item [Index]= 0 then
     begin
       Result:= RecEncodeDirectly (Index- 1, b);
-      Dp.Item [Index].Item [b]:= Result;
+      Dp.Item [Index].Items [b]:= Result;
       Exit;
 
     end;
@@ -310,7 +310,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
        *)
     end;
 
-    Dp.Item [Index].Item [b]:= Result;
+    Dp.Item [Index].Items [b]:= Result;
 
   end;
 
@@ -327,9 +327,9 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
     }
     i:= 0;
     Lit:= OrigSum.Literal [i];
-    DP.Item [0].Item [0]:= NegateLiteral (Lit);
+    DP.Item [0].Items [0]:= NegateLiteral (Lit);
     v:= Coefs.Item [0];
-    DP.Item [0].Item [v]:= Lit;
+    DP.Item [0].Items [v]:= Lit;
 
     for i:= 1 to n- 1 do
     begin
@@ -340,7 +340,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
         //      D__b_c_i:= Encode (Index- 1, (b- Coefs.Item [Index]+ Modulo) mod Modulo);
         l1:= VariableGenerator.CreateVariableDescribingAND (
                     Lit,
-                    DP.Item [i- 1].Item [(b- v+ Modulo) mod Modulo]
+                    DP.Item [i- 1].Items [(b- v+ Modulo) mod Modulo]
                      );
 
         {      D__b:= Encode (Index- 1, b mod Modulo);
@@ -349,7 +349,7 @@ function TPBModEncoderDP.EncodePBMod: TLiteral;
         }
         l2:= VariableGenerator.CreateVariableDescribingAND (
                         NegateLiteral (Lit),
-                        DP.Item [i- 1].Item [b mod Modulo]);
+                        DP.Item [i- 1].Items [b mod Modulo]);
 
         {      LiteralCollection.Item [0]:= l1;
               LiteralCollection.Item [1]:= l2;
@@ -371,7 +371,7 @@ begin
   begin
     Dp.Item [i].Count:= Modulo;
     for j:= 0 to Dp.Item [i].Count- 1 do
-      Dp.Item [i].Item [j]:= 0;
+      Dp.Item [i].Items [j]:= 0;
 
   end;
 
@@ -392,7 +392,7 @@ begin
   for i:= 0 to OrigSum.Count- 1 do
   begin
     for j:= 0 to Dp.Item [i].Count- 1 do
-      Write (LiteralToString (Dp.Item [i].Item [j]), ' ');
+      Write (LiteralToString (Dp.Item [i].Items [j]), ' ');
     WriteLn;
 
   end;
