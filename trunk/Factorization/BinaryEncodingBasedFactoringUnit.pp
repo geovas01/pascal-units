@@ -85,7 +85,6 @@ begin
 
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(MulEncOutputLit);
 
-  c.Free;
 
   if UpperCase(ParameterManagerUnit.GetRunTimeParameterManager.GetValueByName('--AddaLeb'))
     = UpperCase('True') then
@@ -96,7 +95,7 @@ begin
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aLEb);
 
   One := nil;
-  if (a.Count = c.Count) or (b.Count = c.Count) then
+  if (a.Count >= c.Count) or (b.Count >= c.Count) then
   begin
     One:= TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
     One[0]:= GetVariableManager.TrueLiteral;
@@ -116,6 +115,7 @@ begin
 
   end;
 
+  c.Free;
   One.Free;
   a.Free;
   b.Free;
