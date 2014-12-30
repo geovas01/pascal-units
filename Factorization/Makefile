@@ -1,4 +1,4 @@
-FLAGS := -Mobjfpc  -g #-O3 -g -gh -gl # 
+FLAGS := -Mobjfpc  -g -O3# -g -gh -gl # 
 
 All: 
 	fpc $(FLAGS) FactorUsingSAT.pp
@@ -13,5 +13,5 @@ libMiniSatManager.so:
 
 clean:
 	rm -Rf *.ppu *bak *.o libMiniSatManager.so FactorUsingSAT lib/ 
-	cd ../ && make clean
+	cd ../SAT-Solver-Units/MiniSAT/ && make clean
 
