@@ -11,7 +11,7 @@ uses
   FactoringUsingSATUnit, AbstractSolverUnit, CNFCollectionUnit,
   TSeitinVariableUnit, BinaryEncodingBasedFactoringUnit, BitVectorUnit,
   BinaryArithmeticCircuitUnit, BaseArithmeticCircuitUnit, BaseCircuitUnit,
-FactoringUsingModulosUnit, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
+ModuloBasedFactoringUnit, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
   AbstractPBModEncoderUnit;
 
 procedure Initialize;
@@ -51,10 +51,10 @@ begin
   Initialize;
 
   InputNumber:= GetRunTimeParameterManager.ValueByName['--InputNumber'];
-  n:= BigIntFactory.GetNewMemeber.LoadFromString(@InputNumber[1]);
+  n:= BigIntFactory.GetNewMember.LoadFromString(@InputNumber[1]);
 
-  a:= TBitVector.Create(n.Log.ToInteger);
-  b:= TBitVector.Create(n.Log.ToInteger);
+  a:= TBitVector.Create(n.Log);
+  b:= TBitVector.Create(n.Log);
   WriteLn('c a = ', a.ToString);
   WriteLn('c b = ', b.ToString);
 
@@ -67,3 +67,12 @@ begin
   Finalize;
 end.
 
+Hi Reza,
+
+  In theory, you do not need to talk to any professors before applying but IMO, it is a good idea to do so (Specifically in the case of SFU, where you need to name two/three professors in your application). Due to the large number of applicants, usually the profs you named  on your application will review your file.
+  Having said that, some of the profs do not like to reply to the applicants email before seeing their applications.
+
+  If you have already sent 10 emails, just wait and do not send anymore emails. Wait and pray:P
+
+Good luck,
+Amir
