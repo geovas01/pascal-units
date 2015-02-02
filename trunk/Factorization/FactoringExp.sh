@@ -1,6 +1,6 @@
 # for m in {2..10}; 
 #n=104395303   
-n=2 
+n=5915587277
 while [[ true ]];
 do   
 #    n=`expr $m \* $m \* 1000 + 1`
@@ -10,20 +10,26 @@ do
 
   #  ./FactorUsingSAT --InputNumber $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.noaLEb.cnf --FactorizerMode BinaryRep --Verbosity 15 --AddaLEb False > $n.BinRep.noaLEb.out;   
   #  ./minisat_static $n.BinRep.noaLEb.cnf $n.BinRep.noaLEb.ans >$n.BinRep.sat.noaLEb.out 2>$n.BinRep.sat.noaLEb.err ; grep UNSAT $n.BinRep.sat.noaLEb.out >/dev/null; noaLEb_BinRes=$?
-    ./FactorUsingSAT --InputNumber $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.aLEb.cnf --FactorizerMode BinaryRep --Verbosity 15 --AddaLEb True > $n.BinRep.aLEb.out;   
+    ./FactorUsingSAT --InputNumber $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.aLEb.cnf --FactorizerMode BinaryRep --Verbosity 15 --AddaLEb True --AddExtraClausesForEq False > $n.BinRep.aLEb.out;   
     ./minisat_static $n.BinRep.aLEb.cnf $n.BinRep.aLEb.ans >$n.BinRep.sat.aLEb.out 2>$n.BinRep.sat.aLEb.err ; grep UNSAT $n.BinRep.sat.aLEb.out >/dev/null; aLEb_BinRes=$?
-    if [[ $aLEb_BinRes -eq 0 ]];
+
+    ./FactorUsingSAT --InputNumber $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.aLEb.cnf --FactorizerMode BinaryMod --Verbosity 15 --AddaLEb True --AddExtraClausesForEq False > $n.BinRep.aLEb.out;   
+    ./minisat_static $n.BinRep.aLEb.cnf $n.BinRep.aLEb.ans >$n.BinRep.sat.aLEb.out 2>$n.BinRep.sat.aLEb.err ; grep UNSAT $n.BinRep.sat.aLEb.out >/dev/null; aLEb_BinRes=$?
+
+
+    if [[ $aLEb_BinRes_Addeq -eq 0 ]];
     then
       #echo $PrimeBinRes, $BinRes
       #echo $n
-      echo $n, $aLEb_BinRes
-#      mv $n.BinRep.* /tmp/
+      echo $n, $aLEb_BinRes, $aLEb_BinRes_Addeq
+      mv $n.BinRep.* /tmp/
       rm -f $n.BinRep.*
     else
       rm -f $n.BinRep.*
     fi
     n=`expr $n + 1`
-    if [[ n -eq 100 ]];
+    break
+    if [[ n -eq 10 ]];
     then
         break
     fi
