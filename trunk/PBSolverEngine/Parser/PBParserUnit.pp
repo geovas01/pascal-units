@@ -516,7 +516,7 @@ function TPBParser.ParseSum: TPBSum;
 
       Lit:= CreateLiteral (GetVariableManager.CreateNewVariable (vpNone, True), False);
 
-      NonLinearVariableDescriptions.Add (Literals);
+      NonLinearVariableDescriptions.Add(Literals);
       CorrespondingLinearVariables.PushBack(Lit);
 
     end;

@@ -478,7 +478,7 @@ var
   nBigInt: TBigInt;
 
 begin
-  nBigInt:= BigIntFactory.GetNewMemeber.SetValue(n);
+  nBigInt:= BigIntFactory.GetNewMember.SetValue(n);
 
   Result:= TPBSum.Create;
 
@@ -511,7 +511,7 @@ var
 
 begin
   Assert(Finalized);
-  Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+  Result:= BigIntFactory.GetNewMember.SetValue(0);
   IsPositive:= True;
 
   for i:= 0 to Count- 1 do
@@ -565,7 +565,7 @@ var
 
 begin
   Assert(Finalized);
-  Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+  Result:= BigIntFactory.GetNewMember.SetValue(0);
 
   for i:= 0 to Self.Count- 1 do
     Result.Add(Item [i].Coef);
@@ -599,7 +599,7 @@ begin
 //  AllTermsInBST:= TPairBST.Create(@CompareLiterals);
   Finalized:= False;
 
-  FConstantTerm:= BigIntFactory.GetNewMemeber.SetValue(0);
+  FConstantTerm:= BigIntFactory.GetNewMember.SetValue(0);
 
 end;
 

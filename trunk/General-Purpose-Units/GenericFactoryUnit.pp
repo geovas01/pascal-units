@@ -28,7 +28,7 @@ type
       Return an availabe member, if one exists, or create a new object of type T,
         otherwise.
     }
-    function GetNewMemeber: T;
+    function GetNewMember: T;
     {
     Returns the number of availabe members
     }
@@ -69,7 +69,7 @@ begin
   inherited Destroy;
 end;
 
-function TGenericFactoy.GetNewMemeber: T;
+function TGenericFactoy.GetNewMember: T;
 
 begin
   if not AvailableItems.IsEmpty then

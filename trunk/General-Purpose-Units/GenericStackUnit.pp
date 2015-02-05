@@ -67,7 +67,6 @@ type
     function Pop: TData;
     procedure Push(Data: Tdata);
 
-    constructor Create(InitCapacity: Integer);
     constructor Create;
     {
     TGenericStack does not free the members stored in it.
@@ -121,14 +120,6 @@ end;
 procedure TGenericStackForBuildInData.Push(Data: Tdata);
 begin
   Elements.AddItem(Data);
-
-end;
-
-constructor TGenericStackForBuildInData.Create(InitCapacity: Integer);
-begin
-  inherited Create;
-
-  Elements:= TDataCollection.Create(InitCapacity);
 
 end;
 

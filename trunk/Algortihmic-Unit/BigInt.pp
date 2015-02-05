@@ -3,7 +3,7 @@ unit BigInt;
 
 interface
 uses
-  GenericCollectionUnit, GenericFactoryUnit;
+  GenericCollectionUnit, GenericFactoryUnit, fgl;
 
 const
   MaxLen= 9999;
@@ -39,7 +39,7 @@ type
     TByteArray= array[0..MaxLen] of Byte;
     PByteArray= ^TByteArray;
 
-  private
+  protected
 
     FDigits: PByteArray;
     FLength: Integer;
@@ -57,6 +57,9 @@ type
     BitIndex = 1 refers to the least significat bit of Self.
     }
     function CheckBit(BitIndex: Integer): Boolean;
+    { Multiply by 10}
+    function MulByTenToN(n: Integer): TBigInt;
+
   public
    {Returns the Index-th digit in the decimal representation of Self.
     Index = 0 means the least significant digit.}
@@ -84,23 +87,24 @@ type
     function CompareWith(n: TBigInt): Integer;
     {Returns a new BigInt which is equal to Self mod m}
     function Modulo(m: TBigInt): TBigInt;
+    {Returns Self << n}
+    function ShiftLeft(n: Integer): TBigInt;
 
     {Returns a new BigInt which is equal to ``Self and n''}
     function ArithmaticAnd(n: TBigInt): TBigInt;
     {Returns a new BigInt which is equal to ``Self or n''}
     function ArithmaticOr(n: TBigInt): TBigInt;
 
-    {Returns a new BigInt which is equal to log of Self in base 2}
-    function Log: TBigInt;
+    {Returns the log of Self in base 2}
+    function Log: Int64;
 
     function SumOfDigits: Integer;
-    function ShiftLeft(n: Integer): TBigInt;
     function Copy: TBigInt;
-    function ToString: AnsiString;
+    function ToString: AnsiString; override;
 
     {Divides self by two and returns a new TBigInt}
     function Div2: TBigInt;
-    {Multiplies itself by two and returns Self}
+    { Multiplies itself by two and returns Self}
     function Mul2: TBigInt;
 
     {Returns a new TBigInt which is equal to Self^n}
@@ -126,7 +130,7 @@ type
     function GetValue: Int64;
 
     {
-      Result:= gcd(self, b).
+      Result := gcd(self, b).
     }
     function gcd(b: TBigInt): TBigInt;
 
@@ -137,7 +141,15 @@ type
 
   end;
 
-  TBigIntFactory= specialize TGenericFactoy<TBigInt>;
+   TBigIntCollection = specialize TFPGList<TBigInt>;
+   TIntegerCollection = specialize TFPGList<Int64>;
+
+  { TBigIntFactory }
+
+  TBigIntFactory= class(specialize TGenericFactoy<TBigInt>)
+  public
+    function  ComputeProduct(Values: TBigIntCollection): TBigInt;
+  end;
 
   procedure Initialize;
   procedure Finalize;
@@ -149,16 +161,37 @@ implementation
 uses
   Math, SysUtils;
 
+{ TBigIntFactory }
+
+function TBigIntFactory.ComputeProduct(Values: TBigIntCollection): TBigInt;
+var
+  Vi: TBigInt;
+  Temp: TBigInt;
+  i: Integer;
+
+begin
+  Result := Self.GetNewMember.SetValue(1);
+
+  for i := 0 to Values.Count - 1 do
+  begin
+    Temp := Result.Mul(Values[i]);
+    BigIntFactory.ReleaseMemeber(Result);
+
+    Result := Temp;
+  end;
+
+end;
+
 procedure TBigInt.SetDigit(Index: Integer; Value: Byte);
 begin
   while FLength<= Index do
   begin
-    FDigits^[FLength]:= 0;
+    FDigits^[FLength] := 0;
     Inc(FLength);
 
   end;
 
-  FDigits^[Index]:= Value;
+  FDigits^[Index] := Value;
 
   while FLength> 0 do
   begin
@@ -173,7 +206,7 @@ end;
 
 procedure TBigInt.SetLen(Value: Integer);
 begin
-  FLength:= Value;
+  FLength := Value;
 
 end;
 
@@ -184,46 +217,46 @@ var
 begin
   if Self.Length< n.Length then
   begin
-    Result:= -1;
+    Result := -1;
     Exit;
 
   end;
 
   if n.Length< Self.Length then
   begin
-    Result:= +1;
+    Result := +1;
     Exit;
 
   end;
 
-  for i:= Self.FLength- 1 downto 0 do
+  for i := Self.FLength- 1 downto 0 do
   begin
     if Self.FDigits^[i]< n.FDigits^[i] then
     begin
-      Result:= -1;
+      Result := -1;
       Exit;
 
     end
     else if n.FDigits^[i]< Self.FDigits^[i] then
     begin
-      Result:= 1;
+      Result := 1;
       Exit;
 
     end;
 
   end;
 
-  Result:= 0;
+  Result := 0;
 
 end;
 
 function TBigInt.Modulo(m: TBigInt): TBigInt;
 {
-  Result:= 0;
-  for i:= 0 to a.Length do
+  Result := 0;
+  for i := 0 to a.Length do
   begin
-    Result:= 10* Result+ a[i];
-    Result:= Result mod n;, i.e.,
+    Result := 10* Result+ a[i];
+    Result := Result mod n;, i.e.,
     {
     while Result< m do
       Result-= m;
@@ -239,17 +272,29 @@ var
 
 begin
 
-  Result:= BigIntFactory.GetNewMemeber;
+  Result := BigIntFactory.GetNewMember;
   Result.SetValue(0);
 
-  for i:= Self.Length- 1 downto 0 do
+  for i := Self.Length- 1 downto 0 do
   begin
-    Result.ShiftLeft(1).SetDigit(0, FDigits^[i]);
+    Result.MulByTenToN(1).SetDigit(0, FDigits^[i]);
 
     while Result.CompareWith(m)>= 0 do
       Result.Sub(m);
 
   end;
+
+end;
+
+function TBigInt.ShiftLeft(n: Integer): TBigInt;
+begin
+  while 0 < n do
+  begin
+    Self.Mul2;
+    Dec(n);
+
+  end;
+  Result := Self;
 
 end;
 
@@ -259,10 +304,10 @@ var
   P2: TBigInt;
 
 begin
-  i:= 1;
-  P2:= BigIntFactory.GetNewMemeber.SetValue(1);
+  i := 1;
+  P2 := BigIntFactory.GetNewMember.SetValue(1);
 
-  Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+  Result := BigIntFactory.GetNewMember.SetValue(0);
 
   while(0<= Self.CompareWith(P2)) and(0<= n.CompareWith(P2)) do
   begin
@@ -284,10 +329,10 @@ var
   P2: TBigInt;
 
 begin
-  i:= 1;
-  P2:= BigIntFactory.GetNewMemeber.SetValue(1);
+  i := 1;
+  P2 := BigIntFactory.GetNewMember.SetValue(1);
 
-  Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+  Result := BigIntFactory.GetNewMember.SetValue(0);
 
   while(0<= Self.CompareWith(P2)) and(0<= n.CompareWith(P2)) do
   begin
@@ -302,18 +347,18 @@ begin
 
 end;
 
-function TBigInt.Log: TBigInt;
+function TBigInt.Log: Int64;
 var
   TwoPower: TBigInt;
 
 begin
-  Result:= BigIntFactory.GetNewMemeber.SetValue(1);
-  TwoPower:= BigIntFactory.GetNewMemeber.SetValue(2);
+  Result := 1;
+  TwoPower := BigIntFactory.GetNewMember.SetValue(2);
 
   while TwoPower.CompareWith(Self)< 0 do
   begin
     TwoPower.Mul2;
-    Result.Incr;
+    Inc(Result);
 
   end;
 
@@ -326,9 +371,9 @@ var
   i: Integer;
 
 begin
-  Result:= 0;
+  Result := 0;
 
-  for i:= 0 to Length- 1 do
+  for i := 0 to Length- 1 do
     Inc(Result, FDigits^[i]);
 
 end;
@@ -339,24 +384,24 @@ var
   i, Borrow, Digit: Integer;
 
 begin
-  Len:= Max(m.Length, Self.Length);
+  Len := Max(m.Length, Self.Length);
 
-  Digit:= 0;
-  Borrow:= 0;
+  Digit := 0;
+  Borrow := 0;
 
-  for i:= 0 to Len- 1 do
+  for i := 0 to Len- 1 do
   begin
-    Digit:= Self.Digits[i]- m.Digits[i]- Borrow;
+    Digit := Self.Digits[i]- m.Digits[i]- Borrow;
     if Digit< 0 then
     begin
       Inc(Digit, 10);
-      Borrow:= 1;
+      Borrow := 1;
 
     end
     else
-      Borrow:= 0;
+      Borrow := 0;
 
-    Digits[i]:= Byte(Digit);
+    Digits[i] := Byte(Digit);
 
   end;
 
@@ -370,7 +415,7 @@ begin
 
   end;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
@@ -381,29 +426,29 @@ var
   Digit: Integer;
 
 begin
-  Len:= Max(m.Length, Self.Length);
+  Len := Max(m.Length, Self.Length);
 
-  Digit:= 0;
-  Carry:= 0;
+  Digit := 0;
+  Carry := 0;
 
-  for i:= 0 to Len- 1 do
+  for i := 0 to Len- 1 do
   begin
-    Digit:= Carry+ m.Digits[i]+ Self.Digits[i];
-    Carry:= Digit div 10;
-    Digit:= Digit mod 10;
-    FDigits^[i]:= Byte(Digit);
+    Digit := Carry+ m.Digits[i]+ Self.Digits[i];
+    Carry := Digit div 10;
+    Digit := Digit mod 10;
+    FDigits^[i] := Byte(Digit);
     
   end;
 
-  Length:= Len;
+  Length := Len;
   if Carry> 0 then
   begin
-    Length:= Len+ 1;
-    FDigits^[Len]:= Byte(Carry);
+    Length := Len+ 1;
+    FDigits^[Len] := Byte(Carry);
 
   end;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
@@ -413,22 +458,22 @@ var
   i: Integer;
 
 begin
-  Carry:= 1;
+  Carry := 1;
 
-  for i:= 0 to FLength- 1 do
+  for i := 0 to FLength- 1 do
   begin
-    Carry:= FDigits^[i]+ Carry;
+    Carry := FDigits^[i]+ Carry;
 
     if Carry= 10 then
     begin
-      FDigits^[i]:= 0;
-      Carry:= 1;
+      FDigits^[i] := 0;
+      Carry := 1;
 
     end
     else
     begin
-      FDigits^[i]:= Byte(Carry);
-      Carry:= 0;
+      FDigits^[i] := Byte(Carry);
+      Carry := 0;
       Break;
 
     end;
@@ -437,12 +482,12 @@ begin
 
   if Carry> 0 then
   begin
-    Length:= FLength+ 1;
-    FDigits^[FLength- 1]:= Byte(Carry);
+    Length := FLength+ 1;
+    FDigits^[FLength- 1] := Byte(Carry);
 
   end;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
@@ -452,22 +497,22 @@ var
   i: Integer;
 
 begin
-  Borrow:= 1;
+  Borrow := 1;
 
-  for i:= 0 to Length- 1 do
+  for i := 0 to Length- 1 do
   begin
-    Borrow:= FDigits^[i]- Borrow;
+    Borrow := FDigits^[i]- Borrow;
 
     if Borrow< 0 then
     begin
-      FDigits^[i]:= 10+ Borrow;
-      Borrow:= 1;
+      FDigits^[i] := 10+ Borrow;
+      Borrow := 1;
 
     end
     else
     begin
-      FDigits^[i]:= Byte(Borrow);
-      Borrow:= 0;
+      FDigits^[i] := Byte(Borrow);
+      Borrow := 0;
       Break;
 
     end;
@@ -477,11 +522,11 @@ begin
   while FDigits^[FLength- 1]= 0 do
     Dec(FLength);
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
-function TBigInt.ShiftLeft(n: Integer): TBigInt;
+function TBigInt.MulByTenToN(n: Integer): TBigInt;
 var
   TargetPtr, SourcePtr: ^Byte;
   j, i: Integer;
@@ -493,31 +538,31 @@ begin
   if IsZero then
     Exit(Self);
 
-  j:= FLength- 1+ n;
+  j := FLength- 1+ n;
 
-  TargetPtr:= @(FDigits^[0]);
+  TargetPtr := @(FDigits^[0]);
   Inc(TargetPtr, j);
-  SourcePtr:= @(FDigits^[FLength- 1]);
+  SourcePtr := @(FDigits^[FLength- 1]);
 
-  for i:= FLength- 1 downto 0 do
+  for i := FLength- 1 downto 0 do
   begin
-    TargetPtr^:= SourcePtr^;
+    TargetPtr^ := SourcePtr^;
     Dec(TargetPtr);
     Dec(SourcePtr);
 
   end;
 
-  TargetPtr:= @(FDigits^[0]);
-  for i:= 0 to n- 1 do
+  TargetPtr := @(FDigits^[0]);
+  for i := 0 to n- 1 do
   begin
-    TargetPtr^:= 0;
+    TargetPtr^ := 0;
     Inc(TargetPtr);
 
   end;
 
-  Length:= FLength+ n;
+  Length := FLength+ n;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
@@ -527,13 +572,13 @@ var
   Temp: TBigInt;
 
 begin
-  Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+  Result := BigIntFactory.GetNewMember.SetValue(0);
 
-  for i:= 0 to Self.FLength- 1 do
+  for i := 0 to Self.FLength- 1 do
     if Self.FDigits^[i]<> 0 then
     begin
-      Temp:= n.MulByDigit(Self.FDigits^[i]);
-      Temp.ShiftLeft(i);
+      Temp := n.MulByDigit(Self.FDigits^[i]);
+      Temp.MulByTenToN(i);
       Result.Add(Temp);
       BigIntFactory.ReleaseMemeber(Temp);
 
@@ -546,10 +591,10 @@ var
   Temp1, Temp2, Temp3: TBigInt;
 
 begin
-  Result:= BigIntFactory.GetNewMemeber;
+  Result := BigIntFactory.GetNewMember;
   Result.SetValue(0);
-  Temp1:= Self.Copy;
-  Temp2:= n.Copy;
+  Temp1 := Self.Copy;
+  Temp2 := n.Copy;
 
   while 1<= Temp1.Length do
   begin
@@ -558,9 +603,9 @@ begin
       Result.Add(Temp2);
 
     Temp2.Add(Temp2);
-    Temp3:= Temp1.Div2;
+    Temp3 := Temp1.Div2;
     BigIntFactory.ReleaseMemeber(Temp1);
-    Temp1:= Temp3;
+    Temp1 := Temp3;
 
   end;
 
@@ -578,13 +623,13 @@ var
   i: Integer;
   
 begin
-  Result:= '';
+  Result := '';
 
-  for i:= FLength- 1 downto 0 do
-    Result:= Result+ DigitChar[FDigits^[i]];
+  for i := FLength- 1 downto 0 do
+    Result := Result+ DigitChar[FDigits^[i]];
 
   if Result= '' then
-    Result:= '0';
+    Result := '0';
 
 end;
 
@@ -592,7 +637,7 @@ constructor TBigInt.Create;
 begin
 //  SetLength(FDigits, MaxLen+ 1);
   New(FDigits);
-  FLength:= 0;
+  FLength := 0;
 //  FillChar(FDigits, SizeOf(FDigits), 0);
 
 end;
@@ -608,9 +653,9 @@ begin
 //  SetLength(FDigits, MaxLen+ 1);
   New(FDigits);
 
-  Length:= System.Length(S);
-  for i:= 0 to System.Length(S)- 1 do
-    FDigits^[Length- 1- i]:= Ord(S[i])- 48;
+  Length := System.Length(S);
+  for i := 0 to System.Length(S)- 1 do
+    FDigits^[Length- 1- i] := Ord(S[i])- 48;
 
   while Length> 0 do
   begin
@@ -626,17 +671,17 @@ end;
 function TBigInt.SetValue(n: Int64): TBigInt;
 begin
 //  FillChar(FDigits, SizeOf(FDigits), 0);
-  FLength:= 0;
+  FLength := 0;
 
-  while n> 0 do
+  while n > 0 do
   begin
-    FDigits^[FLength]:= n mod 10;
-    n:= n div 10;
+    FDigits^[FLength] := n mod 10;
+    n := n div 10;
     Inc(FLength);
 
   end;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
@@ -646,9 +691,9 @@ var
 
 begin
 
-  Result:= 0;
+  Result := 0;
 
-  for i:= FLength- 1 downto 0 do
+  for i := FLength- 1 downto 0 do
   begin
     Result*= 10;
     Result+= FDigits^[i];
@@ -668,32 +713,32 @@ var
   a, c: TBigInt;
 
 begin
-  a:= Self.Copy;
-  b:= b.Copy;
+  a := Self.Copy;
+  b := b.Copy;
 
   while not b.IsZero do
   begin
-    c:= a.Modulo(b);
+    c := a.Modulo(b);
     BigIntFactory.ReleaseMemeber(a);
-    a:= b;
-    b:= c;
+    a := b;
+    b := c;
 
   end;
 
   BigIntFactory.ReleaseMemeber(b);
-  Result:= a;
+  Result := a;
 
 end;
 
 procedure TBigInt.Reset;
 begin
-  FLength:= 0;
+  FLength := 0;
 
 end;
 
 destructor TBigInt.Destroy;
 begin
-  FLength:= 0;
+  FLength := 0;
   Dispose(FDigits);
   
   Inherited;
@@ -710,9 +755,9 @@ begin
 //  SetLength(FDigits, MaxLen+ 1);
 //  New(FDigits);
 
-  Length:= System.Length(S);
-  for i:= 0 to System.Length(S)- 1 do
-    FDigits^[Length- 1- i]:= Ord(S[i])- 48;
+  Length := System.Length(S);
+  for i := 0 to System.Length(S)- 1 do
+    FDigits^[Length- 1- i] := Ord(S[i])- 48;
 
   while 0< Length do
   begin
@@ -723,22 +768,22 @@ begin
 
   end;
 
-  Result:= Self;
+  Result := Self;
 
 end;
 
 function TBigInt.GetDigit(Index: Integer): Byte; inline;
 begin
   if Index< FLength then
-    Result:= FDigits^[Index]
+    Result := FDigits^[Index]
   else
-    Result:= 0;
+    Result := 0;
 
 end;
 
 function TBigInt.GetIsZero: Boolean;
 begin
-  Result:= Length= 0;
+  Result := Length= 0;
 
 end;
 
@@ -747,14 +792,14 @@ var
   i: Integer;
 
 begin
-  Result:= BigIntFactory.GetNewMemeber;
-  Result.Length:= Self.FLength;
+  Result := BigIntFactory.GetNewMember;
+  Result.Length := Self.FLength;
 
   System.Move(FDigits^[0], Result.FDigits^[0], Sizeof(FDigits^[0])*
                  Min(Length+ 1, MaxLen));
 
-{  for i:= 0 to FLength- 1 do
-    Result.FDigits[i]:= FDigits[i];
+{  for i := 0 to FLength- 1 do
+    Result.FDigits[i] := FDigits[i];
 }
 
 end;
@@ -770,61 +815,61 @@ var
 begin
   if Self.CompareWith(n)< 0 then
   begin
-    Result:= BigIntFactory.GetNewMemeber.SetValue(0);
+    Result := BigIntFactory.GetNewMember.SetValue(0);
     Exit;
 
   end;
 
-  Lower:= BigIntFactory.GetNewMemeber.SetValue(1);
-  Temp:= Lower.NewMul(n);
+  Lower := BigIntFactory.GetNewMember.SetValue(1);
+  Temp := Lower.NewMul(n);
 
 
   while Self.CompareWith(Temp)> 0 do
   begin
     Lower.Mul2;
     BigIntFactory.ReleaseMemeber(Temp);
-    Temp:= Lower.NewMul(n);
+    Temp := Lower.NewMul(n);
 
   end;
 
-  Higher:= Lower;
-  Lower:= Lower.Div2;
+  Higher := Lower;
+  Lower := Lower.Div2;
 
-//  Mid:= nil;
-  Mid:= BigIntFactory.GetNewMemeber;
-//  Result:= nil;
-  Result:= BigIntFactory.GetNewMemeber;
+//  Mid := nil;
+  Mid := BigIntFactory.GetNewMember;
+//  Result := nil;
+  Result := BigIntFactory.GetNewMember;
 
   while 0<= Higher.CompareWith(Lower) do
   begin
     BigIntFactory.ReleaseMemeber(Temp);
     BigIntFactory.ReleaseMemeber(Mid);
 
-    Temp:= Lower.Copy.Add(Higher);
-    Mid:= Temp.Div2;
+    Temp := Lower.Copy.Add(Higher);
+    Mid := Temp.Div2;
     BigIntFactory.ReleaseMemeber(Temp);
-    Temp:= n.NewMul(Mid);
+    Temp := n.NewMul(Mid);
 
-    CompareRes:= Self.CompareWith(Temp);
+    CompareRes := Self.CompareWith(Temp);
 
     if 0< CompareRes then
     begin
       BigIntFactory.ReleaseMemeber(Result);
-      Result:= Lower.Copy;
+      Result := Lower.Copy;
       BigIntFactory.ReleaseMemeber(Lower);
-      Lower:= Mid.Copy.Incr;
+      Lower := Mid.Copy.Incr;
 
     end
     else if CompareRes< 0 then
     begin
       BigIntFactory.ReleaseMemeber(Higher);
-      Higher:= Mid.Copy.Decr;
+      Higher := Mid.Copy.Decr;
 
     end
     else
     begin
       BigIntFactory.ReleaseMemeber(Result);
-      Result:= Mid.Copy;
+      Result := Mid.Copy;
       Break;
 
     end;
@@ -832,7 +877,7 @@ begin
   end;
 
   if Result= nil then
-    Result:= Lower.Copy;
+    Result := Lower.Copy;
 
   BigIntFactory.ReleaseMemeber(Higher);
   BigIntFactory.ReleaseMemeber(Lower);
@@ -849,41 +894,41 @@ var
   Higher: TBigInt;
 
 begin
-  Lower:= BigIntFactory.GetNewMemeber;
+  Lower := BigIntFactory.GetNewMember;
   Lower.SetValue(1);
-  Higher:= Lower.Copy;
-  Temp:= Lower.Mul(Lower);
+  Higher := Lower.Copy;
+  Temp := Lower.Mul(Lower);
 
   while Self.CompareWith(Temp)> 0 do
   begin
     BigIntFactory.ReleaseMemeber(Lower);
-    Lower:= Higher.Copy;
+    Lower := Higher.Copy;
     BigIntFactory.ReleaseMemeber(Higher);
-    Higher:= Lower.MulByDigit(2);
+    Higher := Lower.MulByDigit(2);
 
     BigIntFactory.ReleaseMemeber(Temp);
-    Temp:= Higher.Mul(Higher);
+    Temp := Higher.Mul(Higher);
 
   end;
 
   BigIntFactory.ReleaseMemeber(Temp);
-  Temp:= Lower.Mul(Lower);
+  Temp := Lower.Mul(Lower);
 
   while Higher.CompareWith(Lower)>= 0 do
   begin
     BigIntFactory.ReleaseMemeber(Temp);
-    Temp:= Lower.Copy;
+    Temp := Lower.Copy;
     Temp.Add(Higher);
-    Mid:= Temp.Div2;
+    Mid := Temp.Div2;
 
     BigIntFactory.ReleaseMemeber(Temp);
-    Temp:= Mid.Mul(Mid);
+    Temp := Mid.Mul(Mid);
 
     case Self.CompareWith(Temp) of
     +1:
       begin
         BigIntFactory.ReleaseMemeber(Lower);
-        Lower:= Mid.Incr;
+        Lower := Mid.Incr;
 
       end;
      0:
@@ -892,7 +937,7 @@ begin
     -1:
       begin
         BigIntFactory.ReleaseMemeber(Higher);
-        Higher:= Mid.Decr;
+        Higher := Mid.Decr;
 
       end;
 
@@ -900,14 +945,14 @@ begin
 
   end;
 
-  Temp:= Lower.Copy;
+  Temp := Lower.Copy;
   Temp.Add(Higher);
-  Mid:= Temp.Div2;
+  Mid := Temp.Div2;
 
   BigIntFactory.ReleaseMemeber(Temp);
-  Temp:= Mid.Mul(Mid);
+  Temp := Mid.Mul(Mid);
 
-  Result:= Mid;
+  Result := Mid;
   if Self.CompareWith(Temp)< 0 then
     Result.Decr;
 
@@ -927,24 +972,24 @@ var
 
 begin
   Assert(n< 10);
-  Result:= BigIntFactory.GetNewMemeber;
+  Result := BigIntFactory.GetNewMember;
 
-  Result.Length:= FLength;
-  Carry:= 0;
-  for i:= 0 to FLength- 1 do
+  Result.Length := FLength;
+  Carry := 0;
+  for i := 0 to FLength- 1 do
   begin
     Inc(Carry, FDigits^[i]* n);
-    Result.FDigits^[i]:= Carry mod 10;
-    Carry:= Carry div 10;
+    Result.FDigits^[i] := Carry mod 10;
+    Carry := Carry div 10;
 
   end;
 
   while Carry> 0 do
   begin
-    Result.Length:= Result.Length+ 1;
+    Result.Length := Result.Length+ 1;
     Result.FDigits^[Result.FLength- 1]:=
             Carry mod 10;
-    Carry:= Carry div 10;
+    Carry := Carry div 10;
 
   end;
 
@@ -956,18 +1001,18 @@ var
   Temp1, Temp2: TBigInt;
 
 begin
-  Temp1:= Self.Copy;
+  Temp1 := Self.Copy;
 
-  for i:= 1 to BitIndex- 1 do
+  for i := 1 to BitIndex- 1 do
   begin
-    Temp2:= Temp1.Div2;
+    Temp2 := Temp1.Div2;
     BigIntFactory.ReleaseMemeber(Temp1);
 
-    Temp1:= Temp2;
+    Temp1 := Temp2;
 
   end;
 
-  Result:= Odd(Temp1.Digits[0]);
+  Result := Odd(Temp1.Digits[0]);
 
   BigIntFactory.ReleaseMemeber(Temp1);
 
@@ -982,26 +1027,26 @@ begin
 
   if n= 0 then
   begin
-    Result:= BigIntFactory.GetNewMemeber;
+    Result := BigIntFactory.GetNewMember;
     Result.SetValue(1);
 
   end
   else if n= 1 then
-    Result:= Self.Copy
+    Result := Self.Copy
 
   else
   begin
-    Temp:= Self.Pow(n div 2);
-    Temp1:= Temp.Copy;
-    Result:= Temp.Mul(Temp1);
+    Temp := Self.Pow(n div 2);
+    Temp1 := Temp.Copy;
+    Result := Temp.Mul(Temp1);
     BigIntFactory.ReleaseMemeber(Temp1);
     BigIntFactory.ReleaseMemeber(Temp);
 
     if n mod 2= 1 then
     begin
-      Temp:= Result.Mul(Self);
+      Temp := Result.Mul(Self);
       BigIntFactory.ReleaseMemeber(Result);
-      Result:= Temp;
+      Result := Temp;
 
     end;
 
@@ -1014,8 +1059,8 @@ var
   i: Integer;
 
 begin
-  Result := 0;
-  for i := Length - 1 downto 0 do
+  Result  := 0;
+  for i  := Length - 1 downto 0 do
   begin
     Result *= 10;
     Result += Digits[i];
@@ -1029,10 +1074,10 @@ var
   i, j, Borrow: Integer;
 
 begin
-  Result:= BigIntFactory.GetNewMemeber;
+  Result := BigIntFactory.GetNewMember;
 
-  Borrow:= 0;
-  i:= FLength- 1;
+  Borrow := 0;
+  i := FLength- 1;
 
   while i>= 0 do
   begin
@@ -1042,36 +1087,36 @@ begin
 
       if FDigits^[i]< 2 then
       begin
-        Result.Length:= FLength- 1;
-        j:= FLength- 2;
-        Borrow:= FDigits^[i];
+        Result.Length := FLength- 1;
+        j := FLength- 2;
+        Borrow := FDigits^[i];
         if 1<= i then
-          Borrow:= Borrow* 10+ FDigits^[i- 1];
+          Borrow := Borrow* 10+ FDigits^[i- 1];
 
         if 0<= j then
-          Result.FDigits^[j]:= Borrow div 2;
+          Result.FDigits^[j] := Borrow div 2;
 
-        Borrow:= Borrow mod 2;
+        Borrow := Borrow mod 2;
         Dec(i);
 
       end
       else
       begin
-        Result.Length:= FLength;
+        Result.Length := FLength;
 
-        j:= Result.Length- 1;
-        Borrow:= FDigits^[i];
-        Result.FDigits^[j]:= Borrow div 2;
-        Borrow:= Borrow mod 2;
+        j := Result.Length- 1;
+        Borrow := FDigits^[i];
+        Result.FDigits^[j] := Borrow div 2;
+        Borrow := Borrow mod 2;
 
       end;
 
     end
     else
     begin
-      Borrow:= Borrow* 10+ FDigits^[i];
-      Result.FDigits^[j]:= Borrow div 2;
-      Borrow:= Borrow mod 2;
+      Borrow := Borrow* 10+ FDigits^[i];
+      Result.FDigits^[j] := Borrow div 2;
+      Borrow := Borrow mod 2;
 
     end;
 
@@ -1088,24 +1133,24 @@ var
   n: Integer;
 
 begin
-  n:= 2;
-  Result:= Self;
+  n := 2;
+  Result := Self;
 
-  Carry:= 0;
-  for i:= 0 to FLength- 1 do
+  Carry := 0;
+  for i := 0 to FLength- 1 do
   begin
     Inc(Carry, FDigits^[i]* n);
-    Result.FDigits^[i]:= Carry mod 10;
-    Carry:= Carry div 10;
+    Result.FDigits^[i] := Carry mod 10;
+    Carry := Carry div 10;
 
   end;
 
   while Carry> 0 do
   begin
-    Result.Length:= Result.Length+ 1;
+    Result.Length := Result.Length+ 1;
     Result.FDigits^[Result.FLength- 1]:=
             Carry mod 10;
-    Carry:= Carry div 10;
+    Carry := Carry div 10;
 
   end;
 
@@ -1113,7 +1158,7 @@ end;
 
 procedure Initialize;
 begin
-  BigIntFactory:= TBigIntFactory.Create;
+  BigIntFactory := TBigIntFactory.Create;
 
 end;
 
