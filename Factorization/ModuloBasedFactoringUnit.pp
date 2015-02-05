@@ -320,8 +320,9 @@ var
   Modulos: TIntegerCollection;
   aModm, bModm, cModm, c: TBitVector;
   aModbMod, aModbModModm: TBitVector;
-  lit, IsEqualLit: TLiteral;
+  lit: TLiteral;
   Prod: TBigInt;
+
 begin
   if a.Count + b.Count <= 26 then
   begin
@@ -329,7 +330,7 @@ begin
     Exit;
   end;
 
-  WriteLn('Mul a.Count = ', a.Count, ' b.Count = ', b.Count);
+//  WriteLn('Mul a.Count = ', a.Count, ' b.Count = ', b.Count);
   Modulos := nil;
   if UpperCase(GetRunTimeParameterManager.GetValueByName('--ModuloMode')) = UpperCase('dp') then
     Modulos := GenerateModulosUsingDP(a.Count + b.Count)

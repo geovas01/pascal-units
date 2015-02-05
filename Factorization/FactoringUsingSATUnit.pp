@@ -60,6 +60,7 @@ var
   MulEncOutputLit,
   aLEb,
   aG1, bG1: TLiteral;
+  i: Integer;
 
 begin
   SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
@@ -103,15 +104,17 @@ begin
   One := nil;
   if (a.Count >= c.Count) or (b.Count >= c.Count) then
   begin
-    One:= TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
-    One[0]:= GetVariableManager.TrueLiteral;
+    SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+    for i := 1 to a.Count - 1 do
+      SatSolverInterfaceUnit.GetSatSolver.AddLiteral(a[i]);
+    aG1:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    SatSolverInterfaceUnit.GetSatSolver.SubmitAndGate(aG1);
 
-    aG1:= ArithmeticCircuit.EncodeIsLessThan(One, a);
-
-    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(aG1);
-
-    bG1:= ArithmeticCircuit.EncodeIsLessThan(One, b);
-    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(bG1);
+    SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+    for i := 1 to b.Count - 1 do
+      SatSolverInterfaceUnit.GetSatSolver.AddLiteral(b[i]);
+    bG1:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    SatSolverInterfaceUnit.GetSatSolver.SubmitAndGate(bG1);
 
   end
   else

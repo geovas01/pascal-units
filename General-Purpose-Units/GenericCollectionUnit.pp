@@ -30,6 +30,7 @@ type
     destructor Destroy; override;
 
     procedure AddItem(NewItem: TData);
+    procedure Add(NewItem: TData);
     procedure AddAnotherCollection(AnotherCollection: TList);
 
     {
@@ -58,14 +59,11 @@ type
 
     constructor Create(InitSize: Integer; InitValue: TData);
 
-    {
-    Note that Capacity is different from Count!
-    }
-    constructor Create(InitCap: Integer);
     constructor Create;
     destructor Destroy; override;
 
     procedure AddItem(NewItem: TData); inline;
+    procedure Add(NewItem: TData); inline;
     procedure AddAnotherCollection(AnotherCollection: TGenericCollectionForBuiltInData);
 
     {
@@ -149,6 +147,12 @@ begin
 
 end;
 
+procedure TGenericCollection.Add(NewItem: TData);
+begin
+  inherited PushBack(NewItem);
+
+end;
+
 procedure TGenericCollection.AddAnotherCollection(AnotherCollection: TList);
 var
   i: Integer;
@@ -217,12 +221,6 @@ begin
 
 end;
 
-constructor TGenericCollectionForBuiltInData.Create(InitCap: Integer);
-begin
-  inherited Create;
-
-end;
-
 constructor TGenericCollectionForBuiltInData.Create;
 begin
   inherited Create;
@@ -236,6 +234,12 @@ begin
 end;
 
 procedure TGenericCollectionForBuiltInData.AddItem(NewItem: TData);
+begin
+  PushBack(NewItem);
+
+end;
+
+procedure TGenericCollectionForBuiltInData.Add(NewItem: TData);
 begin
   PushBack(NewItem);
 
