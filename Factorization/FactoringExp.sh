@@ -1,4 +1,18 @@
-# for m in {2..10}; 
+for n in {1000..1000}; 
+ do
+    ./FactorUsingSAT --InputSize $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.aLEb.cnf --FactorizerMode BinaryRep --Verbosity 0 --AddaLEb True --AddExtraClausesForEq False >  /dev/null 
+     echo $n
+    ./FactorUsingSAT --InputSize $n --SatSolverType CNFCollection --OutputFileName $n.ModuloRep.aLEb.cnf --FactorizerMode ModuloRep --Verbosity 0 --AddaLEb True  --ModuloMode Normal --AddExtraClausesForEq False  > /dev/null
+  exit
+done 
+for n in {10..20}; 
+ do
+     echo $n
+    ./FactorUsingSAT --InputSize $n --SatSolverType CNFCollection --OutputFileName $n.BinRep.aLEb.cnf --FactorizerMode BinaryRep --Verbosity 0 --AddaLEb True --AddExtraClausesForEq False >  /dev/null 
+     echo $n
+    ./FactorUsingSAT --InputSize $n --SatSolverType CNFCollection --OutputFileName $n.ModuloRep.aLEb.cnf --FactorizerMode ModuloRep --Verbosity 0 --AddaLEb True  --ModuloMode Normal --AddExtraClausesForEq False  > /dev/null
+done
+exit;
 #n=104395303   
 n=5915587277
 while [[ true ]];
