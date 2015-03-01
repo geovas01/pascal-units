@@ -36,7 +36,7 @@ end;
 
 var
   n: TBigInt;
-  InputNumber: AnsiString;
+  InputNumber, InputSize: AnsiString;
   a, b: TBitVector;
 
 begin
@@ -50,19 +50,47 @@ begin
 
   Initialize;
 
+  assert((GetRunTimeParameterManager.ValueByName['--InputNumber'] <> '') or
+         (GetRunTimeParameterManager.ValueByName['--InputSize'] <> '') );
+
   InputNumber:= GetRunTimeParameterManager.ValueByName['--InputNumber'];
-  n:= BigIntFactory.GetNewMember.LoadFromString(@InputNumber[1]);
+  InputSize:= GetRunTimeParameterManager.ValueByName['--InputSize'];
 
-  a:= TBitVector.Create(n.Log);
-  b:= TBitVector.Create(n.Log);
-  WriteLn('c a = ', a.ToString);
-  WriteLn('c b = ', b.ToString);
+  if InputNumber <> '' then
+  begin
 
-  SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
-  SatSolverInterfaceUnit.GetSatSolver.AddLiteral(FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n));//, CNFCollection);
-  SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
+    n:= BigIntFactory.GetNewMember.LoadFromString(@InputNumber[1]);
 
-  BigIntFactory.ReleaseMemeber(n);
+    a:= TBitVector.Create(n.Log );
+    b:= TBitVector.Create(n.Log);
 
+    WriteLn('c a = ', a.ToString);
+    WriteLn('c b = ', b.ToString);
+    WriteLn('c n = ', InputNumber);
+
+    SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n));
+    SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
+
+    BigIntFactory.ReleaseMemeber(n);
+
+  end
+  else
+  begin
+    n := BigIntFactory.GetNewMember.SetValue(1).ShiftLeft(StrToInt(InputSize));
+
+    a:= TBitVector.Create(n.Log );
+    b:= TBitVector.Create(n.Log);
+
+    WriteLn('c a = ', a.ToString);
+    WriteLn('c b = ', b.ToString);
+
+    SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
+    SatSolverInterfaceUnit.GetSatSolver.AddLiteral(FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n));
+    SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
+
+    BigIntFactory.ReleaseMemeber(n);
+
+  end;
   Finalize;
 end.

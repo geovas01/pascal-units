@@ -22,19 +22,29 @@ type
   protected
     function GenerateModulosUsingDP(n: Integer): TIntegerCollection;
     function GenerateModulos(n: Integer; MaxModLogVal: Integer = -1): TIntegerCollection;
-    function Mul(const a, b: TBitVector): TBitVector; override;
+    function EncodeMul(const a, b, c: TBitVector): TLiteral; override;
     {
     Encode c = a mod (2^m-1).
     }
-    function EncodeMod(const a: TBitVector; m: Int64; c : TBitVector): TLiteral;
+    function EncodeMod(const a: TBitVector; const m: Int64; const c : TBitVector): TLiteral;
     {
     Encode a > (2^m-1).
     }
     function EncodeGreaterThan(const a: TBitVector; const m: Int64): TLiteral;
+    {
+      Encode c = (a + b) mod  (2^m -1)
+    }
+    function EncodeAddModuloMod(const a, b, c: TBitVector; m: Integer): TLiteral;
+    {
+      Result = (a + b) mod  (2^m -1)
+    }
+    function AddModuloMod(const a, b: TBitVector; m: Integer): TBitVector;
 
   public
     constructor Create;
     destructor Destroy; override;
+
+
 
   end;
 
@@ -93,8 +103,9 @@ function TModuloBasedBinaryArithmeticCircuit.GenerateModulos(n: Integer;
           CurrentSet.Add(ModulosBigInts[j]);
 
       Temp := BigIntFactory.ComputeProduct(CurrentSet);
+  //    WriteLn('i = ', i, ' Temp = ', Temp.Log, ' TargetLog', TargetLog, ' MinProd', MinProd.ToString);
       if Temp.Log < TargetLog then
-      else if 0 < MinProd.CompareWith(Temp) then
+      else if MinProd.CompareWith(Temp) > 0 then
       begin
         BigIntFactory.ReleaseMemeber(MinProd);
         MinProd := Temp.Copy;
@@ -133,7 +144,7 @@ begin
   AllPrimes := GenerateAllPrimesLessThanEq(2 * n);
 
   logn := Round(log2(n)) + 1;
-  if (GetRunTimeParameterManager.Verbosity and VerbBaseFactoringUsingModulo) <> 0then
+  if (GetRunTimeParameterManager.Verbosity and VerbBaseFactoringUsingModulo) <> 0 then
     WriteLn('logn = ', logn);
 
   b := Round(log2((n + 2) / logn));
@@ -162,6 +173,8 @@ begin
     if MaxModLogVal <= AllPrimes[i]  then
       break;
     t2p := BigIntFactory.GetNewMember.SetValue(1).ShiftLeft(AllPrimes[i]).Decr;
+    assert(not t2p.IsZero);
+
     Temp := Prod.Mul(t2p);
     BigIntFactory.ReleaseMemeber(t2p);
     BigIntFactory.ReleaseMemeber(Prod);
@@ -305,8 +318,8 @@ begin
   AllPrimes.Free;
 end;
 
-function TModuloBasedBinaryArithmeticCircuit.Mul(const a, b: TBitVector
-  ): TBitVector;
+function TModuloBasedBinaryArithmeticCircuit.EncodeMul(const a, b, c: TBitVector
+  ): TLiteral;
 {
   This method selects Log(n) prime integers, p1,...,p_m, such that their summation is
   greater than 2n + 2, and returns 2^p_i - 1, for i = 1, ..., m = Log(n).
@@ -318,15 +331,19 @@ var
   Temp, t2p: TBigInt;
   m: Int64;
   Modulos: TIntegerCollection;
-  aModm, bModm, cModm, c: TBitVector;
+  aModm, bModm, cModm, TempVector: TBitVector;
   aModbMod, aModbModModm: TBitVector;
   lit: TLiteral;
   Prod: TBigInt;
+  LastVar: Integer;
 
 begin
+  assert(a.Count + b.Count <= c.Count);
+
   if a.Count + b.Count <= 26 then
   begin
-    Result := inherited Mul(a, b);
+    TempVector := inherited Mul(a, b);
+    Result := EncodeIsEqual(TempVector, c);
     Exit;
   end;
 
@@ -338,7 +355,6 @@ begin
     Modulos := GenerateModulos(a.Count + b.Count, Min(a.Count, b.Count));
   assert(Modulos <> nil);
 
-  c := TBitVector.Create(a.Count + b.Count);
   prod := BigIntFactory.GetNewMember.SetValue(1);
   for i := 0 to Modulos.Count - 1 do
   begin
@@ -354,15 +370,20 @@ begin
   Assert(a.Count + b.Count <= Prod.Log);
   BigIntFactory.ReleaseMemeber(Prod);
 
-  Result := TBitVector.Create(a.Count + b.Count);
+  //Result := TBitVector.Create(a.Count + b.Count);
 
   Write(a.Count + b.Count, ':');
   for i:= 0 to Modulos.Size- 1 do
     Write(' ', Modulos[i]);
   WriteLn;
+
+  SatSolver.BeginConstraint;
+
   for i:= 0 to Modulos.Size- 1 do
   begin
+    LastVar := GetVariableManager.LastUsedCNFIndex;
     m := Modulos[i];
+    WriteLn('Modulo = ', m);
     assert(m < Max(a.Count, b.Count), 'm  = '+ IntToStr(m) + ' a.Count = ' + IntToStr(a.Count) +  ' b.Count = ' + IntToStr(b.Count));
 
     if GetRunTimeParameterManager.Verbosity and
@@ -374,11 +395,31 @@ begin
     aModm := TBitVector.Create(Min(m, a.Count));
     bModm := TBitVector.Create(Min(m, b.Count));
     cModm := TBitVector.Create(Min(m, c.Count));
+    WriteLn('Modulos = ', m, ' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
 
+
+//    WriteLn('*', cModm[cModm.Count - 1]);
     SatSolver.BeginConstraint;
+//    SatSolver.AddComment('a , amodM (M=2^' + IntToStr(m) + '-1)' + a.ToString + ' ' + aModm.ToString);
+//    WriteLn('aMod ', m, aModm.ToString);
+
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
     SatSolver.AddLiteral(EncodeMod(a, m, aModm));
+    WriteLn('aMod[', m, '] len=', a.Count,' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
+
+    SatSolver.AddComment('b and bmodM = ' + b.ToString + ' ' + bModm.ToString);
+//    WriteLn('b and bmodM = ' + b.ToString + ' ' + bModm.ToString);
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
     SatSolver.AddLiteral(EncodeMod(b, m, bModm));
+    WriteLn('bMod[', m, '] len=', b.Count,' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
+
+    SatSolver.AddComment('bmod done');
+    SatSolver.AddComment('c and cmodM = ' + c.ToString + ' ' + cModm.ToString);
+//    WriteLn('c and cmodM = ' + c.ToString + ' ' + cModm.ToString);
+
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
     SatSolver.AddLiteral(EncodeMod(c, m, cModm));
+    WriteLn('cMod[', m, '] len=', c.Count,' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
 
     if GetRunTimeParameterManager.Verbosity and
        (1 shl VerbBaseFactoringUsingModulo) <> 0 then
@@ -388,9 +429,17 @@ begin
       WriteLn('[BaseFactoringUsingModulo.GenerateCNF]: cModm =', cModm.ToString);
     end;
 
-    aModbMod:= Self.Mul(aModm, bModm);
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
+    aModbMod:= TBitVector.Create(aModm.Count + bModm.Count);
+    SatSolver.AddLiteral(EncodeMul(aModm, bModm, aModbMod));
+//    WriteLn('aModbMod = ' + aModbMod.ToString);
+    WriteLn('aModbMod[', m, '] vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
+
     aModbModModm := TBitVector.Create(m);
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
     SatSolver.AddLiteral(EncodeMod(aModbMod, m, aModbModModm));
+//    WriteLn('aModbModModm = ' + aModbModModm.ToString);
+    WriteLn('aModbModModm[', m, '] len=', aModbMod.Count,' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
 
     SatSolver.AddLiteral(Self.EncodeIsEqual(aModbModModm, cModm));
     if GetRunTimeParameterManager.Verbosity and
@@ -401,14 +450,14 @@ begin
                                     cModm.ToString);
     end;
 
+    LastVar:= GetVariableManager.LastUsedCNFIndex;
     SatSolver.AddLiteral(Self.EncodeIsEqual(cModm, aModbModModm));
+    WriteLn('isEqual[', m, '] vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
 
     lit := CreateLiteral(GetVariableManager.CreateNewVariable, False);
-    SatSolverInterfaceUnit.GetSatSolver.SubmitAndGate(lit);
+    SatSolver.SubmitAndGate(lit);
 
-    SatSolver.BeginConstraint;
     SatSolver.AddLiteral(lit);
-    SatSolver.SubmitClause;
 
     aModm.Free;
     bModm.Free;
@@ -416,15 +465,18 @@ begin
     aModbMod.Free;
     aModbModModm.Free;
 
+    WriteLn('Modulos = ', m, ' vars = ', GetVariableManager.LastUsedCNFIndex - LastVar);
   end;
 
   Modulos.Free;
-  Result := c;
+
+  Result := GetVariableManager.TrueLiteral;
+  SatSolver.SubmitAndGate(Result);
 
 end;
 
 function TModuloBasedBinaryArithmeticCircuit.EncodeMod(const a: TBitVector;
-  m: Int64; c: TBitVector): TLiteral;
+  const m: Int64; const c: TBitVector): TLiteral;
 type
     TBitVectorList= specialize TGenericCollection<TBitVector>;
 
@@ -443,9 +495,7 @@ type
   function ParallelAdder(const Mat: TBitVectorList; Start, Finish: Integer): TBitVector;
   var
     FirstHalf, SecondHalf: TBitVector;
-    GreaterThanModuloLit: TLiteral;
-    TwoToMMinusOne: TBitVector;
-    SumOfTwoHalves: TBitVector;
+    i: Integer;
 
   begin
     if Start = Finish then
@@ -459,37 +509,19 @@ type
       Exit;
     end;
 
-    FirstHalf:= ParallelAdder(Mat, Start,(Start+ Finish) div 2);
-    SecondHalf:= ParallelAdder(Mat, (Start+ Finish) div 2+ 1, Finish);
+    FirstHalf:= ParallelAdder(Mat, Start, (Start + Finish) div 2);
+    SecondHalf:= ParallelAdder(Mat, (Start + Finish) div 2 + 1, Finish);
     if StrToInt(GetRunTimeParameterManager.ValueByName['--Verbosity']) and
      (1 shl VerbBinArithmCircuit)<> 0 then
     begin
-      WriteLn('[Mul.ParallelAdder] FirstHalf= ', FirstHalf.ToString);
-      WriteLn('[Mul.ParallelAdder] SecondHalf= ', SecondHalf.ToString);
-
+      WriteLn('[Mul.ParallelAdder] FirstHalf = ', FirstHalf.ToString);
+      WriteLn('[Mul.ParallelAdder] SecondHalf = ', SecondHalf.ToString);
     end;
 
-    SumOfTwoHalves := Self.Add(FirstHalf, SecondHalf);
-    assert(SumOfTwoHalves.Count <= m + 1, 'SumOfTwoHalves.Count must be m + 1');
-    if SumOfTwoHalves.Count <= m then // 0..m-1  2^m-1
-      Exit(SumOfTwoHalves)
-    else
-    begin
-      GreaterThanModuloLit := EncodeGreaterThan(SumOfTwoHalves, m);
-      TwoToMMinusOne := TBitVector.Create(m, GreaterThanModuloLit);
-      Result := Self.Sub(SumOfTwoHalves, TwoToMMinusOne);
-
-      SatSolver.BeginConstraint;
-      SatSolver.AddLiteral(NegateLiteral(Result.Back));
-      SatSolver.SubmitClause;
-
-      Result.Resize(Result.Count - 1);
-
-      TwoToMMinusOne.Free;
-      SumOfTwoHalves.Free;
-      // Result.;
-
-    end;
+    Result := TBitVector.Create(m);
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(EncodeAddModuloMod(FirstHalf, SecondHalf, Result, m));
+    SatSolver.SubmitClause;
 
     if StrToInt(GetRunTimeParameterManager.ValueByName['--Verbosity']) and
      (1 shl VerbBinArithmCircuit)<> 0 then
@@ -552,6 +584,9 @@ begin
     Current.Add(a[i]);
   end;
 
+  for i := Current.Count + 1 to m do
+    Current.PushBack(GetVariableManager.FalseLiteral);
+
   cPrime := ParallelAdder(Mat, 0, Mat.Count - 1);
   Result := Self.EncodeIsEqual(cPrime, c);
 
@@ -566,12 +601,122 @@ var
   i: Integer;
 begin
   Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+  SatSolver.AddComment('GreaterThan ' + a.ToString + ' ' + IntToStr(m) + ' <=> ' + LiteralToString(Result));
 
   SatSolver.BeginConstraint;
 
   for i := m to a.Count - 1 do
     SatSolver.AddLiteral(a[i]);
   SatSolver.SubmitOrGate(Result);
+
+  SatSolver.AddComment('GreaterThan ' + a.ToString + ' ' + IntToStr(m) + ' <=> ' + LiteralToString(Result));
+
+end;
+
+function TModuloBasedBinaryArithmeticCircuit.EncodeAddModuloMod(const a, b,
+  c: TBitVector; m: Integer): TLiteral;
+var
+  Sum, TwoToMMinusOne, CPlusTwoTpMMinusOne: TBitVector;
+  i: Integer;
+  l, l1, l2: TLiteral;
+
+begin
+  Assert(a.Count = m);
+  Assert(b.Count = m);
+  Assert(m <= c.Count);
+
+  for i := m to c.Count - 1 do
+  begin
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(NegateLiteral(c[i]));
+    SatSolver.SubmitClause;
+  end;
+
+  SatSolver.BeginConstraint;
+  Sum := Add(a, b);
+  l1 := EncodeIsEqual(c, Sum);
+
+  if (Sum.Count = m) or (SatSolver.GetLiteralValue(Sum[m]) = gbFalse) then // 0..m-1  2^m-1
+    SatSolver.AddLiteral(l1)
+  else
+  begin
+    TwoToMMinusOne := TBitVector.Create(m, GetVariableManager.TrueLiteral);
+    CPlusTwoTpMMinusOne := Add(c, TwoToMMinusOne);
+  //    WriteLn('EncodeAddModuloMod: CPlusTwoTpMMinusOne = ' +
+  //             CPlusTwoTpMMinusOne.ToString);
+    l2 := EncodeIsEqual(CPlusTwoTpMMinusOne, Sum);
+   //   WriteLn('EncodeAddModuloMod: l1 = ' + LiteralToString(l1));
+   //   WriteLn('EncodeAddModuloMod: l2 = ' + LiteralToString(l2));
+{    end;
+ }
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(l1);
+    SatSolver.AddLiteral(l2);
+    l := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    SatSolver.SubmitOrGate(l);
+
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(l1);
+    SatSolver.AddLiteral(l2);
+    SatSolver.SubmitXOrGate(GetVariableManager.TrueLiteral);// ! (l1 -> ~l2) and (l2 -> ~l1)
+
+    SatSolver.AddLiteral(l);
+
+  end;
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, True);
+  SatSolver.SubmitAndGate(Result);
+//  WriteLn('EncodeAddModuloMod: Result = ', LiteralToString(Result));
+  SatSolver.AddComment(a.ToString + ' + ' + b.ToString + ' = ' + c.ToString + ' modulo 2^'+ IntToStr(m)+ '- 1');
+
+end;
+
+function TModuloBasedBinaryArithmeticCircuit.AddModuloMod(const a,
+  b: TBitVector; m: Integer): TBitVector;
+var
+  Sum, TwoToMMinusOne, CPlusTwoTpMMinusOne: TBitVector;
+  i: Integer;
+  l, l1, l2: TLiteral;
+
+begin
+  Assert(a.Count = m);
+  Assert(b.Count = m);
+  Assert(m <= c.Count);
+
+  SatSolver.BeginConstraint;
+  Sum := Add(a, b);
+  l1 := EncodeIsEqual(c, Sum);
+
+  if (Sum.Count = m) or (SatSolver.GetLiteralValue(Sum[m]) = gbFalse) then // 0..m-1  2^m-1
+    Result := Sum
+  else
+  begin
+    TwoToMMinusOne := TBitVector.Create(m, GetVariableManager.TrueLiteral);
+    CPlusTwoTpMMinusOne := Add(c, TwoToMMinusOne);
+  //    WriteLn('EncodeAddModuloMod: CPlusTwoTpMMinusOne = ' +
+  //             CPlusTwoTpMMinusOne.ToString);
+    l2 := EncodeIsEqual(CPlusTwoTpMMinusOne, Sum);
+   //   WriteLn('EncodeAddModuloMod: l1 = ' + LiteralToString(l1));
+   //   WriteLn('EncodeAddModuloMod: l2 = ' + LiteralToString(l2));
+{    end;
+ }
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(l1);
+    SatSolver.AddLiteral(l2);
+    l := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    SatSolver.SubmitOrGate(l);
+
+    SatSolver.BeginConstraint;
+    SatSolver.AddLiteral(l1);
+    SatSolver.AddLiteral(l2);
+    SatSolver.SubmitXOrGate(GetVariableManager.TrueLiteral);// ! (l1 -> ~l2) and (l2 -> ~l1)
+
+    SatSolver.AddLiteral(l);
+
+  end;
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, True);
+  SatSolver.SubmitAndGate(Result);
+//  WriteLn('EncodeAddModuloMod: Result = ', LiteralToString(Result));
+  SatSolver.AddComment(a.ToString + ' + ' + b.ToString + ' = ' + c.ToString + ' modulo 2^'+ IntToStr(m)+ '- 1');
 
 end;
 

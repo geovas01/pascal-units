@@ -1,4 +1,4 @@
-FLAGS := -Mobjfpc  -g -O3# -g -gh -gl # 
+FLAGS := -Mobjfpc  -g # -g -gh -gl # 
 
 All: 
 	fpc $(FLAGS) FactorUsingSAT.pp
