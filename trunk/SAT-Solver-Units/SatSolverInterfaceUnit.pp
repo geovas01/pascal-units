@@ -20,16 +20,20 @@ type
   TSATSolverInterface = class (TObject)
   private
     type
-      TNoOfLiteralsInTopConstraint = array[gbFalse..gbTrue] of Integer;
+      TNoOfLiteralsInTopConstraint = record
+        FalseCount: Integer;
+        TrueCount: Integer;
+      end;
       TClauseNoOfLiteralsPair = specialize TPairForBuiltInData<TClause, TNoOfLiteralsInTopConstraint>;
       TStackOfClauses = specialize TGenericStack<TClauseNoOfLiteralsPair>;
   private
     FClausesStack: TStackOfClauses;
-    FTopConstraint: TClause;
+    _FTopConstraint: TClause;
     FNoOfLiteralInTopConstraint: TNoOfLiteralsInTopConstraint;
 
     function GetNoOfLiteralInTopConstraint(gbValue: TGroundBool): Integer; inline;
     function GetTopConstarintSize: Integer; inline;
+    function GetTopConstraint: TClause;
 
   protected
     FVarCount: Int64;
@@ -41,7 +45,6 @@ type
     function GetVarCount: Int64; virtual; 
     function GetClauseCount: Int64; virtual;
     function GetCNF: TClauseCollection; virtual; 
-    function GetValue (v: Integer): TGroundBool; virtual;
     property Stack: TStackOfClauses read FClausesStack;
 
     procedure SyncInteractiveUPInfo; virtual;
@@ -49,19 +52,21 @@ type
   public
     property VarCount: Int64 read GetVarCount;
     property ClauseCount: Int64 read GetClauseCount;
-    property TopConstraint: TClause read FTopConstraint;
+    property TopConstraint: TClause read GetTopConstraint;// FTopConstraint;
     property TopConstarintSize: Integer read GetTopConstarintSize;
     property NoOfLiteralInTopConstraint[gbValue: TGroundBool]: Integer read GetNoOfLiteralInTopConstraint;
     property CNF: TClauseCollection read GetCNF;
 
-    procedure AddComment(Comment: AnsiString); virtual;
+    procedure AddComment(const Comment: AnsiString); virtual;
 
 //    function GenerateNewVariable(VariablePolrity: TVariablePolarity= vpNone; Decide: Boolean= True): Integer; virtual; abstract;
     function GenerateNewVariable(VariablePolrity: TVariablePolarity; Decide: Boolean): Integer; virtual; abstract;
+    function GetValue (v: Integer): TGroundBool; virtual;
 
-    function BeginConstraint: TClause; inline;
+    function BeginConstraint: TClause; //inline;
     procedure AbortConstraint; virtual; 
-    procedure AddLiteral(Lit: TLiteral); virtual; 
+    procedure AddLiteral(Lit: TLiteral); virtual;
+    procedure AddLiterals(Lits: array of const); virtual;
     procedure AddClause(AClause: TClause); inline;
 
     procedure SubmitAndGate(p: TLiteral); virtual;
@@ -94,7 +99,7 @@ type
 
   end;
 
-function GetSatSolver: TSATSolverInterface;
+function GetSatSolver: TSATSolverInterface; inline;
 function ReNewSatSolver(SatSolverType: TSatSolverType= ssMiniSatSolver): TSATSolverInterface;
 procedure Initialize;
 procedure Finalize;
@@ -107,7 +112,7 @@ uses
 var
   SatSolverInterface: TSATSolverInterface;
 
-function GetSatSolver: TSATSolverInterface;
+function GetSatSolver: TSATSolverInterface; inline;
 begin
   Result:= SatSolverInterface;
 
@@ -212,7 +217,13 @@ end;
 
 function TSATSolverInterface.GetNoOfLiteralInTopConstraint(gbValue: TGroundBool): Integer;
 begin
-  Result:= FNoOfLiteralInTopConstraint[gbValue];
+  case gbValue of
+    gbTrue: Exit(FNoOfLiteralInTopConstraint.TrueCount);
+    gbFalse: Exit(FNoOfLiteralInTopConstraint.FalseCount);
+    gbUnknown: Exit(TopConstraint.Count -
+       FNoOfLiteralInTopConstraint.FalseCount -
+       FNoOfLiteralInTopConstraint.TrueCount);
+  end;
 
 end;
 
@@ -220,6 +231,12 @@ function TSATSolverInterface.GetTopConstarintSize: Integer;
 begin
   Result:= TopConstraint.Count;
 
+end;
+
+function TSATSolverInterface.GetTopConstraint: TClause;
+begin
+  assert(_FTopConstraint <> nil);
+  Result := _FTopConstraint;
 end;
 
 function TSATSolverInterface.GetVarCount: Int64;
@@ -253,14 +270,19 @@ end;
 function TSATSolverInterface.GenerateAndGate: TLiteral;
 begin
   if 0 < NoOfLiteralInTopConstraint[gbFalse] then
-    Exit(GetVariableManager.FalseLiteral)
+  begin
+    Result := GetVariableManager.FalseLiteral;
+    AbortConstraint;
+  end
   else if NoOfLiteralInTopConstraint[gbTrue] = TopConstraint.Count then
-    Exit(GetVariableManager.TrueLiteral)
+  begin
+    Result := GetVariableManager.TrueLiteral;
+    AbortConstraint;
+  end
   else
   begin
-    Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
     SubmitAndGate(Result);
-
   end;
 
 end;
@@ -281,35 +303,73 @@ begin
 end;
 
 function TSATSolverInterface.GenerateXOrGate: TLiteral;
+var
+  ActiveClause: TClause;
+  TrueCount: Integer;
+  i: Integer;
+  val: TGroundBool;
+  HasValue: Boolean;
 begin
   if TopConstraint.Count= 2 then
   begin
+    HasValue := True;
     if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// False xor x => x
-      Exit(TopConstraint.Items[1])
+      Result := TopConstraint.Items[1]
     else if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// True xor x => ~x
-      Exit(NegateLiteral(TopConstraint.Items[1]))
+      Result := NegateLiteral(TopConstraint.Items[1])
     else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// False xor x => x
-        Exit(TopConstraint.Items[0])
+      Result := TopConstraint.Items[0]
     else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// True xor x => ~x
-      Exit(NegateLiteral(TopConstraint.Items[0]))
+      Result := NegateLiteral(TopConstraint.Items[0])
+    else
+    begin
+      HasValue := False;
+      Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+      SubmitXOrGate(Result);
+    end;
+
+    if HasValue then
+      AbortConstraint;
+  end
+  else
+  begin
+    ActiveClause := TopConstraint;
+    TrueCount := NoOfLiteralInTopConstraint[gbTrue];
+
+    BeginConstraint;
+    HasValue := False;
+    for i := 0 to ActiveClause.Count - 1 do
+    begin
+      val := GetLiteralValue(ActiveClause[i]);
+      if val = gbUnknown then
+        AddLiteral(ActiveClause[i])
+      else
+        HasValue:= True;
+    end;
+
+    if HasValue then
+    begin
+      Result:= Self.GenerateXOrGate;
+      AbortConstraint;
+
+      if Odd(TrueCount) then
+        Result := NegateLiteral(Result);
+    end
     else
     begin
       Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
       SubmitXOrGate(Result);
+      AbortConstraint;
 
+      if Odd(TrueCount) then
+        Result := NegateLiteral(Result);
     end;
-
-  end
-  else
-  begin
-    Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
-    SubmitXOrGate(Result);
 
   end;
 
 end;
 
-procedure TSATSolverInterface.AddComment(Comment: AnsiString);
+procedure TSATSolverInterface.AddComment(const Comment: AnsiString);
 begin
 
 end;
@@ -319,11 +379,11 @@ var
   Pair: TClauseNoOfLiteralsPair;
 
 begin
-  FTopConstraint:= TClause.Create;//(30);
+  _FTopConstraint:= TClause.Create;//(30);
   FillChar(FNoOfLiteralInTopConstraint, SizeOf(FNoOfLiteralInTopConstraint), 0);
-  Pair:= TClauseNoOfLiteralsPair.Create(FTopConstraint, FNoOfLiteralInTopConstraint);
+  Pair:= TClauseNoOfLiteralsPair.Create(_FTopConstraint, FNoOfLiteralInTopConstraint);
   Stack.Push(Pair);
-  Result:= FTopConstraint;
+  Result:= _FTopConstraint;
 
 end;
 
@@ -332,22 +392,24 @@ var
   Pair: TClauseNoOfLiteralsPair;
 
 begin
-  if Stack.Count> 0 then
+  if Stack.Count > 0 then
   begin
     Pair:= Stack.Pop;
 
-    Pair.First.Free;
-    Pair.Free;
-    FTopConstraint:= nil;
+//    Pair.First.Free;
+    _FTopConstraint:= Pair.First;
+    _FTopConstraint := nil;
+//    Pair.Free;
 
-  end;
+  end
+  else
+    raise Exception.Create('Stack is empty!');
 
-  if Stack.Count> 0 then
+  if Stack.Count > 0 then
   begin
     Pair:= Stack.Top;
-    FTopConstraint:= Pair.First;
+    _FTopConstraint:= Pair.First;
     FNoOfLiteralInTopConstraint:= Pair.Second;
-
   end;
 
   Dec(FClauseCount);
@@ -367,12 +429,25 @@ begin
 
   TopConstraint.PushBack(Lit);
 
-  LiteralValue:= GetValue(v);
-  if IsNegated(Lit) then
-    LiteralValue := TGroundBool(2 - Ord(LiteralValue));
+  LiteralValue:= GetLiteralValue(Lit);
 
-  Inc(FNoOfLiteralInTopConstraint[LiteralValue]);
+  case LiteralValue of
+    gbTrue: Inc(FNoOfLiteralInTopConstraint.TrueCount);
+    gbFalse: Inc(FNoOfLiteralInTopConstraint.FalseCount);
+  end;
 
+end;
+
+procedure TSATSolverInterface.AddLiterals(Lits: array of const);
+var
+  i: Integer;
+  l: TLiteral;
+begin
+  for i := 0 to High(Lits) do
+  begin
+    l := Lits[i].VInteger;
+    AddLiteral(l);
+  end;
 end;
 
 procedure TSATSolverInterface.AddClause(AClause: TClause); inline;
@@ -394,12 +469,13 @@ var
   pV: TGroundBool;
   i: Integer;
   ActiveClause: TClause;
+  lit: TLiteral;
 
 begin
-// p <=> l_1 \land l_2 \land \cdots l_n;
+//  AddComment('And ' + TopConstraint.ToString + ' = ' + LiteralToString(p));
 
   pV:= GetValue(GetVar(p));
-  ActiveClause:= FTopConstraint;
+  ActiveClause:= TopConstraint;
 
   case Pv of
    gbFalse:
@@ -433,9 +509,11 @@ begin
      for i:= 0 to ActiveClause.Count- 1 do
      begin
        BeginConstraint;
+
        AddLiteral(ActiveClause.Items[i]);
        AddLiteral(NegateLiteral(p));
        SubmitClause;
+       lit := ActiveClause.Item[i];
        //ActiveClause.Item[i]:= NegateLiteral(ActiveClause.Item[i]);
        AddLiteral(NegateLiteral(ActiveClause.Items[i]));
 
@@ -464,11 +542,12 @@ var
   ActiveClause: TClause;
 
 begin
-  
+//  AddComment('Or ' + TopConstraint.ToString + ' = ' + LiteralToString(p));
+
 // p <=> l_1 \lor l_2 \lor \cdots l_n;
 
   pv:= GetValue(GetVar(p));
-  ActiveClause:= FTopConstraint;
+  ActiveClause:= TopConstraint;
 //  ActiveClause.Sort(@CompareLiteral);
 
   case Pv of
@@ -566,6 +645,7 @@ var
   Count: Integer;
 
 begin
+//  AddComment('Xor ' + TopConstraint.ToString + ' = ' + LiteralToString(p));
 
 // p <=> l_1 \lxor l_2 \lxor ... ln;
   {
@@ -575,7 +655,7 @@ begin
   l1, l2, ~p
   }
 
-  ActiveClause:= FTopConstraint;
+  ActiveClause:= TopConstraint;
 
   for i:= 0 to(1 shl ActiveClause.Count)- 1 do
   begin
@@ -609,6 +689,7 @@ var
   s, t, f: TLiteral;
 
 begin
+//  AddComment('ITE ' + TopConstraint.ToString + ' = ' + LiteralToString(p));
 
 // p <=>(s \land t) \lor(\lnot s \land f);
   {
@@ -620,7 +701,7 @@ begin
   t, f, ~p
   }
 
-  ActiveClause:= FTopConstraint;
+  ActiveClause:= TopConstraint;
   Assert(ActiveClause.Count= 3);
 
 //  ActiveClause.Sort(@CompareLiteral);
@@ -674,12 +755,14 @@ var
   i: Integer;
   a, b: TLiteral;
 begin
+//  AddComment('Eq ' + TopConstraint.ToString + ' = ' + LiteralToString(p));
+
   Assert(TopConstraint.Count = 2);
   {p <=> a <-> b
-  1) a \land b -> p
-  2) ~a \land b -> ~p
-  3) a \land ~b -> ~p
-  4) ~a \land ~b -> p
+  1) a \land b -> p    <-> ~a, ~b, p
+  2) ~a \land b -> ~p  <->  a, ~b, ~p
+  3) a \land ~b -> ~p  <-> ~a, b, ~p
+  4) ~a \land ~b -> p  <-> a, b, p
   }
   a := TopConstraint.Items[0];
   b := TopConstraint.Items[1];
@@ -761,7 +844,7 @@ begin
   inherited Create;
 
   FClausesStack:= TStackOfClauses.Create;
-  FTopConstraint:= nil;
+  _FTopConstraint:= nil;
   FVarCount:= 0;
   FClauseCount:= 0;
 
@@ -770,7 +853,7 @@ end;
 destructor TSATSolverInterface.Destroy;
 begin
   FClausesStack.Free;
-  FTopConstraint.Free;
+  TopConstraint.Free;
 
   inherited Destroy;
 

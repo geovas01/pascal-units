@@ -31,7 +31,7 @@ type
     procedure SaveToFile(AnStream: TMyTextStream);
     procedure LoadFromFile(AnStream: TMyTextStream);
 
-    procedure AddComment(Comment: AnsiString); override;
+    procedure AddComment(const Comment: AnsiString); override;
 
   end;
 
@@ -54,7 +54,8 @@ end;
 destructor TCNFCollection.Destroy;
 var
   CNFStream: TMyTextStream;
-
+  i: Integer;
+  cl: TClause;
 begin
   if GetRunTimeParameterManager.ValueByName['--OutputFileName']<> '' then
   begin
@@ -66,6 +67,12 @@ begin
 
   end;
 
+  for i := 0 to AllClauses.Count - 1 do
+  begin
+    cl := AllClauses.Item[i];
+    cl.Free;
+  end;
+  AllClauses.Clear;
   AllClauses.Free;
   AllComments.Free;
   CommentLineIndices.Free;
@@ -182,25 +189,24 @@ var
   MaxVarIndex: Integer;
   OutputString: AnsiString;
   OutputStringPChar: PChar;
-
+  Sat: Boolean;
 begin
   MaxVarIndex:= -1;
   CommentIndex:= 0;
 
   for i:= 0 to AllClauses.Count- 1 do
   begin
-{
     while CommentIndex< AllComments.Count do
       if CommentLineIndices.Item[CommentIndex]= i then
       begin
         AnStream.WriteLine(AllComments[CommentIndex]);
         Inc(CommentIndex);
-
+        j := CommentLineIndices.Item[CommentIndex];
       end
       else
         break;
- }
-    ActiveClause:= AllClauses.Item[i];
+
+      ActiveClause:= AllClauses.Item[i];
 
     for j:= 0 to ActiveClause.Count- 1 do
       if MaxVarIndex< GetVar(ActiveClause.Items[j]) then
@@ -208,33 +214,43 @@ begin
 
   end;
 
-  for i:= 0 to MaxVarIndex do
-    if GetValue(i)= gbTrue then
-    begin
-       ActiveClause:= TClause.Create(1, GetVariableManager.FalseLiteral);
-       ActiveClause.Items[0]:= CreateLiteral(i, False);
-       AllClauses.AddItem(ActiveClause);
-
-    end
-    else if GetValue(i)= gbFalse then
-    begin
-       ActiveClause:= TClause.Create(1, GetVariableManager.FalseLiteral);
-       ActiveClause.Items[0]:= CreateLiteral(i, True);
-       AllClauses.AddItem(ActiveClause);
-
-    end;
-
   AnStream.WriteLine('p cnf '+ IntToStr(MaxVarIndex)+ ' '+ IntToStr(AllClauses.Count));
 
   for i:= 0 to AllClauses.Count- 1 do
   begin
-    ActiveClause:= AllClauses.Item[i];
-    SetLength(OutputString, ActiveClause.Count* 10);
-    FillChar(OutputString[1], ActiveClause.Count* 10, ' ');
-    OutputStringPChar:= @(OutputString[1]);
+    while CommentIndex< AllComments.Count do
+      if CommentLineIndices.Item[CommentIndex] = i + 1 then
+      begin
+        AnStream.WriteLine(AllComments[CommentIndex]);
+        Inc(CommentIndex);
+    //    j := CommentLineIndices.Item[CommentIndex];
+      end
+      else
+        break;
 
-    if 0< ActiveClause.Count then
+
+    ActiveClause:= AllClauses.Item[i];
+
+    Sat := False;
+    for j := 0 to ActiveClause.Count- 1 do
     begin
+      Lit:= ActiveClause.Items[j];
+      if((GetValue(GetVar(Lit))= gbTrue) and (not IsNegated(Lit))) or
+        ((GetValue(GetVar(Lit))= gbFalse) and IsNegated(Lit)) then
+      begin
+        Sat := True;
+        Break;
+      end;
+    end;
+    if Sat then
+      Continue;
+
+    if 0 < ActiveClause.Count then
+    begin
+      SetLength(OutputString, ActiveClause.Count* 10);
+      FillChar(OutputString[1], ActiveClause.Count* 10, ' ');
+      OutputStringPChar:= @(OutputString[1]);
+
       Lit:= ActiveClause.Items[0];
       if((GetValue(GetVar(Lit))= gbTrue) and IsNegated(Lit)) or
         ((GetValue(GetVar(Lit))= gbFalse) and(not IsNegated(Lit))) then
@@ -283,11 +299,27 @@ begin
 
       end;
 
+      AnStream.WriteStr(OutputString);
+      AnStream.WriteLine(' 0');
+
     end;
 
-    AnStream.WriteStr(OutputString);
-    AnStream.WriteLine(' 0');
+  end;
 
+  for i:= 0 to MaxVarIndex do
+  begin
+    if GetValue(i)= gbTrue then
+    begin
+      OutputString:= IntToStr(i);
+      AnStream.WriteStr(OutputString);
+      AnStream.WriteLine(' 0');
+    end
+    else if GetValue(i)= gbFalse then
+    begin
+      OutputString:= IntToStr(-i);
+      AnStream.WriteStr(OutputString);
+      AnStream.WriteLine(' 0');
+    end;
   end;
 
 end;
@@ -297,9 +329,9 @@ begin
 
 end;
 
-procedure TCNFCollection.AddComment(Comment: AnsiString);
+procedure TCNFCollection.AddComment(const Comment: AnsiString);
 begin
-  AllComments.Add(Comment);
+  AllComments.Add('c ' + Comment);
   CommentLineIndices.AddItem(AllClauses.Count);
 
 end;

@@ -1,9 +1,10 @@
 unit BigInt;
+{$ASSERTIONS ON}
 {$Mode objfpc}
 
 interface
 uses
-  GenericCollectionUnit, GenericFactoryUnit, fgl;
+  GenericFactoryUnit, fgl;
 
 const
   MaxLen= 9999;
@@ -53,10 +54,6 @@ type
     }
     function MulByDigit(n: Integer): TBigInt;
 
-    { Returns True if the BitIndex-th bit of Self is one.
-    BitIndex = 1 refers to the least significat bit of Self.
-    }
-    function CheckBit(BitIndex: Integer): Boolean;
     { Multiply by 10}
     function MulByTenToN(n: Integer): TBigInt;
 
@@ -111,6 +108,10 @@ type
     function Pow(n: Integer): TBigInt;
     {Returns the value it fits in a 64-bit integer or an arbitrary number}
     function ToInteger: uInt64;
+    { Returns True if the BitIndex-th bit of Self is one.
+    BitIndex = 1 refers to the least significat bit of Self.
+    }
+    function CheckBit(BitIndex: Integer): Boolean;
 
   private
     constructor Create; overload;
@@ -165,7 +166,6 @@ uses
 
 function TBigIntFactory.ComputeProduct(Values: TBigIntCollection): TBigInt;
 var
-  Vi: TBigInt;
   Temp: TBigInt;
   i: Integer;
 
@@ -267,7 +267,6 @@ function TBigInt.Modulo(m: TBigInt): TBigInt;
 
 }
 var
-  Divisor: TBigInt;
   i: Integer;
 
 begin
@@ -349,20 +348,70 @@ end;
 
 function TBigInt.Log: Int64;
 var
-  TwoPower: TBigInt;
-
+  Top, Bot, Mid: Integer;
+  TopBigInt, BotBigInt, MidBigInt: TBigInt;
+  tmp : TBigInt;
+  IsExact: Boolean;
 begin
-  Result := 1;
-  TwoPower := BigIntFactory.GetNewMember.SetValue(2);
-
-  while TwoPower.CompareWith(Self)< 0 do
+{  Result := 1;
+  tmp :=  BigIntFactory.GetNewMember.SetValue(2);
+  while tmp.CompareWith(Self) < 0 do
   begin
-    TwoPower.Mul2;
+    tmp.Add(tmp);
     Inc(Result);
+  end;
+}
+  Top := 1;
+  TopBigInt := BigIntFactory.GetNewMember.SetValue(2);
+  while TopBigInt.CompareWith(Self) < 0 do
+  begin
+    Top *= 2;
+    tmp := TopBigInt.Mul(TopBigInt);
+    BigIntFactory.ReleaseMemeber(TopBigInt);
+    TopBigInt := tmp;
 
+    assert(Top <> 0, Self.ToString);
   end;
 
-  BigIntFactory.ReleaseMemeber(TwoPower);
+  Bot := 1;
+  BotBigInt := BigIntFactory.GetNewMember.SetValue(2);
+
+  Result := 0;
+  IsExact := False;
+  while Bot <= Top do
+  begin
+    Mid := (Bot + Top) div 2;
+    MidBigInt := BigIntFactory.GetNewMember.SetValue(1).ShiftLeft(Mid);
+
+    if MidBigInt.CompareWith(Self) < 0 then // 2^ Mid < Self
+    begin
+      Result := Mid;
+      BigIntFactory.ReleaseMemeber(BotBigInt);
+      BotBigInt := MidBigInt.Copy.Mul2;
+      BigIntFactory.ReleaseMemeber(MidBigInt);
+      Bot := Mid + 1
+    end
+    else if MidBigInt.CompareWith(Self) > 0 then
+    begin
+      BigIntFactory.ReleaseMemeber(TopBigInt);
+      TopBigInt := MidBigInt.Div2;
+      BigIntFactory.ReleaseMemeber(MidBigInt);
+      Top := Mid - 1
+    end
+    else
+    begin
+      IsExact := True;
+      BigIntFactory.ReleaseMemeber(MidBigInt);
+      Result := Mid;
+      break;
+    end;
+  end;
+
+  if IsExact then
+    Inc(Result);
+
+  BigIntFactory.ReleaseMemeber(TopBigInt);
+  BigIntFactory.ReleaseMemeber(BotBigInt);
 
 end;
 
@@ -572,13 +621,16 @@ var
   Temp: TBigInt;
 
 begin
+  Exit(NewMul(n));
+
   Result := BigIntFactory.GetNewMember.SetValue(0);
 
   for i := 0 to Self.FLength- 1 do
     if Self.FDigits^[i]<> 0 then
     begin
       Temp := n.MulByDigit(Self.FDigits^[i]);
-      Temp.MulByTenToN(i);
+      if i <> 0 then
+        Temp.MulByTenToN(i);
       Result.Add(Temp);
       BigIntFactory.ReleaseMemeber(Temp);
 
@@ -738,6 +790,7 @@ end;
 
 destructor TBigInt.Destroy;
 begin
+  WriteLn('In Destroy');
   FLength := 0;
   Dispose(FDigits);
   
@@ -788,9 +841,6 @@ begin
 end;
 
 function TBigInt.Copy: TBigInt;
-var
-  i: Integer;
-
 begin
   Result := BigIntFactory.GetNewMember;
   Result.Length := Self.FLength;
@@ -806,7 +856,6 @@ end;
 
 function TBigInt.Divide(n: TBigInt): TBigInt;
 var
-  i: Integer;
   CompareRes: Integer;
   Temp,
   Lower, Mid,
@@ -1003,7 +1052,7 @@ var
 begin
   Temp1 := Self.Copy;
 
-  for i := 1 to BitIndex- 1 do
+  for i := 1 to BitIndex do
   begin
     Temp2 := Temp1.Div2;
     BigIntFactory.ReleaseMemeber(Temp1);

@@ -7,21 +7,24 @@ interface
 uses
   Classes, SysUtils, SatSolverInterfaceUnit, NameValueCollectionUnit;
 
+const
+  vbNone = 0;
+  vbEveryThing = 512;
+
 type
-  TVerbosityMode = (vbNone = 0, vbMedium, vbFull, vbEveryThing = 4);
   TParameterList = specialize TGenericNameValueCollection<AnsiString>;
 
   { TRunTimeParameterManager }
 
-  TRunTimeParameterManager= class (TParameterList)
+  TRunTimeParameterManager= class(TParameterList)
   private
     function GetVerbosity: Integer;
 
   public
     property Verbosity: Integer read GetVerbosity;
 
-    function GetValueByName (Name: AnsiString): AnsiString; override;
-    procedure AddArgument (Name, Value: AnsiString);
+    function GetValueByName(Name: AnsiString): AnsiString; override;
+    procedure AddArgument(Name, Value: AnsiString);
     constructor Create;
     destructor Destroy; override;
 
@@ -61,16 +64,16 @@ end;
 
 function TRunTimeParameterManager.GetVerbosity: Integer;
 begin
-  if GetValueByName ('--Verbosity')<> '' then
-    Exit (StrToInt (GetValueByName ('--Verbosity')))
+  if GetValueByName('--Verbosity')<> '' then
+    Exit(StrToInt(GetValueByName('--Verbosity')))
   else
-    Exit (0);
+    Exit(0);
 
 end;
 
-procedure TRunTimeParameterManager.AddArgument (Name, Value: AnsiString);
+procedure TRunTimeParameterManager.AddArgument(Name, Value: AnsiString);
 begin
-  AddNameValue (UpperCase (Name), Value);
+  AddNameValue(UpperCase(Name), Value);
   Finalize;
 
 end;
@@ -78,24 +81,21 @@ end;
 constructor TRunTimeParameterManager.Create;
   procedure PrintHelp;
   begin
-    WriteLn ('Invalid Usage!');
-    WriteLn (ExtractFileName (ParamStr (0))+ ' {Name Value}^* ');
+    WriteLn('Invalid Usage!');
+    WriteLn(ExtractFileName(ParamStr(0))+ ' {Name Value}^* ');
 
   end;
 const
 {$i ValidArguments.inc }
 
-  procedure CheckParameter (Name, Value: AnsiString);
+  procedure CheckParameter(Name, Value: AnsiString);
   var
-    i, j: Integer;
-    Flag: Boolean;
-
+    i: Integer;
   begin
-    Flag := False;
-    for i := Low (ValidArguments) to High (ValidArguments) do
+    for i := Low(ValidArguments) to High(ValidArguments) do
     begin
 
-      if UpperCase (Name) = UpperCase(ValidArguments[i]) then
+      if UpperCase(Name) = UpperCase(ValidArguments[i]) then
       begin
         if Pos('NONE', UpperCase(ValidArgumentsValues[i])) <> 0 then
           Exit;

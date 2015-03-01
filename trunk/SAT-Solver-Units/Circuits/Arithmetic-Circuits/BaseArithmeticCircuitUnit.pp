@@ -146,7 +146,6 @@ begin
   Result := EncodeIsEqual(cPrime, c);
 
   cPrime.Free;
-
 end;
 
 function TBaseArithmeticCircuit.EncodeMul(const a, b, c: TBitVector): Tliteral;
@@ -155,8 +154,8 @@ var
 
 begin
   cPrime := Mul(a, b);
-  WriteLn('[EncodeMul] cPrime = ', cPrime.ToString);
-  WriteLn('[EncodeMul] c = ', c.ToString);
+//  WriteLn('[EncodeMul] cPrime = ', cPrime.ToString);
+//  WriteLn('[EncodeMul] c = ', c.ToString);
   Result := EncodeIsEqual(cPrime, c);
 
   cPrime.Free;
@@ -169,14 +168,14 @@ var
 
 begin
   Result:= TBitVector.Create(b.Size);
-  WriteLn('[Remainder] Result = ', Result.ToString);
+//  WriteLn('[Remainder] Result = ', Result.ToString);
 
   d:= TBitVector.Create(a.Size);
-  WriteLn('[Remainder] d = ', d.ToString);
+//  WriteLn('[Remainder] d = ', d.ToString);
   bd:= Self.Mul(b, d);
-  WriteLn('[Remainder] b*d = ', bd.ToString);
+//  WriteLn('[Remainder] b*d = ', bd.ToString);
   c:= Self.Add(bd, Result);
-  WriteLn('[Remainder] b*d + r= ', c.ToString);
+//  WriteLn('[Remainder] b*d + r= ', c.ToString);
   EqLit:= Self.EncodeIsEqual(a, c);
 
   SatSolver.BeginConstraint;

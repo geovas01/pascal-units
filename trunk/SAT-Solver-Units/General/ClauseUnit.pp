@@ -5,7 +5,7 @@ unit ClauseUnit;
 interface
 
 uses
-  Classes, SysUtils, GenericCollectionUnit, MyTypes, StreamUnit, gvector;
+  Classes, SysUtils, GenericCollectionUnit, MyTypes, StreamUnit{, gvector};
 
 type
   TGroundBool=(gbFalse= 0, gbUnknown= 1, gbTrue= 2);// TODO: Change the default Values ..
@@ -17,9 +17,9 @@ type
   {TODO: Integer => UInteger}
 
   { TLiteralCollection }
-  //  TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
-  TSpecializeTGenericCollectionForBuiltInDataTLiteral= class(specialize TVector<TLiteral>)
-  end;
+    TSpecializeTGenericCollectionForBuiltInDataTLiteral= specialize TGenericCollectionForBuiltInData<TLiteral>;
+//  TSpecializeTGenericCollectionForBuiltInDataTLiteral= class(specialize TVector<TLiteral>)
+//    end;
 
   TLiteralCollection= class(TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   private
@@ -33,6 +33,7 @@ type
 
     constructor Create(n: Integer; Lit: TLiteral);
     constructor Create;
+    destructor Destroy; override;
 
     function ToXML: AnsiString;
     function ToString: AnsiString; override;
@@ -111,7 +112,7 @@ begin
 
   Count := n;
   for i := 0 to Count - 1 do
-    Items[n];
+    Items[n] := Lit;
 
 end;
 
@@ -119,6 +120,11 @@ constructor TLiteralCollection.Create;
 begin
   inherited Create;
 
+end;
+
+destructor TLiteralCollection.Destroy;
+begin
+  inherited Destroy;
 end;
 
 function TLiteralCollection.ToXML: AnsiString;
@@ -150,8 +156,8 @@ var
   i: Integer;
 
 begin
-  Result:= TLiteralCollection.Create(Self.Count, 3);
-  Result.Count:= Self.Count;
+  Result:= TLiteralCollection.Create;//(Self.Count, GetVariableManager.FalseLiteral);
+  Result.Count := Self.Count;
 
   for i:= 0 to Self.Count- 1 do
     Result.Items[i]:= Self.Items[i];
