@@ -35,7 +35,7 @@ type
 //    AndDicTree, OrDicTree: TClauseDicTree;
 
     function GetSatSolver: TSATSolverInterface; inline;
-
+    procedure CreateTrueVariable;
 
   public
     property TrueVariable: TTseitinVariable read FTrueVariable;
@@ -49,7 +49,6 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure CreateTrueVariable;
     function CreateNewVariable(VariablePolarity: TVariablePolarity= vpNone; Decide: Boolean= True): TTseitinVariable; inline;
 //    function CreateNewVariable(VariablePolarity: TVariablePolarity; Decide: Boolean): TTseitinVariable;
 

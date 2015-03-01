@@ -13,7 +13,7 @@ type
 
   TBaseCircuit= class(TObject)
   private
-    function GetSatSolver: TSATSolverInterface;
+    function GetSatSolver: TSATSolverInterface; inline;
 
   public
     {
@@ -32,7 +32,7 @@ implementation
 
 { TBaseCircuit }
 
-function TBaseCircuit.GetSatSolver: TSATSolverInterface;
+function TBaseCircuit.GetSatSolver: TSATSolverInterface; inline;
 begin
   Result:= SatSolverInterfaceUnit.GetSatSolver;
 end;

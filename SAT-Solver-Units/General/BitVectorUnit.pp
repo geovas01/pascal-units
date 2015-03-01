@@ -120,14 +120,12 @@ begin
   begin
     S:= LiteralToString(Self[i])+ ',';
     Result+= System.Copy(Space, 1, MaxLen- Length(S))+ S;
-
   end;
 
   if Size<> 0 then
   begin
     S:= LiteralToString(Self[Size- 1])+ ',';
     Result+= System.Copy(Space, 1, MaxLen- Length(S))+ S;
-
   end;
 
   Result+= ')';
