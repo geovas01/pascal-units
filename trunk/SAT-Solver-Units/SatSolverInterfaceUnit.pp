@@ -1,7 +1,7 @@
 unit SatSolverInterfaceUnit;
 
 {$mode objfpc}{$H+}
-
+//{$Assertions on}
 interface
 
 uses
@@ -58,7 +58,7 @@ type
     property CNF: TClauseCollection read GetCNF;
 
     procedure AddComment(const Comment: AnsiString); virtual;
-
+    function CStack: TStackOfClauses;
 //    function GenerateNewVariable(VariablePolrity: TVariablePolarity= vpNone; Decide: Boolean= True): Integer; virtual; abstract;
     function GenerateNewVariable(VariablePolrity: TVariablePolarity; Decide: Boolean): Integer; virtual; abstract;
     function GetValue (v: Integer): TGroundBool; virtual;
@@ -310,7 +310,17 @@ var
   val: TGroundBool;
   HasValue: Boolean;
 begin
-  if TopConstraint.Count= 2 then
+  if TopConstraint.Count = 0 then
+  begin
+    Result := GetVariableManager.FalseLiteral;
+    AbortConstraint;
+  end
+  else if TopConstraint.Count = 1 then
+  begin
+    Result := TopConstraint[0];
+    AbortConstraint;
+  end
+  else if TopConstraint.Count= 2 then
   begin
     HasValue := True;
     if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// False xor x => x
@@ -372,6 +382,11 @@ end;
 procedure TSATSolverInterface.AddComment(const Comment: AnsiString);
 begin
 
+end;
+
+function TSATSolverInterface.CStack: TStackOfClauses;
+begin
+  Result := FClausesStack;
 end;
 
 function TSATSolverInterface.BeginConstraint: TClause;
@@ -852,8 +867,8 @@ end;
 
 destructor TSATSolverInterface.Destroy;
 begin
+  Assert(Stack.Count = 0);
   FClausesStack.Free;
-  TopConstraint.Free;
 
   inherited Destroy;
 

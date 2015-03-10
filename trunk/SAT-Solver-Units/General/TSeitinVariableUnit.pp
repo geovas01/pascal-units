@@ -358,7 +358,7 @@ begin
   if not SimulationMode then
   begin
     Temp:= GetSatSolver.GenerateNewVariable(VariablePolarity, Decide and DecisionForNewVariable);
-    Assert(FLastUsedCNFIndex= Temp);
+//    Assert(FLastUsedCNFIndex = Temp);
 
   end;
 
