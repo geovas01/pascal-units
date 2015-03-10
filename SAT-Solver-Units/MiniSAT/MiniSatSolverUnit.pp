@@ -142,7 +142,6 @@ begin
         Temp:= cAddLiteralToClause (FSolverID, AClause.Items [i]);
 //        Write (LiteralToString (AClause.Item [i]), ' ');
 //        ActiveClause+= LiteralToString (AClause.Item [i])+ ' ';
-        Assert (Temp= Count);
 
       end;
       gbFalse:;

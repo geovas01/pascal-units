@@ -64,13 +64,13 @@ end;
 
 function TMiniSatSolverInterface.GetValue(v: Integer): TGroundBool;
 begin
-  Result:= MiniSatSolver.GetValue(v);
+  Result := MiniSatSolver.GetValue(v);
 
 end;
 
 function TMiniSatSolverInterface.GetValueInModel(v: Integer): TGroundBool;
 begin
-  Result:= MiniSatSolver.GetValueInModel(v);
+  Result := MiniSatSolver.GetValueInModel(v);
 
 end;
 
@@ -94,7 +94,7 @@ end;
 
 function TMiniSatSolverInterface.GenerateNewVariable(VariablePolarity: TVariablePolarity; Decide: Boolean): Integer;
 begin
-  FVarCount:= MiniSatSolver.GetNewVar(VariablePolarity, Decide);
+  FVarCount := MiniSatSolver.GetNewVar(VariablePolarity, Decide);
   Exit(FVarCount);
 
 end;
@@ -124,7 +124,7 @@ constructor TMiniSatSolverInterface.Create;
 begin
   inherited Create;
 
-  MiniSatSolver:= TMiniSatSolver.Create;
+  MiniSatSolver := TMiniSatSolver.Create;
 
 end;
 

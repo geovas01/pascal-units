@@ -72,16 +72,17 @@ end;
 
 function TBinaryArithmeticCircuit.Incr(const a: TBitVector): TBitVector;
 var
-  Carry: TBitVector;
+  Carry, One: TBitVector;
   i: Integer;
   ai: TLiteral;
 
 begin
   assert(False);
-  assert(1<= a.Count, 'a.Count must be greater than 1.');
+  assert(1 <= a.Count, 'a.Count must be greater than 1.');
+  Exit(nil);
 
-  Carry:= TBitVector.Create(a.Count);
-  Result:= TBitVector.Create(a.Count);
+  Carry := TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
+  Result := TBitVector.Create(a.Count, GetVariableManager.FalseLiteral);
 
   Carry[0] :=  a[0];
 
@@ -95,9 +96,9 @@ begin
 
   end;
 
-  for i:= 1 to a.Count - 1 do
+  for i := 1 to a.Count - 1 do
   begin
-    ai:= a[i];
+    ai := a[i];
 
     SatSolver.BeginConstraint;
     SatSolver.AddLiteral(ai);
@@ -149,14 +150,14 @@ begin
   for i := 1 to MaxLen - 1 do
   begin
     if i< a.Count then
-      ai:= a[i]
+      ai := a[i]
     else
-      ai:= GetVariableManager.FalseLiteral;
+      ai := GetVariableManager.FalseLiteral;
 
     if i< b.Count then
-      bi:= b[i]
+      bi := b[i]
     else
-      bi:= GetVariableManager.FalseLiteral;
+      bi := GetVariableManager.FalseLiteral;
 
     SatSolver.BeginConstraint;
     SatSolver.AddLiteral(ai);
@@ -231,19 +232,19 @@ var
 begin
   Assert((1<= a.Count) and(1<= b.Count));
 
-  Mat:= TBitVectorList.Create;
+  Mat := TBitVectorList.Create;
 
-  for i:= 0 to a.Count - 1 do
+  for i := 0 to a.Count - 1 do
     Mat.PushBack(TBitVector.Create(a.Count + b.Count, GetVariableManager.FalseLiteral));
 
-  for i:= 0 to a.Count- 1 do
+  for i := 0 to a.Count- 1 do
   begin
    // Mat[i][k], k< i, False
 
    // Mat[i][i + j] <=> a[i] and b[j]
-    for j:= 0 to b.Count- 1 do
+    for j := 0 to b.Count- 1 do
     begin
-      //Mat[i][i+ j]:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+      //Mat[i][i+ j] := CreateLiteral(GetVariableManager.CreateNewVariable, False);
       SatSolver.BeginConstraint;
       SatSolver.AddLiteral(a[i]);
       SatSolver.AddLiteral(b[j]);
@@ -254,7 +255,7 @@ begin
   if StrToInt(GetRunTimeParameterManager.ValueByName['--Verbosity']) and
    (1 shl VerbBinArithmCircuit)<> 0 then
   begin
-    for i:= 0 to Mat.Count- 1 do
+    for i := 0 to Mat.Count- 1 do
       WriteLn('[MUL]: Mat[', i, ']= ', Mat[i].ToString);
     WriteLn('[MUL]');
   end;
@@ -335,12 +336,12 @@ begin//a< b
   WriteLn('[TBinaryArithmeticCircuit.EncodeIsLessThan] This function can be improved!');
   Assert(a.Count = b.Count);
 
-  aIsLessThanB:= TBitVector.Create(a.Count);
+  aIsLessThanB := TBitVector.Create(a.Count);
 
-  aIsEqbTillNow:= TBitVector.Create(a.Count);
+  aIsEqbTillNow := TBitVector.Create(a.Count);
 
-  aiIsEqbi:= TBitVector.Create(a.Count);
-  aiIsLbi:= TBitVector.Create(a.Count);
+  aiIsEqbi := TBitVector.Create(a.Count);
+  aiIsLbi := TBitVector.Create(a.Count);
 
   if(GetRunTimeParameterManager.Verbosity and(1 shl VerbBinArithmCircuit))<> 0 then
   begin
@@ -354,7 +355,7 @@ begin//a< b
 
   aIsEqbTillNow.Add(GetVariableManager.TrueLiteral);
 
-  for i:= a.Count- 1 downto 0 do
+  for i := a.Count- 1 downto 0 do
   begin
     GetSatSolver.BeginConstraint;
 
@@ -371,7 +372,7 @@ begin//a< b
 
   end;
 
-  for i:= a.Count- 1 downto 0 do
+  for i := a.Count- 1 downto 0 do
   begin
     GetSatSolver.BeginConstraint;
 
@@ -386,10 +387,10 @@ begin//a< b
 
   end;
 
-  Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
   GetSatSolver.BeginConstraint;
 
-  for i:= a.Count- 1 downto 0 do
+  for i := a.Count- 1 downto 0 do
     GetSatSolver.AddLiteral(aIsLessThanb[i]);
   GetSatSolver.SubmitOrGate(Result);
 
@@ -401,14 +402,14 @@ var
   SameithBit: TLiteral;
 
 begin
-  Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
 
   GetSatSolver.BeginConstraint;
 
 //  WriteLn('[EncodeIsEqual] a = ', a.ToString);
 //  WriteLn('[EncodeIsEqual] b = ', b.ToString);
 
-  for i:= Min(a.Count- 1, b.Count- 1)+ 1 to
+  for i := Min(a.Count- 1, b.Count- 1)+ 1 to
                     Max(a.Count- 1, b.Count- 1) do
   begin
     if i < a.Count then
@@ -417,14 +418,14 @@ begin
       GetSatSolver.AddLiteral(NegateLiteral(b[i]));
   end;
 
-  for i:= 0 to Min(a.Count- 1, b.Count- 1) do
+  for i := 0 to Min(a.Count- 1, b.Count- 1) do
   begin
     GetSatSolver.BeginConstraint;
 
     GetSatSolver.AddLiteral(a[i]);
     GetSatSolver.AddLiteral(b[i]);
 
-    SameithBit:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
+    SameithBit := CreateLiteral(GetVariableManager.CreateNewVariable, False);
     GetSatSolver.SubmitEquivGate(SameithBit);//aiAndbi <=> ai <-> bi;
 
 //    WriteLn(GetSatSolver.TopConstraint.ToString);
@@ -437,7 +438,7 @@ begin
   if ParameterManagerUnit.GetRunTimeParameterManager.
     ValueByName['--AddExtraClausesForEq'] = UpperCase('True') then
   begin
-    for i:= 0 to Min(a.Count- 1, b.Count- 1) do
+    for i := 0 to Min(a.Count- 1, b.Count- 1) do
     begin
 // ~ai, bi, ~r : ai &~bi => ~r
       GetSatSolver.BeginConstraint;
@@ -464,8 +465,8 @@ var
   AndResult: TBigInt;
 
 begin
-  P2:= BigIntFactory.GetNewMember.SetValue(2);
-  BitCount:= 1;
+  P2 := BigIntFactory.GetNewMember.SetValue(2);
+  BitCount := 1;
 
   while P2.CompareWith(n)<= 0 do
   begin
@@ -474,18 +475,18 @@ begin
   end;
   BigIntFactory.ReleaseMemeber(P2);
   if BitCount < nbits then
-    BitCount:= nbits;
+    BitCount := nbits;
 
   if (GetRunTimeParameterManager.Verbosity and
     (1 shl VerbBinArithmCircuit)) <> 0 then
     WriteLn(BitCount, ' ', n.ToString, ' ', P2.ToString);
 
-  a.Count:= BitCount;
-  for i:= 0 to BitCount- 1 do
+  a.Count := BitCount;
+  for i := 0 to BitCount- 1 do
     if n.CheckBit(i) then
-      a[i]:= GetVariableManager.TrueLiteral
+      a[i] := GetVariableManager.TrueLiteral
     else
-      a[i]:= GetVariableManager.FalseLiteral;
+      a[i] := GetVariableManager.FalseLiteral;
 
   Result := GetVariableManager.TrueLiteral;
 end;
