@@ -11,7 +11,8 @@ type
 
   { TBitVector }
 
-  TBitVector= class(specialize TVector<TLiteral>)
+  TSpecializeTVectorTLiteral = specialize TVector<TLiteral>;
+  TBitVector= class(TSpecializeTVectorTLiteral)
   private
     function GetBit(Index: Integer): TLiteral; inline;
     function GetCount: Integer; inline;
