@@ -35,35 +35,41 @@ type
     {
     Generate an encoding for constraint a * b = c.
     }
-    function EncodeMul(const a, b, c: TBitVector): Tliteral; virtual;
+    function EncodeMul(const a, b, c: TBitVector; Level: Integer): Tliteral; virtual;
 
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that the returning literal is true iff a< b.
+       SatSolver) such that the returning literal is true iff a< b.
     }
     function EncodeIsLessThan(const a, b: TBitVector): TLiteral; virtual; abstract;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that the returning literal is true iff a= b.
+       SatSolver) such that the returning literal is true iff a= b.
     }
-    function EncodeIsEqual(const a, b: TBitVector): TLiteral; virtual; abstract;
+    function EncodeIsEqual(const a, b: TBitVector): TLiteral; virtual;
+    {
+      Generates appropriate set clauses(and submits each of them to
+      SatSolver) such that the returning literal is true iff a= b.
+
+      }
+    procedure SubmitIsEqual(const a, b: TBitVector; l: TLiteral); virtual; abstract;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that the returning literal is true iff a< b.
+       SatSolver) such that the returning literal is true iff a< b.
       The implememtation provided by the base class uses the following observation:
       a<= b iff a< b or a= b.
     }
     function EncodeIsLessThanOrEq(const a, b: TBitVector): TLiteral; virtual;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that the returning literal is true iff a> b.
+       SatSolver) such that the returning literal is true iff a> b.
       The implememtation provided by the base class uses the following observation:
       a> b iff not(a<= b).
     }
     function EncodeIsGreaterThan(const a, b: TBitVector): TLiteral; virtual;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that the returning literal is true iff a< b.
+       SatSolver) such that the returning literal is true iff a< b.
       The implememtation provided by the base class uses the following observation:
       a>= b iff not(a< b).
     }
@@ -72,38 +78,44 @@ type
   protected
     {
     Generates appropriate set clauses(and submits each of them to
-      SatSolver such that
+      SatSolver) such that
      we have the returned BitVector is the result of a+ 1
     }
     function Incr(const a: TBitVector): TBitVector; virtual; abstract;
     {
     Generates appropriate set clauses(and submits each of them to
-      SatSolver such that
+      SatSolver) such that
+     we have the returned BitVector is the result of a - 1
+    }
+    function Decr(const a: TBitVector): TBitVector; virtual; abstract;
+    {
+    Generates appropriate set clauses(and submits each of them to
+      SatSolver) such that
      we have the returned BitVector is the result of a+ b
     }
     function Add(const a, b: TBitVector): TBitVector; virtual; abstract;
     {
     Generates appropriate set clauses(and submits each of them to
-      SatSolver such that
+      SatSolver) such that
      we have the returned BitVector is the result of a+ b
     }
     function Sub(const a, b: TBitVector): TBitVector; virtual;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that
+       SatSolver) such that
      we have the returned BitVector is the result of a+ b
     }
     function Mul(const a, b: TBitVector): TBitVector; virtual; abstract;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that
+       the SatSolver) such that
      the returned BitVector is the result of a div b.
     }
 
     function Divide(const a, b: TBitVector): TBitVector; virtual;
     {
     Generates appropriate set clauses(and submits each of them to
-       SatSolver such that
+       the SatSolver) such that
      the returned BitVector is the result of a mod b.
     }
 
@@ -148,7 +160,8 @@ begin
   cPrime.Free;
 end;
 
-function TBaseArithmeticCircuit.EncodeMul(const a, b, c: TBitVector): Tliteral;
+function TBaseArithmeticCircuit.EncodeMul(const a, b, c: TBitVector;
+  Level: Integer): Tliteral;
 var
   cPrime: TBitVector;
 
@@ -159,6 +172,12 @@ begin
   Result := EncodeIsEqual(cPrime, c);
 
   cPrime.Free;
+end;
+
+function TBaseArithmeticCircuit.EncodeIsEqual(const a, b: TBitVector): TLiteral;
+begin
+  Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+  SubmitIsEqual(a, b, Result);
 end;
 
 function TBaseArithmeticCircuit.Remainder(const a, b: TBitVector): TBitVector;

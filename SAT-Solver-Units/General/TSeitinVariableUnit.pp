@@ -987,7 +987,7 @@ end;
 
 procedure Initialize;
 begin
-  VariableManager:= TVariableManager.Create;
+  VariableManager := TVariableManager.Create;
 
 end;
 

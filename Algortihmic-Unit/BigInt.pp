@@ -1128,21 +1128,21 @@ begin
   Borrow := 0;
   i := FLength- 1;
 
-  while i>= 0 do
+  while i >= 0 do
   begin
 
-    if i= FLength- 1 then
+    if i= FLength - 1 then
     begin
 
-      if FDigits^[i]< 2 then
+      if FDigits^[i] < 2 then
       begin
-        Result.Length := FLength- 1;
-        j := FLength- 2;
+        Result.Length := FLength - 1;
+        j := FLength - 2;
         Borrow := FDigits^[i];
-        if 1<= i then
-          Borrow := Borrow* 10+ FDigits^[i- 1];
+        if 1 <= i then
+          Borrow := Borrow * 10 + FDigits^[i - 1];
 
-        if 0<= j then
+        if 0 <= j then
           Result.FDigits^[j] := Borrow div 2;
 
         Borrow := Borrow mod 2;

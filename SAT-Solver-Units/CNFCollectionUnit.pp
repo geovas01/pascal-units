@@ -70,9 +70,9 @@ begin
   for i := 0 to AllClauses.Count - 1 do
   begin
     cl := AllClauses.Item[i];
-    //cl.Free;
+    cl.Free;
   end;
-  // AllClauses.Clear;
+  AllClauses.Clear;
   AllClauses.Free;
   AllComments.Free;
   CommentLineIndices.Free;

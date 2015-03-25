@@ -23,9 +23,9 @@ type
 
   TLiteralCollection= class(TSpecializeTGenericCollectionForBuiltInDataTLiteral)
   private
-    function GetCount: Integer;
-    function GetMaxVar: TVariable;
-    procedure SetCount(AValue: Integer);
+    function GetCount: Integer; inline;
+    function GetMaxVar: TVariable; inline;
+    procedure SetCount(AValue: Integer); inline;
 
   public
     property MaxVar: TVariable read GetMaxVar;

@@ -268,7 +268,12 @@ begin
 end;
 
 function TSATSolverInterface.GenerateAndGate: TLiteral;
+var
+  i: Integer;
+  ActiveClause: TClause;
+
 begin
+
   if 0 < NoOfLiteralInTopConstraint[gbFalse] then
   begin
     Result := GetVariableManager.FalseLiteral;
@@ -281,13 +286,46 @@ begin
   end
   else
   begin
-    Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
-    SubmitAndGate(Result);
-  end;
+    if TopConstraint.Count = 0 then
+    begin
+      Result := GetVariableManager.TrueLiteral;
+      AbortConstraint;
+    end
+    else if TopConstraint.Count = 1 then
+    begin
+      Result := TopConstraint[0];
+      AbortConstraint;
+    end
+    else
+    begin
+      if (NoOfLiteralInTopConstraint[gbTrue] = 0) and
+         (NoOfLiteralInTopConstraint[gbFalse] = 0) then
+      begin
+        Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+        Self.SubmitAndGate(Result);
+      end
+      else
+      begin
+        ActiveClause := TopConstraint;
+        BeginConstraint;
+        for i := 0 to ActiveClause.Count - 1 do
+          if GetLiteralValue(ActiveClause[i]) = gbUnknown then
+            AddLiteral(ActiveClause[i])
+          else
+            assert(GetLiteralValue(ActiveClause[i]) = gbTrue);
 
+        Result := Self.GenerateAndGate;
+        AbortConstraint;
+      end;
+    end;
+  end;
 end;
 
 function TSATSolverInterface.GenerateOrGate: TLiteral;
+var
+  ActiveClause: TClause;
+  i: Integer;
+
 begin
   if 0 < NoOfLiteralInTopConstraint[gbTrue] then
     Exit(GetVariableManager.TrueLiteral)
@@ -295,11 +333,39 @@ begin
     Exit(GetVariableManager.FalseLiteral)
   else
   begin
-    Result:= CreateLiteral(GetVariableManager.CreateNewVariable, False);
-    SubmitOrGate(Result);
+    if TopConstraint.Count = 0 then
+    begin
+      Result := GetVariableManager.TrueLiteral;
+      AbortConstraint;
+    end
+    else if TopConstraint.Count = 1 then
+    begin
+      Result := TopConstraint[0];
+      AbortConstraint;
+    end
+    else
+    begin
+      if (NoOfLiteralInTopConstraint[gbTrue] = 0) and
+         (NoOfLiteralInTopConstraint[gbFalse] = 0) then
+      begin
+        Result := CreateLiteral(GetVariableManager.CreateNewVariable, False);
+        Self.SubmitOrGate(Result);
+      end
+      else
+      begin
+        ActiveClause := TopConstraint;
+        BeginConstraint;
+        for i := 0 to ActiveClause.Count - 1 do
+          if GetLiteralValue(ActiveClause[i]) = gbUnknown then
+            AddLiteral(ActiveClause[i])
+          else
+            assert(GetLiteralValue(ActiveClause[i]) = gbTrue);
 
+        Result := Self.GenerateOrGate;
+        AbortConstraint;
+      end;
+    end;
   end;
-
 end;
 
 function TSATSolverInterface.GenerateXOrGate: TLiteral;
@@ -325,11 +391,11 @@ begin
     HasValue := True;
     if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// False xor x => x
       Result := TopConstraint.Items[1]
-    else if GetLiteralValue(TopConstraint.Items[0])= gbFalse then// True xor x => ~x
+    else if GetLiteralValue(TopConstraint.Items[0])= gbTrue then// True xor x => ~x
       Result := NegateLiteral(TopConstraint.Items[1])
     else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// False xor x => x
       Result := TopConstraint.Items[0]
-    else if GetLiteralValue(TopConstraint.Items[1])= gbFalse then// True xor x => ~x
+    else if GetLiteralValue(TopConstraint.Items[1])= gbTrue then// True xor x => ~x
       Result := NegateLiteral(TopConstraint.Items[0])
     else
     begin
@@ -411,10 +477,10 @@ begin
   begin
     Pair:= Stack.Pop;
 
-//    Pair.First.Free;
+    Pair.First.Free;
     _FTopConstraint:= Pair.First;
     _FTopConstraint := nil;
-//    Pair.Free;
+    Pair.Free;
 
   end
   else
@@ -867,6 +933,9 @@ end;
 
 destructor TSATSolverInterface.Destroy;
 begin
+  if CStack.Count <> 0 then
+    WriteLn('TSATSolverInterface.Destroy: CStack.Count =', CStack.Count);
+
   Assert(Stack.Count = 0);
   FClausesStack.Free;
 
