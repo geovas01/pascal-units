@@ -92,7 +92,7 @@ begin
     WriteLn('[GenerateCNF] c = ', c.ToString);
   end;
 
-  MulEncOutputLit := ArithmeticCircuit.EncodeMul(a, b, c);
+  MulEncOutputLit := ArithmeticCircuit.EncodeMul(a, b, c, 0);
 
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(MulEncOutputLit);
 
@@ -179,7 +179,7 @@ begin
     WriteLn('[GenerateCNF] c = ', c.ToString);
   end;
 
-  MulEncOutputLit := ArithmeticCircuit.EncodeMul(a, b, c);
+  MulEncOutputLit := ArithmeticCircuit.EncodeMul(a, b, c, 0);
 
   SatSolverInterfaceUnit.GetSatSolver.AddLiteral(MulEncOutputLit);
 

@@ -13,7 +13,7 @@ uses
   BinaryArithmeticCircuitUnit, BaseArithmeticCircuitUnit, BaseCircuitUnit,
 GenericCollectionUnit, StreamUnit, PBConstraintUnit,
   AbstractPBModEncoderUnit, RSAFactoringUsingSATUnit,
-BinaryEncodingBasedRSAFactoringUnit, FactoringUsingRSAModulosUnit,
+FactoringUsingRSAModulosUnit,
 BinaryModuloRSAFactorizerUnit;
 
 procedure Initialize;

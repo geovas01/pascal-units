@@ -11,8 +11,8 @@ uses
   FactoringUsingSATUnit, AbstractSolverUnit, CNFCollectionUnit,
   TSeitinVariableUnit, BinaryEncodingBasedFactoringUnit, BitVectorUnit,
   BinaryArithmeticCircuitUnit, BaseArithmeticCircuitUnit, BaseCircuitUnit,
-ModuloBasedFactoringUnit, GenericCollectionUnit, StreamUnit, PBConstraintUnit,
-  AbstractPBModEncoderUnit;
+  ModuloBasedFactoringUnit, GenericCollectionUnit, StreamUnit,
+  GenericFactoryUnit, PBConstraintUnit, AbstractPBModEncoderUnit;
 
 procedure Initialize;
 begin
@@ -74,6 +74,9 @@ begin
 
     BigIntFactory.ReleaseMemeber(n);
 
+    a.Free;
+    b.Free;
+
   end
   else
   begin
@@ -88,6 +91,11 @@ begin
     SatSolverInterfaceUnit.GetSatSolver.BeginConstraint;
     SatSolverInterfaceUnit.GetSatSolver.AddLiteral(FactoringUsingSATUnit.GetActiveFactorizer.GenerateCNF(a, b, n));
     SatSolverInterfaceUnit.GetSatSolver.SubmitClause;
+
+    BigIntFactory.ReleaseMemeber(n);
+
+    a.Free;
+    b.Free;
 
     BigIntFactory.ReleaseMemeber(n);
 
